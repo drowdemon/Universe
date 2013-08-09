@@ -4,7 +4,7 @@
 #include "disease.h"
 #include "dataStructures.h"
 
-unit::unit(int p, int i, short s, short e, short str, bool g, short intel, unsigned char a, short px, short py, short pspeed, short los, short immun)
+unit::unit(int p, int i, short s, short e, short str, bool g, short intel, unsigned char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec)
 {
     player=p;
     index=i;
@@ -20,6 +20,8 @@ unit::unit(int p, int i, short s, short e, short str, bool g, short intel, unsig
     lineOfSight=los;
     immunity=immun;
     health=MAXHEALTH;
+    healthDiseaseInc=hdi;
+    woundEnergyCost=wec;
 }
 bool unit::nextFrame()
 {
@@ -183,7 +185,7 @@ void unit::infect()
         {
             if(allDiseases[i].first!=2) //can catch this disease at random
             {
-                if(rand()%10000<allDiseases[i].firstChance-immunity) //got sick
+                if(rand()%10000<allDiseases[i].firstChance-immunity+((MAXHEALTH-health)*healthDiseaseInc)) //got sick
                 {
                     if(allDiseases[i].first==1)
                     {
@@ -210,7 +212,7 @@ void unit::infect()
                     h--;
                 }
             }
-            if(rand()%10000<allDiseases[diseased[h]].curability+immunity)
+            if(rand()%10000<allDiseases[diseased[h]].curability+immunity-((MAXHEALTH-health)*healthDiseaseInc))
             {
                 diseased.erase(diseased.begin()+h); //cured
                 h--;
@@ -267,7 +269,7 @@ void unit::infect()
                         {
                             if(map[i][j].x!=x || map[i][j].y!=y) //different unit
                             {
-                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity)
+                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity+((MAXHEALTH-allUnits[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
                                 {
                                     bool good=true;
                                     for(int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
@@ -300,6 +302,7 @@ void unit::livingCosts()
 {
     energy-=LIVINGENERGY;
     sleep-=1;
+    energy-=(MAXHEALTH-health)*woundEnergyCost;
 }
 bool unit::checkLive()
 {

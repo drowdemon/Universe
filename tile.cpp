@@ -1,6 +1,7 @@
 #include "tile.h"
 #include "globals.h"
 #include <cmath>
+#include <cstdlib>
 
 tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, unsigned char sw, short px, short py, short up, short ui)
 {
@@ -123,7 +124,7 @@ void tile::spreadDisease()
                 {
                     if(map[i][j].uniton)
                     {
-                        if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity)
+                        if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity+((MAXHEALTH-allUnits[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
                         {
                             bool good=true;
                             for(int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)

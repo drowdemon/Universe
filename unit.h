@@ -23,15 +23,16 @@ public:
     short speed; //how often movement occurs. Can't be 1:1 with ticks, since vehicles have to be faster
     short lineOfSight; //how far it can see. Elevation increases? Buildings/obstacles block sight
     short immunity; //changes with age. small->large->small. Out of 10,000 //genetic
-    short health; //starts at max. If wounded, decreased.
     short healthDiseaseInc; //how much the chances of disease increase per health lost. //genetic
+    short woundEnergyCost; //how much energy a losing health consumes, per health lost. // genetic
 
     //below variables are not passed to constructor
     short moveToX;
     short moveToY;
     vector<diseaseInfo> diseased; //info about all of the diseases this unit has, if any
+    short health; //starts at max. If wounded, decreased.
 
-    unit(int p, int i, short s, short e, short str, bool g, short intel, unsigned char a, short px, short py, short pspeed, short los, short immun);
+    unit(int p, int i, short s, short e, short str, bool g, short intel, unsigned char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec);
     bool nextFrame();
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
     void infect();
