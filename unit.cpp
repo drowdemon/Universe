@@ -29,12 +29,35 @@ bool unit::nextFrame()
     if(!checkLive())
         return false;
     move();
+    for(unsigned int i=0; i<allMinds[player].size(); i++)
+        seehive(i);
+    seeunit();
     if(!checkLive())
+    {
+        unseeunit();
+        for(unsigned int i=0; i<allMinds[player].size(); i++)
+                unseehive(i);
         return false;
+    }
     infect();
     diseaseEffects();
     if(!checkLive())
+    {
+        unseeunit();
+        for(unsigned int i=0; i<allMinds[player].size(); i++)
+                unseehive(i);
         return false;
+    }
+    act(); //AI
+    if(!checkLive())
+    {
+        unseeunit();    
+        for(unsigned int i=0; i<allMinds[player].size(); i++)
+                unseehive(i);
+        return false;
+    }
+    unseeunit();
+    return true;
 }
 void unit::move()
 {
@@ -50,6 +73,8 @@ void unit::move()
                 {   
                     if(map[y][x].height-map[y+1][x+1].height>1) //possibly painful height differential
                         health-=(int)((double)(map[y][x].height-map[y+1][x+1].height-1)*(double)FALLINGMULTIPLIER);
+                    for(unsigned int i=0; i<allMinds[player].size(); i++)
+                        unseehive(i);
                     x++;
                     y++;
                     energy-=MOVEMENTENERGY;
@@ -66,6 +91,8 @@ void unit::move()
                 {   
                     if(map[y][x].height-map[y][x+1].height>1) //possibly painful height differential
                         health-=(int)((double)(map[y][x].height-map[y][x+1].height-1)*(double)FALLINGMULTIPLIER);
+                    for(unsigned int i=0; i<allMinds[player].size(); i++)
+                        unseehive(i);
                     x++;
                     energy-=MOVEMENTENERGY;
                 }
@@ -81,6 +108,8 @@ void unit::move()
                 {   
                     if(map[y][x].height-map[y-1][x+1].height>1) //possibly painful height differential
                         health-=(int)((double)(map[y][x].height-map[y-1][x+1].height-1)*(double)FALLINGMULTIPLIER);
+                    for(unsigned int i=0; i<allMinds[player].size(); i++)
+                        unseehive(i);
                     x++;
                     y--;
                     energy-=MOVEMENTENERGY;
@@ -100,6 +129,8 @@ void unit::move()
                 {   
                     if(map[y][x].height-map[y+1][x].height>1) //possibly painful height differential
                         health-=(int)((double)(map[y][x].height-map[y+1][x].height-1)*(double)FALLINGMULTIPLIER);
+                    for(unsigned int i=0; i<allMinds[player].size(); i++)
+                        unseehive(i);
                     y++;
                     energy-=MOVEMENTENERGY;
                 }
@@ -115,6 +146,8 @@ void unit::move()
                 {   
                     if(map[y][x].height-map[y-1][x].height>1) //possibly painful height differential
                         health-=(int)((double)(map[y][x].height-map[y-1][x].height-1)*(double)FALLINGMULTIPLIER);
+                    for(unsigned int i=0; i<allMinds[player].size(); i++)
+                        unseehive(i);
                     y--;
                     energy-=MOVEMENTENERGY;
                 }
@@ -133,6 +166,8 @@ void unit::move()
                 {   
                     if(map[y][x].height-map[y+1][x-1].height>1) //possibly painful height differential
                         health-=(int)((double)(map[y][x].height-map[y+1][x-1].height-1)*(double)FALLINGMULTIPLIER);
+                    for(unsigned int i=0; i<allMinds[player].size(); i++)
+                        unseehive(i);
                     x--;
                     y++;
                     energy-=MOVEMENTENERGY;
@@ -149,6 +184,8 @@ void unit::move()
                 {   
                     if(map[y][x].height-map[y][x-1].height>1) //possibly painful height differential
                         health-=(int)((double)(map[y][x].height-map[y][x-1].height-1)*(double)FALLINGMULTIPLIER);
+                    for(unsigned int i=0; i<allMinds[player].size(); i++)
+                        unseehive(i);
                     x--;
                     energy-=MOVEMENTENERGY;
                 }
@@ -164,6 +201,8 @@ void unit::move()
                 {   
                     if(map[y][x].height-map[y-1][x-1].height>1) //possibly painful height differential
                         health-=(int)((double)(map[y][x].height-map[y-1][x-1].height-1)*(double)FALLINGMULTIPLIER);
+                    for(unsigned int i=0; i<allMinds[player].size(); i++)
+                        unseehive(i);
                     x--;
                     y--;
                     energy-=MOVEMENTENERGY;
@@ -180,11 +219,11 @@ void unit::move()
 void unit::infect()
 {
     int immunityloss=0;
-    for(int i=0; i<diseased.size(); i++)
+    for(unsigned int i=0; i<diseased.size(); i++)
         immunityloss+=allDiseases[diseased[i]].immunCost;
     if(frames%INFECTRATE==0)
     {
-        for(int i=0; i<allDiseases.size(); i++) //try to auto-infect
+        for(unsigned int i=0; i<allDiseases.size(); i++) //try to auto-infect
         {
             if(allDiseases[i].first!=2) //can catch this disease at random
             {
@@ -201,7 +240,7 @@ void unit::infect()
                 }
             }
         }
-        for(int h=0; h<diseased.size(); h++) //attempt to infect others
+        for(unsigned int h=0; h<diseased.size(); h++) //attempt to infect others
         {
             diseased[h].time++;
             if(diseased[h].time%allDiseases[diseased[h]].multiplierRate==0)
@@ -234,7 +273,7 @@ void unit::infect()
                             if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance)
                             {
                                 bool good=true;
-                                for(int d=0; d<map[i][j].disease.size(); d++)
+                                for(unsigned int d=0; d<map[i][j].disease.size(); d++)
                                 {
                                     if(map[i][j].disease[d]==diseased[h])
                                     {
@@ -255,7 +294,7 @@ void unit::infect()
                             if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance)
                             {
                                 bool good=true;
-                                for(int d=0; d<map[i][j].disease.size(); d++)
+                                for(unsigned int d=0; d<map[i][j].disease.size(); d++)
                                 {
                                     if(map[i][j].disease[d]==diseased[h])
                                     {
@@ -276,12 +315,12 @@ void unit::infect()
                             if(map[i][j].x!=x || map[i][j].y!=y) //different unit
                             {
                                 int tempimmunloss=0;
-                                for(int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                                for(unsigned int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
                                     tempimmunloss+=allDiseases[allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]].immunCost;
                                 if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-tempimmunloss>0)?(allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-tempimmunloss):0)+((MAXHEALTH-allUnits[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
                                 {
                                     bool good=true;
-                                    for(int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                                    for(unsigned int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
                                     {
                                         if(diseased[h]==allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]) //you actually managed to get sick with the same disease TWICE! Good for you!
                                         {
@@ -309,7 +348,7 @@ void unit::infect()
 }
 void unit::diseaseEffects()
 {
-    for(int i=0; i<diseased.size(); i++)
+    for(unsigned int i=0; i<diseased.size(); i++)
         energy-=allDiseases[diseased[i]].energyCost;
 }
 void unit::livingCosts()
@@ -345,4 +384,65 @@ bool unit::checkLive()
     if(hunger>=MAXHUNGER) 
         return false; //death by starvation
     return true;
+}
+void unit::seeunit()
+{
+    for(int i=0; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
+    {
+        for(int j=-i; j<=i; j++)
+        {
+            mapseenunit[player][y+i][x+j].b=true;
+            mapseenunit[player][y-i][x+j].b=true;
+            mapseenunit[player][y+j][x+i].b=true;
+            mapseenunit[player][y+j][x-i].b=true;
+        }
+    }
+}
+void unit::unseeunit()
+{
+    for(int i=0; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
+    {
+        for(int j=-i; j<=i; j++)
+        {
+            mapseenunit[player][y+i][x+j].b=false;
+            mapseenunit[player][y-i][x+j].b=false;
+            mapseenunit[player][y+j][x+i].b=false;
+            mapseenunit[player][y+j][x-i].b=false;
+        }
+    }
+}
+void unit::seehive(int hiveindex)
+{
+    if(abs(allMinds[player][hiveindex].centerx-x)<allMinds[player][hiveindex].range && abs(allMinds[player][hiveindex].centery-y)<allMinds[player][hiveindex].range) //in range of hive
+    {
+        for(int i=0; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
+        {
+            for(int j=-i; j<=i; j++)
+            {
+                mapseenhive[player][y+i][x+j].b=true;
+                mapseenhive[player][y-i][x+j].b=true;
+                mapseenhive[player][y+j][x+i].b=true;
+                mapseenhive[player][y+j][x-i].b=true;
+            }
+        }
+    }
+}
+void unit::unseehive(int hiveindex)
+{
+    if(abs(allMinds[player][hiveindex].centerx-x)<allMinds[player][hiveindex].range && abs(allMinds[player][hiveindex].centery-y)<allMinds[player][hiveindex].range) //in range of hive
+    {
+        for(int i=0; i<=lineOfSight; i++) //hides map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
+        {
+            for(int j=-i; j<=i; j++) //now its in a square because it was before, and since there are no repeats its the same amount of work
+            {
+                mapseenhive[player][y+i][x+j].b=false;
+                mapseenhive[player][y-i][x+j].b=false;
+                mapseenhive[player][y+j][x+i].b=false;
+                mapseenhive[player][y+j][x-i].b=false;
+            }
+        }
+    }
+}
+void unit::act()
+{
 }

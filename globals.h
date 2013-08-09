@@ -5,6 +5,8 @@
 #include "tile.h"
 #include "unit.h"
 #include "disease.h"
+#include "metabool.h"
+#include "hivemind.h"
 
 using namespace std;
 
@@ -17,11 +19,15 @@ using namespace std;
 #define FALLINGMULTIPLIER 0.5 //when you fall, the distance fallen * this = damage done
 #define MAXHUNGER 1000
 #define ENERGYCRITPOINT 100 //if energy falls below this, maxmetabolicrate is used
+#define NUMPLAYERS 2
 
 extern vector<vector<tile> > map;
 extern vector<vector<unit> > allUnits;
 extern unsigned long long frames;
 extern vector<disease> allDiseases;
+extern vector<vector<vector<metabool> > > mapseenunit; //[player][y][x]
+extern vector<vector<vector<metabool> > > mapseenhive; //[player][y][x]
+extern vector<vector<hiveMind> > allMinds;
 
 #endif	/* GLOBALS_H */
 

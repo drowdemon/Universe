@@ -12,5 +12,13 @@ public:
     operator int();
 };
 
+class point
+{
+public:
+    int x;
+    int y;
+    point(int px, int py);
+};
+
 #endif	/* DATASTRUCTURES_H */
 

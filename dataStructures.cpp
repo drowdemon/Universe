@@ -11,3 +11,9 @@ diseaseInfo::operator  int()
 {
     return disease;
 }
+
+point::point(int px, int py)
+{
+    x=px;
+    y=py;
+}

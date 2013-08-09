@@ -1,9 +1,12 @@
 #include "tile.h"
+#include "unit.h"
 #include "globals.h"
+#include "metabool.h"
 #include <cmath>
 #include <cstdlib>
+#include "hivemind.h"
 
-tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, unsigned char sw, short px, short py, short up, short ui)
+tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, unsigned char sw, short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {
     road=r;
     water=w;
@@ -17,6 +20,8 @@ tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool u
     unitindex=ui;
     unitplayer=up;    
     wasteMoved=false;
+    bush=b;
+    tree=t;
 }
 bool tile::walkable(short origHeight, short fx, short fy)
 {
@@ -26,6 +31,8 @@ bool tile::walkable(short origHeight, short fx, short fy)
         return false; //nope
     if(uniton) //there is already a unit there, assuming all units are 1x1 tiles
         return false;
+    if(tree>0)
+        return false; //cannot walk on trees
     if(origHeight>height+1) //you can only tolerate a height difference of 1. Maybe this should be increased if height is to be more gradually changing. Also, you can't climb up things easily, but you can fall.
         return false;
    // if(origHeight<height-1) //ditto in the other direction
@@ -48,10 +55,10 @@ void tile::moveWater(int tx, int ty)
         }
         if(disease.size()>0) //let any disease flow with it. Bwa ha ha!
         {
-            for(int i=0; i<disease.size(); i++)
+            for(unsigned int i=0; i<disease.size(); i++)
             {
                 bool good=true;
-                for(int j=0; j<map[ty][tx].disease.size(); j++)
+                for(unsigned int j=0; j<map[ty][tx].disease.size(); j++)
                 {
                     if(map[ty][tx].disease[j]==disease[i])
                     {
@@ -82,10 +89,10 @@ void tile::moveWater(int tx, int ty)
         }
         if(map[ty][tx].disease.size()>0) //let any disease flow with it. Bwa ha ha!
         {
-            for(int i=0; i<map[ty][tx].disease.size(); i++)
+            for(unsigned int i=0; i<map[ty][tx].disease.size(); i++)
             {
                 bool good=true;
-                for(int j=0; j<disease.size(); j++)
+                for(unsigned int j=0; j<disease.size(); j++)
                 {
                     if(map[ty][tx].disease[i]==disease[j])
                     {
@@ -109,7 +116,7 @@ void tile::spreadDisease()
 {
     if(frames%INFECTRATE==0)
     {
-        for(int h=0; h<disease.size(); h++)
+        for(unsigned int h=0; h<disease.size(); h++)
         {
             if(diseaseTime[h]>=allDiseases[disease[h]].duration)
             {
@@ -125,12 +132,12 @@ void tile::spreadDisease()
                     if(map[i][j].uniton)
                     {
                         int immunityloss=0;
-                        for(int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                        for(unsigned int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
                             immunityloss+=allDiseases[allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]].immunCost;
                         if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-immunityloss>0)?(allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-immunityloss):0)+((MAXHEALTH-allUnits[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
                         {
                             bool good=true;
-                            for(int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                            for(unsigned int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
                             {
                                 if(disease[h]==allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].disease)
                                 {
@@ -153,4 +160,17 @@ void tile::spreadDisease()
             }
         }
     }
+}
+
+tile* tile::get(unit& u)
+{
+    if(mapseenunit[u.player][y][x].get())
+        return this;
+    return NULL;
+}
+tile* tile::get(hiveMind& h)
+{
+    if(mapseenhive[h.player][y][x].get())
+        return this;
+    return NULL;
 }

@@ -4,21 +4,29 @@
 #include "tile.h"
 #include "unit.h"
 #include "globals.h"
+#include <iostream>
 using namespace std;
 
 void init()
 {
+    mapseenunit.resize(NUMPLAYERS);
+    mapseenhive.resize(NUMPLAYERS);
     map.resize(MAPSIZE); //randomly chosen by me
-    for(int i=0; i<map.size(); i++)
+    mapseenunit.resize(MAPSIZE);
+    mapseenhive.resize(MAPSIZE);
+    for(unsigned int i=0; i<map.size(); i++)
     {
         map[i].resize(MAPSIZE);
-        for(int j=0; j<map[i].size(); j++)
+        mapseenunit[i].resize(MAPSIZE);
+        mapseenhive[i].resize(MAPSIZE);
+        for(unsigned int j=0; j<map[i].size(); j++)
         {
             map[i][j].x=j;
             map[i][j].y=i;
         }
     }
-    allUnits.resize(2);
+    allUnits.resize(NUMPLAYERS);
+    allMinds.resize(NUMPLAYERS);
 }
 
 void waterFlow(int i, int j) //i=y, j=x
@@ -57,20 +65,28 @@ void waterFlow(int i, int j) //i=y, j=x
 int main()
 {
     srand(time(NULL));
+    
     while(true) //it never closes. Somewhat inconvenient. But its not bothering to use win32 or glut or mfc, with good reason, so this is the best I could do. 
     {
         frames++;
-        for(int i=0; i<map.size(); i++)
+        for(unsigned int i=0; i<map.size(); i++)
         {
-            for(int j=0; j<map[i].size(); j++)
+            for(unsigned int j=0; j<map[i].size(); j++)
             {
                 waterFlow(i,j);
                 map[i][j].spreadDisease();
             }
         }
-        for(int i=0; i<allUnits.size(); i++)
+        for(unsigned int i=0; i<allMinds.size(); i++)
         {
-            for(int j=0; j<allUnits[i].size(); j++)
+            for(unsigned int j=0; j<allMinds[i].size(); j++)
+            {
+                allMinds[i][j].act();
+            }
+        }
+        for(unsigned int i=0; i<allUnits.size(); i++)
+        {
+            for(unsigned int j=0; j<allUnits[i].size(); j++)
             {
                 allUnits[i][j].nextFrame();
             }

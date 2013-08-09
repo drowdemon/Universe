@@ -6,9 +6,12 @@
 
 using namespace std;
 
+class tile;
+
 class unit
 {
-public: 
+friend class tile; //a tile can access anything in here. No need for the universe to hide data from itself
+private: // all this stuff can only be changed internally
     //more will certainly be added. Our own creatures will inherit from this, and implement some sort of run function, probably
     int player;
     int index; //in whatever list of units there will be
@@ -37,12 +40,18 @@ public:
     short hunger; //starts at min. If reaches max, you die. As it rises, energy is obtained at a metabolic rate. 
 
     unit(int p, int i, short s, short e, short str, bool g, short intel, unsigned char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec);
-    bool nextFrame();
-    void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
-    void infect();
     void diseaseEffects();
     bool checkLive();
     void livingCosts();
+public:
+    bool nextFrame();
+    void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
+    void infect();
+    void seeunit();
+    void unseeunit();
+    void seehive(int hiveIndex);
+    void unseehive(int hiveIndex);
+    virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI
 };
 
 #endif	/* UNIT_H */
