@@ -5,6 +5,7 @@
 #include "unit.h"
 #include "globals.h"
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 void init()
@@ -62,9 +63,29 @@ void waterFlow(int i, int j) //i=y, j=x
     }
 }
 
+void printMap()
+{
+    ofstream outf("map");
+    if(!outf)
+    {
+        cout << "Error writing to map" << endl;
+        exit(-1);
+    }
+    for(unsigned int i=0; i<map.size(); i++)
+    {
+        for(unsigned int j=0; j<map[i].size(); j++)
+        {
+            outf << "<" << (int)map[i][j].road << "," << (int)map[i][j].water << "," << (int)map[i][j].waste << "," << (int)map[i][j].animal << "," << (int)map[i][j].bush << "," << (int)map[i][j].tree << "," << (int)map[i][j].height << ">";
+        }
+        outf << endl;
+    }
+}
+
 int main()
 {
     srand(time(NULL));
+    init();
+    printMap(); //comment out for no output.
     
     while(true) //it never closes. Somewhat inconvenient. But its not bothering to use win32 or glut or mfc, with good reason, so this is the best I could do. 
     {

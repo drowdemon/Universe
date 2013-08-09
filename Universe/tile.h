@@ -31,8 +31,8 @@ public:
 private:        
     vector<short> disease; //index of a disease on this tile. -1 if none. If there is a disease on this tile, it is stored in water or waste. A disease in an animal or in a person will be stored separately
     vector<short> diseaseTime; //how long a disease has been on this tile. 
-public:
     tile(unsigned char r=0, unsigned short w=0, short h=0, unsigned char wst=0, bool uo=false, unsigned short a=0, unsigned char sw=0, short px=0, short py=0, short up=-1, short ui=-1, unsigned char b=0, unsigned  char t=0);
+public:
     bool walkable(short origHeight, short fx, short fy); //whether the given unit can walk on the tile. Argument for later compatability with animals. //vehicles will be added later //buildings will be added later
     void moveWater(int tx, int ty);
     void spreadDisease();
@@ -42,6 +42,9 @@ public:
     friend void waterFlow(int,int);
     friend void unit::move();
     friend void unit::infect();
+    friend void init();
+    friend class vector<tile>;
+    friend void printMap();
 };
 
 #endif	/* TILE_H */
