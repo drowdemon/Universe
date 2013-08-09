@@ -24,13 +24,17 @@ public:
     short lineOfSight; //how far it can see. Elevation increases? Buildings/obstacles block sight
     short immunity; //changes with age. small->large->small. Out of 10,000 //genetic
     short healthDiseaseInc; //how much the chances of disease increase per health lost. //genetic
-    short woundEnergyCost; //how much energy a losing health consumes, per health lost. // genetic
+    short woundEnergyCost; //how much energy losing health consumes, per health lost. // genetic
+    short energyPerFood; //how much energy is obtained per increase of hunger by one. //genetic
+    short metabolicRate; //how quickly hunger rises and energy is consumed. //genetic
+    short maxMetabolicRate; //if there is little or no energy, metabolism rises to this rate. At this point, even if the body has food, it cannot gain any more energy than it is currently gaining. This makes it impossible to avoid death by eating a lot. //genetic
 
     //below variables are not passed to constructor
     short moveToX;
     short moveToY;
     vector<diseaseInfo> diseased; //info about all of the diseases this unit has, if any
     short health; //starts at max. If wounded, decreased.
+    short hunger; //starts at min. If reaches max, you die. As it rises, energy is obtained at a metabolic rate. 
 
     unit(int p, int i, short s, short e, short str, bool g, short intel, unsigned char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec);
     bool nextFrame();

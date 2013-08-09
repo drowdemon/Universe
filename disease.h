@@ -13,6 +13,10 @@ public:
     int energyCost; //how much energy you lose when you have this
     int strengthCost; //how much str you lose
     int intelCost; //intel loss
+    int immunCost; //immunity loss
+    int permStrCost; //permanent strength loss
+    int permIntelCost; //permanent intelligence loss
+    int permImmunCost; //permanent immunity loss
     int multiplierRate; //As time passes, every this often the disease gets worse. Once it reaches the max, if the creature lives, it starts getting better. A disease kills by having an unsustainable energy cost.
     int multiplierMax; //This is the max multiplier. If this is reached, the disease starts getting better
     int duration;

@@ -15,6 +15,8 @@ using namespace std;
 #define MOVEMENTENERGY 5
 #define LIVINGENERGY 1
 #define FALLINGMULTIPLIER 0.5 //when you fall, the distance fallen * this = damage done
+#define MAXHUNGER 1000
+#define ENERGYCRITPOINT 100 //if energy falls below this, maxmetabolicrate is used
 
 extern vector<vector<tile> > map;
 extern vector<vector<unit> > allUnits;

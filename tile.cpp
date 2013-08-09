@@ -124,7 +124,10 @@ void tile::spreadDisease()
                 {
                     if(map[i][j].uniton)
                     {
-                        if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity+((MAXHEALTH-allUnits[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
+                        int immunityloss=0;
+                        for(int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                            immunityloss+=allDiseases[allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]].immunCost;
+                        if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-immunityloss>0)?(allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-immunityloss):0)+((MAXHEALTH-allUnits[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
                         {
                             bool good=true;
                             for(int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
@@ -138,7 +141,12 @@ void tile::spreadDisease()
                                 }
                             }
                             if(good)
+                            {
                                 allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.push_back(disease[h]);
+                                allUnits[map[i][j].unitplayer][map[i][j].unitindex].strength-=allDiseases[disease[h]].permStrCost;
+                                allUnits[map[i][j].unitplayer][map[i][j].unitindex].intelligence-=allDiseases[disease[h]].permIntelCost;
+                                allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-=allDiseases[disease[h]].permImmunCost;
+                            }
                         }
                     }
                 }

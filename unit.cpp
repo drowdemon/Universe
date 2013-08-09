@@ -179,18 +179,24 @@ void unit::move()
 }
 void unit::infect()
 {
+    int immunityloss=0;
+    for(int i=0; i<diseased.size(); i++)
+        immunityloss+=allDiseases[diseased[i]].immunCost;
     if(frames%INFECTRATE==0)
     {
         for(int i=0; i<allDiseases.size(); i++) //try to auto-infect
         {
             if(allDiseases[i].first!=2) //can catch this disease at random
             {
-                if(rand()%10000<allDiseases[i].firstChance-immunity+((MAXHEALTH-health)*healthDiseaseInc)) //got sick
+                if(rand()%10000<allDiseases[i].firstChance-((immunity-immunityloss>0)?(immunity-immunityloss):0)+((MAXHEALTH-health)*healthDiseaseInc)) //got sick
                 {
                     if(allDiseases[i].first==1)
                     {
                         allDiseases[i].first++;
                         diseased.push_back(diseaseInfo(i));
+                        strength-=allDiseases[i].permStrCost;
+                        intelligence-=allDiseases[i].permIntelCost;
+                        immunity-=allDiseases[i].permImmunCost;
                     }
                 }
             }
@@ -212,7 +218,7 @@ void unit::infect()
                     h--;
                 }
             }
-            if(rand()%10000<allDiseases[diseased[h]].curability+immunity-((MAXHEALTH-health)*healthDiseaseInc))
+            if(rand()%10000<allDiseases[diseased[h]].curability+((immunity-immunityloss>0)?(immunity-immunityloss):0)-((MAXHEALTH-health)*healthDiseaseInc))
             {
                 diseased.erase(diseased.begin()+h); //cured
                 h--;
@@ -269,7 +275,10 @@ void unit::infect()
                         {
                             if(map[i][j].x!=x || map[i][j].y!=y) //different unit
                             {
-                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity+((MAXHEALTH-allUnits[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
+                                int tempimmunloss=0;
+                                for(int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                                    tempimmunloss+=allDiseases[allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]].immunCost;
+                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-tempimmunloss>0)?(allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-tempimmunloss):0)+((MAXHEALTH-allUnits[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
                                 {
                                     bool good=true;
                                     for(int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
@@ -283,7 +292,12 @@ void unit::infect()
                                         }
                                     }
                                     if(good)
-                                        allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.push_back(diseased[h]);
+                                    {
+                                        allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.push_back(diseased[h].disease);
+                                        allUnits[map[i][j].unitplayer][map[i][j].unitindex].strength-=allDiseases[diseased[h]].permStrCost;
+                                        allUnits[map[i][j].unitplayer][map[i][j].unitindex].intelligence-=allDiseases[diseased[h]].permIntelCost;
+                                        allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-=allDiseases[diseased[h]].permImmunCost;
+                                    }
                                 }
                             }
                         }
@@ -303,14 +317,32 @@ void unit::livingCosts()
     energy-=LIVINGENERGY;
     sleep-=1;
     energy-=(MAXHEALTH-health)*woundEnergyCost;
+    if(energy<ENERGYCRITPOINT)
+    {
+        if(frames%maxMetabolicRate==0)
+        {
+            hunger++;
+            energy+=energyPerFood;
+        }
+    }
+    else
+    {
+        if(frames%metabolicRate==0)
+        {
+            hunger++;
+            energy+=energyPerFood;
+        }
+    }
 }
 bool unit::checkLive()
 {
-    if(health<0)
-        return false;
+    if(health<0) 
+        return false; //death by physical damage. 
     if(energy<0)
-        return false;
+        return false; //death by energy loss. Unlikely to happen unless you are diseased. This is how diseases kill.
     if(sleep<0)
         return false; //death by extreme sleep deprivation
+    if(hunger>=MAXHUNGER) 
+        return false; //death by starvation
     return true;
 }
