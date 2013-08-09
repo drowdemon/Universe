@@ -1,6 +1,10 @@
 #ifndef TILE_H
 #define	TILE_H
 
+#include <vector>
+
+using namespace std;
+
 class tile //default - empty grass
 {
 public: //later we'll make some private so that you can't just learn anything about any part of the map
@@ -14,9 +18,16 @@ public: //later we'll make some private so that you can't just learn anything ab
 	unsigned char smallWood; //not a tree, but just small branches lying around. You can't use them to build a house, but you can build a lean-to or a fire. number=amount
 	short x;
 	short y;
-	tile(unsigned char r=0, unsigned short w=0, short h=0, unsigned char wst=0, bool uo=false, unsigned short a=0, unsigned char sw=0, short px=0, short py=0);
+        short unitplayer;
+        short unitindex;
+        bool wasteMoved; //1 bit. Only for water tiles. If the waste in the water has moved, don't move it again this time around.
+        
+        vector<short> disease; //index of a disease on this tile. -1 if none. If there is a disease on this tile, it is stored in water or waste. A disease in an animal or in a person will be stored separately
+        vector<short> diseaseTime; //how long a disease has been on this tile. 
+	tile(unsigned char r=0, unsigned short w=0, short h=0, unsigned char wst=0, bool uo=false, unsigned short a=0, unsigned char sw=0, short px=0, short py=0, short up=-1, short ui=-1);
 	bool walkable(short origHeight, short fx, short fy); //whether the given unit can walk on the tile. Argument for later compatability with animals. //vehicles will be added later //buildings will be added later
         void moveWater(int tx, int ty);
+        void spreadDisease();
 };
 
 #endif	/* TILE_H */
