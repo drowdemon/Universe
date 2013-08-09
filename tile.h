@@ -16,6 +16,7 @@ public: //later we'll make some private so that you can't just learn anything ab
 	short y;
 	tile(unsigned char r=0, unsigned short w=0, short h=0, unsigned char wst=0, bool uo=false, unsigned short a=0, unsigned char sw=0, short px=0, short py=0);
 	bool walkable(short origHeight, short fx, short fy); //whether the given unit can walk on the tile. Argument for later compatability with animals. //vehicles will be added later //buildings will be added later
+        void moveWater(int tx, int ty);
 };
 
 #endif	/* TILE_H */

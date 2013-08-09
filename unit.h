@@ -8,7 +8,7 @@ public:
 	int player;
 	int index; //in whatever list of units there will be
 	short sleep; //how well-rested it is. At some point sleep deprivation starts taking effect
-	short hunger; //how hungry it is. At some point it dies.
+	short energy; //how much energy it has. Replenished by eating. Taken up by living, moving, fighting, etc.
 	short strength; //affects how much it can carry, how well it can fight, etc.
 	bool gender; //I assume 2 genders
 	short intelligence; //effects various tasks. 
@@ -23,7 +23,7 @@ public:
         //below variables are not passed to constructor
         short moveToX;
         short moveToY;
-	unit(int p, int i, short s, short h, short str, bool g, short intel, unsigned char a, short d, short td, short px, short py, short pspeed, short los);
+	unit(int p, int i, short s, short e, short str, bool g, short intel, unsigned char a, short d, short td, short px, short py, short pspeed, short los);
 	void nextFrame();
         void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
 };

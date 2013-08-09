@@ -1,12 +1,12 @@
 #include "unit.h"
 #include "globals.h"
 
-unit::unit(int p, int i, short s, short h, short str, bool g, short intel, unsigned char a, short d, short td, short px, short py, short pspeed, short los)
+unit::unit(int p, int i, short s, short e, short str, bool g, short intel, unsigned char a, short d, short td, short px, short py, short pspeed, short los)
 {
     player=p;
     index=i;
     sleep=s;
-    hunger=h;
+    energy=e;
     strength=str;
     gender=g;
     intelligence=intel;
@@ -20,6 +20,7 @@ unit::unit(int p, int i, short s, short h, short str, bool g, short intel, unsig
 }
 void unit::nextFrame()
 {
+    move();
 }
 void unit::move()
 {
@@ -35,6 +36,7 @@ void unit::move()
                 {   
                     x++;
                     y++;
+                    energy--;
                 }
                 else
                 {
@@ -47,6 +49,7 @@ void unit::move()
                 if(map[y][x+1].walkable(map[y][x].height,x,y))
                 {   
                     x++;
+                    energy--;
                 }
                 else
                 {
@@ -60,6 +63,7 @@ void unit::move()
                 {   
                     x++;
                     y--;
+                    energy--;
                 }
                 else
                 {
@@ -67,6 +71,79 @@ void unit::move()
                     moveToY=y;
                 }
             }
-            
+        }
+        else if(moveToX==x)
+        {
+            if(moveToY>y)
+            {
+                if(map[y+1][x].walkable(map[y][x].height,x,y))
+                {   
+                    y++;
+                    energy--;
+                }
+                else
+                {
+                    moveToX=x;
+                    moveToY=y;
+                }
+            }
+            else if(moveToY<y)
+            {
+                if(map[y-1][x].walkable(map[y][x].height,x,y))
+                {   
+                    y--;
+                    energy--;
+                }
+                else
+                {
+                    moveToX=x;
+                    moveToY=y;
+                }
+            }
+        }
+        if(moveToX<x)
+        {
+            if(moveToY>y)
+            {
+                if(map[y+1][x-1].walkable(map[y][x].height,x,y))
+                {   
+                    x--;
+                    y++;
+                    energy--;
+                }
+                else
+                {
+                    moveToX=x;
+                    moveToY=y;
+                }
+            }
+            else if(moveToY==y)
+            {
+                if(map[y][x-1].walkable(map[y][x].height,x,y))
+                {   
+                    x--;
+                    energy--;
+                }
+                else
+                {
+                    moveToX=x;
+                    moveToY=y;
+                }
+            }
+            else if(moveToY<y)
+            {
+                if(map[y-1][x-1].walkable(map[y][x].height,x,y))
+                {   
+                    x--;
+                    y--;
+                    energy--;
+                }
+                else
+                {
+                    moveToX=x;
+                    moveToY=y;
+                }
+            }
+        }
     }
 }

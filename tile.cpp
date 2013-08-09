@@ -30,3 +30,17 @@ bool tile::walkable(short origHeight, short fx, short fy)
         return false; 
     return true;
 }
+
+void tile::moveWater(int tx, int ty)
+{
+    if(water>map[ty][tx].water+1) //1 tolerance, no decimals
+    {
+        water--;
+        map[ty][tx].water++;
+    }
+    if(water<map[ty][tx].water-1)
+    {
+        water++;
+        map[ty][tx].water--;
+    }
+}
