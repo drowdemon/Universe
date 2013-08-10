@@ -8,6 +8,28 @@ using namespace std;
 
 class tile;
 
+#define LISTVARSUNIT \
+    Y(int, player) \
+    Y(int, index) \
+    Y(short, strength) \
+    Y(bool, gender) \
+    Y(short, intelligence) \
+    Y(char, age) \
+    Y(short, x) \
+    Y(short, y) \
+    Y(short, speed) \
+    Y(short, lineOfSight) \
+    Y(short, immunity) \
+    Y(short, sexuallyMature) \
+    Y(short, moveToX) \
+    Y(short, moveToY) \
+    Y(short, health) \
+    Y(short, hunger) \
+    Y(short, pregnant) \
+    Y(short, fetusid) \
+    Y(short, sleep) \
+    Y(short, energy) 
+
 class unit
 {
 friend class tile; //a tile can access anything in here. No need for the universe to hide data from itself
@@ -43,14 +65,14 @@ private: // all this stuff can only be changed internally
     short health; //starts at max. If wounded, decreased.
     short hunger; //starts at min. If reaches max, you die. As it rises, energy is obtained at a metabolic rate. 
     short pregnant; //-1 if no. Otherwise its how long its been.
-    short childid; //id of child if pregnant
+    short fetusid; //id of child if pregnant
     short sleep; //how well-rested it is. At some point sleep deprivation starts taking effect
     short energy; //how much energy it has. Replenished by eating. Taken up by living, moving, fighting, etc.
 
     unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm);
     void diseaseEffects();
     bool checkLive();
-    void livingCosts();
+    void livingEvents();
     void moveHelper(int mx, int my);
     void infect();
     void seeunit();
@@ -58,10 +80,31 @@ private: // all this stuff can only be changed internally
     void seehive(int hiveIndex);
     void unseehive(int hiveIndex);
     bool nextFrame();
+    void giveBirth();
 public:
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
     bool reproduce(int withwhom);
     virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI
+    //getters
+#define Y(type, val) \
+    type get ## val() ;
+    LISTVARSUNIT
+#undef Y
+    //getters for hivemind
+    
+#ifndef LISTVARSHIVE
+    #define LISTVARSHIVE \
+        X(int, centerx) \
+        X(int, centery) \
+        X(int, range) \
+        X(int, player) \
+        X(int, index)
+#endif
+    
+#define X(type, val) \
+    type getHiveMind ## val(int hiveIndex) ;
+    LISTVARSHIVE
+#undef X
 };
 
 #endif	/* UNIT_H */

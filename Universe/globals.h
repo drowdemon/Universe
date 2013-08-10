@@ -31,7 +31,7 @@ using namespace std;
 #define REPRODUCTIONENERGYCOST  20
 #define NEWBORNENERGY 200 //I really don't know how much this is
 #define NEWBORNSLEEP  200
-
+#define BIRTHHEALTHLOSS  MAXHEALTH*0.1
 //function declarations
 int geneMixer(int p1, int p2);
 

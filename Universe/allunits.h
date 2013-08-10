@@ -16,6 +16,7 @@ class allunits
     friend class tile;
     friend void unit::infect();
     friend bool unit::reproduce(int);
+    friend class hiveMind;
 private:
     vector<vector<unit> > data;
 public:

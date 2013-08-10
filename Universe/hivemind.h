@@ -32,6 +32,12 @@ public:
     type get ## val() ;
     LISTVARSHIVE
 #undef X
+    //getters for units in hive mind
+    
+#define Y(type, val) \
+    type getUnitInHive ## val(int index);
+    LISTVARSUNIT
+#undef Y
 };
 
 #endif	/* HIVEMIND_H */

@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include "hivemind.h"
 #include "allunits.h"
+#include "dataStructures.h"
 
 tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, unsigned char sw, short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {
@@ -24,7 +25,7 @@ tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool u
     bush=b;
     tree=t;
 }
-bool tile::walkable(short origHeight, short fx, short fy)
+bool tile::walkable(unit *u)
 {
     if(water>2) //not very shallow water
         return false; //nope
@@ -34,11 +35,11 @@ bool tile::walkable(short origHeight, short fx, short fy)
         return false;
     if(tree>0)
         return false; //cannot walk on trees
-    if(origHeight>height+1) //you can only tolerate a height difference of 1. Maybe this should be increased if height is to be more gradually changing. Also, you can't climb up things easily, but you can fall.
+    if(map[u->y][u->x].height>height+1) //you can only tolerate a height difference of 1. Maybe this should be increased if height is to be more gradually changing. Also, you can't climb up things easily, but you can fall.
         return false;
    // if(origHeight<height-1) //ditto in the other direction
    //   return false;
-    if(abs(fx-x)>1 || abs(fy-y)>1) //if this tile is more than 1 away vertically or horizontally
+    if(abs(u->x-x)>1 || abs(u->y-y)>1) //if this tile is more than 1 away vertically or horizontally
         return false; 
     return true;
 }
@@ -163,15 +164,15 @@ void tile::spreadDisease()
     }
 }
 
-tile* tile::get(unit& u)
+pubTile* tile::get(unit& u)
 {
     if(mapseenunit[u.player][y][x].get())
-        return this;
+        return new pubTile(this);
     return NULL;
 }
-tile* tile::get(hiveMind& h)
+pubTile* tile::get(hiveMind& h)
 {
     if(mapseenhive[h.player][h.index][y][x].get())
-        return this;
+        return new pubTile(this);
     return NULL;
 }

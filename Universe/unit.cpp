@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "disease.h"
 #include "dataStructures.h"
+#include "hivemind.h"
 
 unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm)
 {
@@ -27,13 +28,13 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
     maxMetabolicRate=mmr;
     sexuallyMature=sm;
     pregnant=-1;
-    childid=-1;
+    fetusid=-1;
 }
 bool unit::nextFrame()
 {
     if(age==-1) //in womb
         return true; //complete successfully
-    livingCosts();
+    livingEvents();
     if(!checkLive())
         return false;
     move();
@@ -118,7 +119,7 @@ void unit::move()
 }
 void unit::moveHelper(int mx, int my)
 {
-    if(map[y+my][x+mx].walkable(map[y][x].height,x,y))
+    if(map[y+my][x+mx].walkable(this))
     {   
         int damage=0;
         if(map[y][x].height-map[y+my][x+mx].height>1) //possibly painful height differential
@@ -273,10 +274,12 @@ void unit::diseaseEffects()
         energy-=allDiseases[diseased[i]].energyCost;
     unitChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0);
 }
-void unit::livingCosts()
+void unit::livingEvents()
 {
     int deltaE=energy;
     int deltaH=hunger;
+    int deltaP=pregnant;
+    int deltaHlth=health;
     energy-=LIVINGENERGY;
     sleep-=1;
     energy-=(MAXHEALTH-health)*woundEnergyCost;
@@ -296,11 +299,13 @@ void unit::livingCosts()
             energy+=energyPerFood;
         }
     }
-    deltaE-=energy;
-    deltaE=-deltaE;
-    deltaH-=hunger;
-    deltaH=-deltaH;
-    unitChangeLog::update(x,y,player,index,0,0,0,deltaE,deltaH,-1,0);
+    if(pregnant>=0)
+        pregnant++;
+    if(pregnant>=GESTATIONPERIOD) //birth
+    {
+        giveBirth(); //changes health and pregnant
+    }
+    unitChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,-1,pregnant-deltaP); //plain -1 is sleep
 }
 bool unit::checkLive()
 {
@@ -386,12 +391,16 @@ bool unit::reproduce(int withwhom)
                 if(!gender) //female
                 {
                     pregnant=0;
-                    childid=allUnits.data[player].size();
+                    fetusid=allUnits.data[player].size();
+                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
+                    unitChangeLog::update(allUnits.data[player][withwhom].x,allUnits.data[player][withwhom].y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
                 }
                 else //partner is female
                 {
                     allUnits.data[player][withwhom].pregnant=0;
-                    allUnits.data[player][withwhom].childid=allUnits.data[player].size();
+                    allUnits.data[player][withwhom].fetusid=allUnits.data[player].size();
+                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
+                    unitChangeLog::update(allUnits.data[player][withwhom].x,allUnits.data[player][withwhom].y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
                 }
                 allUnits.data[player].push_back(unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom].strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom].intelligence),-1,-1,-1,speed,lineOfSight,geneMixer(immunity,allUnits.data[player][withwhom].immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom].healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom].woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom].energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom].metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom].maxMetabolicRate),geneMixer(sexuallyMature,allUnits.data[player][withwhom].sexuallyMature))); //adds the new unit. It doesn't really exist though
                 energy-=REPRODUCTIONENERGYCOST;
@@ -402,3 +411,80 @@ bool unit::reproduce(int withwhom)
     }
     return false; //repro failed
 }
+void unit::giveBirth()
+{
+    pregnant=-1;
+    health-=BIRTHHEALTHLOSS;
+    unit* child=allUnits.get(this,fetusid);
+    child->age=0;
+    if(map[y+1][x].walkable(this))
+    {
+        child->moveToX=child->x=x;
+        child->moveToY=child->y=y+1;
+    }
+    else if(map[y-1][x].walkable(this))
+    {
+        child->moveToX=child->x=x;
+        child->moveToY=child->y=y-1;
+    }
+    else if(map[y][x+1].walkable(this))
+    {
+        child->moveToX=child->x=x+1;
+        child->moveToY=child->y=y;
+    }
+    else if(map[y][x-1].walkable(this))
+    {
+        child->moveToX=child->x=x-1;
+        child->moveToY=child->y=y;
+    }
+    else if(map[y-1][x-1].walkable(this))
+    {
+        child->moveToX=child->x=x-1;
+        child->moveToY=child->y=y-1;
+    }
+    else if(map[y-1][x+1].walkable(this))
+    {
+        child->moveToX=child->x=x+1;
+        child->moveToY=child->y=y-1;
+    }
+    else if(map[y+1][x+1].walkable(this))
+    {
+        child->moveToX=child->x=x+1;
+        child->moveToY=child->y=y+1;
+    }
+    else if(map[y+1][x-1].walkable(this))
+    {
+        child->moveToX=child->x=x-1;
+        child->moveToY=child->y=y+1;
+    }
+    unitChangeLog::update(child->x,child->y,player,index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant);
+}
+
+//getters 
+
+#define Y(type, val) \
+    type unit::get ## val() \
+    { \
+        if(curLoops.unitPlayer==player && curLoops.unitIndex==index) \
+        { \
+            return val; \
+        } \
+        return -127; \
+    }
+    LISTVARSUNIT
+#undef Y
+
+//getters for hive mind
+
+#define X(type, val) \
+    type unit::getHiveMind ## val(int hiveIndex) \
+    { \
+        if(curLoops.unitPlayer==player && curLoops.unitIndex==index) \
+        { \
+            if(abs(allMinds.data[player][hiveIndex].centerx-x)<allMinds.data[player][hiveIndex].range && abs(allMinds.data[player][hiveIndex].centery-y)<allMinds.data[player][hiveIndex].range) \
+                return allMinds.data[player][hiveIndex].val ; \
+        } \
+        return -9999; \
+    } 
+    LISTVARSHIVE
+#undef X

@@ -4,6 +4,7 @@
 #include <vector>
 #include "unit.h"
 #include "hivemind.h"
+#include "dataStructures.h"
 
 using namespace std;
 
@@ -35,9 +36,9 @@ private:
     void moveWater(int tx, int ty);
     void spreadDisease();
 public:
-    bool walkable(short origHeight, short fx, short fy); //whether the given unit can walk on the tile. Argument for later compatability with animals. //vehicles will be added later //buildings will be added later
-    tile* get(unit& u);
-    tile* get(hiveMind& h);
+    bool walkable(unit *u); //whether the given unit can walk on the tile. Argument for later compatability with animals. //vehicles will be added later //buildings will be added later
+    pubTile* get(unit& u);
+    pubTile* get(hiveMind& h);
         
     friend void waterFlow(int,int);
     friend void unit::move();
@@ -47,6 +48,7 @@ public:
     friend class vector<tile>;
     friend void printMap();
     friend int main();
+    friend pubTile::pubTile(tile*);
 };
 
 #endif	/* TILE_H */
