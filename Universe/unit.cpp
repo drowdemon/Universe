@@ -4,12 +4,12 @@
 #include "disease.h"
 #include "dataStructures.h"
 
-unit::unit(int p, int i, short s, short e, short str, bool g, short intel, unsigned char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec)
+unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm)
 {
     player=p;
     index=i;
-    sleep=s;
-    energy=e;
+    sleep=NEWBORNSLEEP;
+    energy=NEWBORNENERGY;
     strength=str;
     gender=g;
     intelligence=intel;
@@ -22,20 +22,28 @@ unit::unit(int p, int i, short s, short e, short str, bool g, short intel, unsig
     health=MAXHEALTH;
     healthDiseaseInc=hdi;
     woundEnergyCost=wec;
+    energyPerFood=epi;
+    metabolicRate=mr;
+    maxMetabolicRate=mmr;
+    sexuallyMature=sm;
+    pregnant=-1;
+    childid=-1;
 }
 bool unit::nextFrame()
 {
+    if(age==-1) //in womb
+        return true; //complete successfully
     livingCosts();
     if(!checkLive())
         return false;
     move();
-    for(unsigned int i=0; i<allMinds[player].size(); i++)
+    for(unsigned int i=0; i<allMinds.data[player].size(); i++)
         seehive(i);
     seeunit();
     if(!checkLive())
     {
         unseeunit();
-        for(unsigned int i=0; i<allMinds[player].size(); i++)
+        for(unsigned int i=0; i<allMinds.data[player].size(); i++)
                 unseehive(i);
         return false;
     }
@@ -44,7 +52,7 @@ bool unit::nextFrame()
     if(!checkLive())
     {
         unseeunit();
-        for(unsigned int i=0; i<allMinds[player].size(); i++)
+        for(unsigned int i=0; i<allMinds.data[player].size(); i++)
                 unseehive(i);
         return false;
     }
@@ -52,7 +60,7 @@ bool unit::nextFrame()
     if(!checkLive())
     {
         unseeunit();    
-        for(unsigned int i=0; i<allMinds[player].size(); i++)
+        for(unsigned int i=0; i<allMinds.data[player].size(); i++)
                 unseehive(i);
         return false;
     }
@@ -69,151 +77,63 @@ void unit::move()
         {
             if(moveToY>y)
             {
-                if(map[y+1][x+1].walkable(map[y][x].height,x,y))
-                {   
-                    if(map[y][x].height-map[y+1][x+1].height>1) //possibly painful height differential
-                        health-=(int)((double)(map[y][x].height-map[y+1][x+1].height-1)*(double)FALLINGMULTIPLIER);
-                    for(unsigned int i=0; i<allMinds[player].size(); i++)
-                        unseehive(i);
-                    x++;
-                    y++;
-                    energy-=MOVEMENTENERGY;
-                }
-                else
-                {
-                    moveToX=x;
-                    moveToY=y;
-                }
+                moveHelper(1,1);
             }
             else if(moveToY==y)
             {
-                if(map[y][x+1].walkable(map[y][x].height,x,y))
-                {   
-                    if(map[y][x].height-map[y][x+1].height>1) //possibly painful height differential
-                        health-=(int)((double)(map[y][x].height-map[y][x+1].height-1)*(double)FALLINGMULTIPLIER);
-                    for(unsigned int i=0; i<allMinds[player].size(); i++)
-                        unseehive(i);
-                    x++;
-                    energy-=MOVEMENTENERGY;
-                }
-                else
-                {
-                    moveToX=x;
-                    moveToY=y;
-                }
+                moveHelper(1,0);
             }
             else if(moveToY<y)
             {
-                if(map[y-1][x+1].walkable(map[y][x].height,x,y))
-                {   
-                    if(map[y][x].height-map[y-1][x+1].height>1) //possibly painful height differential
-                        health-=(int)((double)(map[y][x].height-map[y-1][x+1].height-1)*(double)FALLINGMULTIPLIER);
-                    for(unsigned int i=0; i<allMinds[player].size(); i++)
-                        unseehive(i);
-                    x++;
-                    y--;
-                    energy-=MOVEMENTENERGY;
-                }
-                else
-                {
-                    moveToX=x;
-                    moveToY=y;
-                }
+                moveHelper(1,-1);
             }
         }
         else if(moveToX==x)
         {
             if(moveToY>y)
             {
-                if(map[y+1][x].walkable(map[y][x].height,x,y))
-                {   
-                    if(map[y][x].height-map[y+1][x].height>1) //possibly painful height differential
-                        health-=(int)((double)(map[y][x].height-map[y+1][x].height-1)*(double)FALLINGMULTIPLIER);
-                    for(unsigned int i=0; i<allMinds[player].size(); i++)
-                        unseehive(i);
-                    y++;
-                    energy-=MOVEMENTENERGY;
-                }
-                else
-                {
-                    moveToX=x;
-                    moveToY=y;
-                }
+                moveHelper(0,1);
             }
             else if(moveToY<y)
             {
-                if(map[y-1][x].walkable(map[y][x].height,x,y))
-                {   
-                    if(map[y][x].height-map[y-1][x].height>1) //possibly painful height differential
-                        health-=(int)((double)(map[y][x].height-map[y-1][x].height-1)*(double)FALLINGMULTIPLIER);
-                    for(unsigned int i=0; i<allMinds[player].size(); i++)
-                        unseehive(i);
-                    y--;
-                    energy-=MOVEMENTENERGY;
-                }
-                else
-                {
-                    moveToX=x;
-                    moveToY=y;
-                }
+                moveHelper(0,-1);
             }
         }
         if(moveToX<x)
         {
             if(moveToY>y)
             {
-                if(map[y+1][x-1].walkable(map[y][x].height,x,y))
-                {   
-                    if(map[y][x].height-map[y+1][x-1].height>1) //possibly painful height differential
-                        health-=(int)((double)(map[y][x].height-map[y+1][x-1].height-1)*(double)FALLINGMULTIPLIER);
-                    for(unsigned int i=0; i<allMinds[player].size(); i++)
-                        unseehive(i);
-                    x--;
-                    y++;
-                    energy-=MOVEMENTENERGY;
-                }
-                else
-                {
-                    moveToX=x;
-                    moveToY=y;
-                }
+                moveHelper(-1,1);
             }
             else if(moveToY==y)
             {
-                if(map[y][x-1].walkable(map[y][x].height,x,y))
-                {   
-                    if(map[y][x].height-map[y][x-1].height>1) //possibly painful height differential
-                        health-=(int)((double)(map[y][x].height-map[y][x-1].height-1)*(double)FALLINGMULTIPLIER);
-                    for(unsigned int i=0; i<allMinds[player].size(); i++)
-                        unseehive(i);
-                    x--;
-                    energy-=MOVEMENTENERGY;
-                }
-                else
-                {
-                    moveToX=x;
-                    moveToY=y;
-                }
+                moveHelper(-1,0);
             }
             else if(moveToY<y)
             {
-                if(map[y-1][x-1].walkable(map[y][x].height,x,y))
-                {   
-                    if(map[y][x].height-map[y-1][x-1].height>1) //possibly painful height differential
-                        health-=(int)((double)(map[y][x].height-map[y-1][x-1].height-1)*(double)FALLINGMULTIPLIER);
-                    for(unsigned int i=0; i<allMinds[player].size(); i++)
-                        unseehive(i);
-                    x--;
-                    y--;
-                    energy-=MOVEMENTENERGY;
-                }
-                else
-                {
-                    moveToX=x;
-                    moveToY=y;
-                }
+                moveHelper(-1,-1);
             }
         }
+    }
+}
+void unit::moveHelper(int mx, int my)
+{
+    if(map[y+my][x+mx].walkable(map[y][x].height,x,y))
+    {   
+        int damage=0;
+        if(map[y][x].height-map[y+my][x+mx].height>1) //possibly painful height differential
+            health-=(damage=(int)((double)(map[y][x].height-map[y+my][x+mx].height-1)*(double)FALLINGMULTIPLIER));
+        for(unsigned int i=0; i<allMinds.data[player].size(); i++)
+            unseehive(i);
+        x++;
+        y++;
+        energy-=MOVEMENTENERGY;
+        unitChangeLog::update(x-mx,y-y,player,index,1,1,-damage,MOVEMENTENERGY,0,0,0);
+    }
+    else
+    {
+        moveToX=x;
+        moveToY=y;
     }
 }
 void unit::infect()
@@ -315,27 +235,27 @@ void unit::infect()
                             if(map[i][j].x!=x || map[i][j].y!=y) //different unit
                             {
                                 int tempimmunloss=0;
-                                for(unsigned int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
-                                    tempimmunloss+=allDiseases[allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]].immunCost;
-                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-tempimmunloss>0)?(allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-tempimmunloss):0)+((MAXHEALTH-allUnits[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
+                                for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                                    tempimmunloss+=allDiseases[allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]].immunCost;
+                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-tempimmunloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-tempimmunloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
                                 {
                                     bool good=true;
-                                    for(unsigned int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                                    for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
                                     {
-                                        if(diseased[h]==allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]) //you actually managed to get sick with the same disease TWICE! Good for you!
+                                        if(diseased[h]==allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]) //you actually managed to get sick with the same disease TWICE! Good for you!
                                         {
                                             good=false;
-                                            allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].multiplier++; //makes the disease more fearsome. Or at least more advanced in development
-                                            allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].flipDir=false; //If you were getting better, screw that! Now you're getting sicker again!
+                                            allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].multiplier++; //makes the disease more fearsome. Or at least more advanced in development
+                                            allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].flipDir=false; //If you were getting better, screw that! Now you're getting sicker again!
                                             break;
                                         }
                                     }
                                     if(good)
                                     {
-                                        allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.push_back(diseased[h].disease);
-                                        allUnits[map[i][j].unitplayer][map[i][j].unitindex].strength-=allDiseases[diseased[h]].permStrCost;
-                                        allUnits[map[i][j].unitplayer][map[i][j].unitindex].intelligence-=allDiseases[diseased[h]].permIntelCost;
-                                        allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-=allDiseases[diseased[h]].permImmunCost;
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.push_back(diseased[h].disease);
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].strength-=allDiseases[diseased[h]].permStrCost;
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].intelligence-=allDiseases[diseased[h]].permIntelCost;
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-=allDiseases[diseased[h]].permImmunCost;
                                     }
                                 }
                             }
@@ -348,11 +268,15 @@ void unit::infect()
 }
 void unit::diseaseEffects()
 {
+    int start=energy;
     for(unsigned int i=0; i<diseased.size(); i++)
         energy-=allDiseases[diseased[i]].energyCost;
+    unitChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0);
 }
 void unit::livingCosts()
 {
+    int deltaE=energy;
+    int deltaH=hunger;
     energy-=LIVINGENERGY;
     sleep-=1;
     energy-=(MAXHEALTH-health)*woundEnergyCost;
@@ -372,6 +296,11 @@ void unit::livingCosts()
             energy+=energyPerFood;
         }
     }
+    deltaE-=energy;
+    deltaE=-deltaE;
+    deltaH-=hunger;
+    deltaH=-deltaH;
+    unitChangeLog::update(x,y,player,index,0,0,0,deltaE,deltaH,-1,0);
 }
 bool unit::checkLive()
 {
@@ -413,36 +342,63 @@ void unit::unseeunit()
 }
 void unit::seehive(int hiveindex)
 {
-    if(abs(allMinds[player][hiveindex].centerx-x)<allMinds[player][hiveindex].range && abs(allMinds[player][hiveindex].centery-y)<allMinds[player][hiveindex].range) //in range of hive
+    if(abs(allMinds.data[player][hiveindex].centerx-x)<allMinds.data[player][hiveindex].range && abs(allMinds.data[player][hiveindex].centery-y)<allMinds.data[player][hiveindex].range) //in range of hive
     {
         for(int i=0; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
         {
             for(int j=-i; j<=i; j++)
             {
-                mapseenhive[player][y+i][x+j].b=true;
-                mapseenhive[player][y-i][x+j].b=true;
-                mapseenhive[player][y+j][x+i].b=true;
-                mapseenhive[player][y+j][x-i].b=true;
+                mapseenhive[player][hiveindex][y+i][x+j].b=true;
+                mapseenhive[player][hiveindex][y-i][x+j].b=true;
+                mapseenhive[player][hiveindex][y+j][x+i].b=true;
+                mapseenhive[player][hiveindex][y+j][x-i].b=true;
             }
         }
     }
 }
 void unit::unseehive(int hiveindex)
 {
-    if(abs(allMinds[player][hiveindex].centerx-x)<allMinds[player][hiveindex].range && abs(allMinds[player][hiveindex].centery-y)<allMinds[player][hiveindex].range) //in range of hive
+    if(abs(allMinds.data[player][hiveindex].centerx-x)<allMinds.data[player][hiveindex].range && abs(allMinds.data[player][hiveindex].centery-y)<allMinds.data[player][hiveindex].range) //in range of hive
     {
         for(int i=0; i<=lineOfSight; i++) //hides map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
         {
             for(int j=-i; j<=i; j++) //now its in a square because it was before, and since there are no repeats its the same amount of work
             {
-                mapseenhive[player][y+i][x+j].b=false;
-                mapseenhive[player][y-i][x+j].b=false;
-                mapseenhive[player][y+j][x+i].b=false;
-                mapseenhive[player][y+j][x-i].b=false;
+                mapseenhive[player][hiveindex][y+i][x+j].b=false;
+                mapseenhive[player][hiveindex][y-i][x+j].b=false;
+                mapseenhive[player][hiveindex][y+j][x+i].b=false;
+                mapseenhive[player][hiveindex][y+j][x-i].b=false;
             }
         }
     }
 }
 void unit::act()
 {
+}
+bool unit::reproduce(int withwhom)
+{
+    if(abs(x-allUnits.get(this,withwhom)->x)<=1 && abs(y-allUnits.get(this,withwhom)->y)<=1) //close enough
+    {
+        if(age>=sexuallyMature && allUnits.get(this,withwhom)->age>allUnits.get(this,withwhom)->sexuallyMature) //old enough
+        {
+            if(gender!=allUnits.get(this,withwhom)->gender) //different genders
+            {
+                if(!gender) //female
+                {
+                    pregnant=0;
+                    childid=allUnits.data[player].size();
+                }
+                else //partner is female
+                {
+                    allUnits.data[player][withwhom].pregnant=0;
+                    allUnits.data[player][withwhom].childid=allUnits.data[player].size();
+                }
+                allUnits.data[player].push_back(unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom].strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom].intelligence),-1,-1,-1,speed,lineOfSight,geneMixer(immunity,allUnits.data[player][withwhom].immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom].healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom].woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom].energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom].metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom].maxMetabolicRate),geneMixer(sexuallyMature,allUnits.data[player][withwhom].sexuallyMature))); //adds the new unit. It doesn't really exist though
+                energy-=REPRODUCTIONENERGYCOST;
+                allUnits.get(this,withwhom)->energy-=REPRODUCTIONENERGYCOST;
+                return true;
+            }
+        }
+    }
+    return false; //repro failed
 }

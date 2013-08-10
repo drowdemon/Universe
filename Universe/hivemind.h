@@ -3,7 +3,7 @@
 
 #include "unit.h"
 
-#define LISTVARS \
+#define LISTVARSHIVE \
         X(int, centerx) \
         X(int, centery) \
         X(int, range) \
@@ -12,8 +12,12 @@
 
 class hiveMind
 {
+    friend class allunits;
+    friend class allminds;
+    friend class unit; //friendship not inherited, and both of these are inherited from, so its ok.
     friend void unit::seehive(int hiveindex);
     friend void unit::unseehive(int hiveindex);
+    friend class tile; //a tile can access anything in here. No need for the universe to hide data from itself
 private: 
     int centerx;
     int centery;
@@ -23,11 +27,10 @@ private:
     hiveMind(int cx, int cy, int r, int p, int i);
 public:    
     virtual void act();
-    friend class tile; //a tile can access anything in here. No need for the universe to hide data from itself
     //below are getters
 #define X(type, val) \
     type get ## val() ;
-    LISTVARS
+    LISTVARSHIVE
 #undef X
 };
 

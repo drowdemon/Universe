@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 #include "hivemind.h"
+#include "allunits.h"
 
 tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, unsigned char sw, short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {
@@ -132,27 +133,27 @@ void tile::spreadDisease()
                     if(map[i][j].uniton)
                     {
                         int immunityloss=0;
-                        for(unsigned int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
-                            immunityloss+=allDiseases[allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]].immunCost;
-                        if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-immunityloss>0)?(allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-immunityloss):0)+((MAXHEALTH-allUnits[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
+                        for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                            immunityloss+=allDiseases[allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]].immunCost;
+                        if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-immunityloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-immunityloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
                         {
                             bool good=true;
-                            for(unsigned int d=0; d<allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                            for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
                             {
-                                if(disease[h]==allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].disease)
+                                if(disease[h]==allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].disease)
                                 {
                                     good=false;
-                                    allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].multiplier++;
-                                    allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].flipDir=false;
+                                    allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].multiplier++;
+                                    allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].flipDir=false;
                                     break;
                                 }
                             }
                             if(good)
                             {
-                                allUnits[map[i][j].unitplayer][map[i][j].unitindex].diseased.push_back(disease[h]);
-                                allUnits[map[i][j].unitplayer][map[i][j].unitindex].strength-=allDiseases[disease[h]].permStrCost;
-                                allUnits[map[i][j].unitplayer][map[i][j].unitindex].intelligence-=allDiseases[disease[h]].permIntelCost;
-                                allUnits[map[i][j].unitplayer][map[i][j].unitindex].immunity-=allDiseases[disease[h]].permImmunCost;
+                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.push_back(disease[h]);
+                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].strength-=allDiseases[disease[h]].permStrCost;
+                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].intelligence-=allDiseases[disease[h]].permIntelCost;
+                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-=allDiseases[disease[h]].permImmunCost;
                             }
                         }
                     }
@@ -170,7 +171,7 @@ tile* tile::get(unit& u)
 }
 tile* tile::get(hiveMind& h)
 {
-    if(mapseenhive[h.player][y][x].get())
+    if(mapseenhive[h.player][h.index][y][x].get())
         return this;
     return NULL;
 }

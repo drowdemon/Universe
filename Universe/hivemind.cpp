@@ -1,4 +1,5 @@
 #include "hivemind.h"
+#include "globals.h"
 
 hiveMind::hiveMind(int cx, int cy, int r, int p, int i)
 {
@@ -15,6 +16,11 @@ void hiveMind::act()
 
 //getters
 #define X(type, val) \
-    type hiveMind::get ## val() {return val ;}
-    LISTVARS
+    type hiveMind::get ## val() \
+    { \
+        if(curLoops.hivePlayer==player && curLoops.hiveIndex==index) \
+                return val ;  \
+        return -1; \
+    }
+    LISTVARSHIVE
 #undef X

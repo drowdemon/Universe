@@ -26,8 +26,7 @@ void init()
             map[i][j].y=i;
         }
     }
-    allUnits.resize(NUMPLAYERS);
-    allMinds.resize(NUMPLAYERS);
+    unitChangeFile = new ofstream("unitChanges");
 }
 
 void waterFlow(int i, int j) //i=y, j=x
@@ -81,6 +80,26 @@ void printMap()
     }
 }
 
+int geneMixer(int p1, int p2)
+{
+    int singleunit=1;
+    int extra=0;
+    int sum=p1+p2;
+    int ret=0;
+    if(sum>100)
+    {
+        singleunit=sum/100;
+        extra=sum%100;
+    }
+    for(int i=0; i<(sum-extra)/singleunit; i++)
+        ret+=(rand()%2)*singleunit;
+    for(int i=0; i<extra; i++)
+        ret+=(rand()%2);
+    if(ret==0)
+        return (p1+p2)/2;
+    return ret;
+}
+
 int main()
 {
     srand(time(NULL));
@@ -98,20 +117,25 @@ int main()
                 map[i][j].spreadDisease();
             }
         }
-        for(unsigned int i=0; i<allMinds.size(); i++)
+        for(unsigned int i=0; i<allMinds.data.size(); i++)
         {
-            for(unsigned int j=0; j<allMinds[i].size(); j++)
+            curLoops.hivePlayer=i;
+            for(unsigned int j=0; j<allMinds.data[i].size(); j++)
             {
-                allMinds[i][j].act();
+                curLoops.hiveIndex=j;
+                allMinds.data[i][j].act();
             }
         }
-        for(unsigned int i=0; i<allUnits.size(); i++)
+        for(unsigned int i=0; i<allUnits.data.size(); i++)
         {
-            for(unsigned int j=0; j<allUnits[i].size(); j++)
+            curLoops.unitPlayer=i;
+            for(unsigned int j=0; j<allUnits.data[i].size(); j++)
             {
-                allUnits[i][j].nextFrame();
+                curLoops.unitIndex=j;
+                allUnits.data[i][j].nextFrame();
             }
         }
+        unitChangeLog::communicate(); //comment for no gui
     }
     return 0;
 }

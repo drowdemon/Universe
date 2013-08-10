@@ -20,5 +20,25 @@ public:
     point(int px, int py);
 };
 
+class unitChangeLog
+{
+private:
+    int xorig; //id
+    int yorig; //id
+    int player;
+    int index;
+    int xmod;
+    int ymod;
+    int healthmod;
+    int energymod;
+    int hungermod;
+    int sleepmod;
+    int pregnantmod;
+public:
+    unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm);
+    static void update(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm); //comment the body of this for no gui.
+    static void communicate();
+};
+
 #endif	/* DATASTRUCTURES_H */
 
