@@ -9,7 +9,18 @@
 using namespace std;
 
 class tile //default - empty grass
-{
+{   
+    friend void waterFlow(int,int);
+    friend void unit::move();
+    friend void unit::moveHelper(int,int);
+    friend void unit::infect();
+    friend void unit::giveBirth();
+    friend void unit::goToSleep();
+    friend void init();
+    friend class vector<tile>;
+    friend void printMap();
+    friend int main();
+    friend pubTile::pubTile(tile*);
 private: //private so that you can't just learn anything about any part of the map
     //Once we figure out all of the variables this will contain, I recommend we use some bitshifting tricks to compact this as much as possible. The map will take up lots of RAM, and compacting this will let us have more tiles.
     unsigned char road; //0=none, after that its how good the road is. 0-7 inclusive - 4 bits
@@ -39,16 +50,6 @@ public:
     bool walkable(unit *u); //whether the given unit can walk on the tile. Argument for later compatability with animals. //vehicles will be added later //buildings will be added later
     pubTile* get(unit& u);
     pubTile* get(hiveMind& h);
-        
-    friend void waterFlow(int,int);
-    friend void unit::move();
-    friend void unit::moveHelper(int,int);
-    friend void unit::infect();
-    friend void init();
-    friend class vector<tile>;
-    friend void printMap();
-    friend int main();
-    friend pubTile::pubTile(tile*);
 };
 
 #endif	/* TILE_H */

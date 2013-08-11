@@ -19,7 +19,6 @@ class tile;
     Y(short, y) \
     Y(short, speed) \
     Y(short, lineOfSight) \
-    Y(short, immunity) \
     Y(short, sexuallyMature) \
     Y(short, moveToX) \
     Y(short, moveToY) \
@@ -28,7 +27,8 @@ class tile;
     Y(short, pregnant) \
     Y(short, fetusid) \
     Y(short, sleep) \
-    Y(short, energy) 
+    Y(short, energy) \
+    Y(bool, sleeping)
 
 class unit
 {
@@ -68,6 +68,7 @@ private: // all this stuff can only be changed internally
     short fetusid; //id of child if pregnant
     short sleep; //how well-rested it is. At some point sleep deprivation starts taking effect
     short energy; //how much energy it has. Replenished by eating. Taken up by living, moving, fighting, etc.
+    bool sleeping; //whether it is currently asleep
 
     unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm);
     void diseaseEffects();
@@ -81,9 +82,12 @@ private: // all this stuff can only be changed internally
     void unseehive(int hiveIndex);
     bool nextFrame();
     void giveBirth();
+    void emergencySleep();
 public:
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
-    bool reproduce(int withwhom);
+    void reproduce(int withwhom);
+    void goToSleep();
+    void awaken();
     virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI
     //getters
 #define Y(type, val) \

@@ -29,6 +29,8 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
     sexuallyMature=sm;
     pregnant=-1;
     fetusid=-1;
+    hunger=NEWBORNHUNGER;
+    sleeping=false;
 }
 bool unit::nextFrame()
 {
@@ -66,6 +68,7 @@ bool unit::nextFrame()
         return false;
     }
     unseeunit();
+    emergencySleep();
     return true;
 }
 void unit::move()
@@ -126,10 +129,17 @@ void unit::moveHelper(int mx, int my)
             health-=(damage=(int)((double)(map[y][x].height-map[y+my][x+mx].height-1)*(double)FALLINGMULTIPLIER));
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
             unseehive(i);
-        x++;
-        y++;
+        
+        map[y][x].uniton=false;
+        map[y][x].unitplayer=-1;
+        map[y][x].unitindex=-1;
+        x+=mx;
+        y+=my;
         energy-=MOVEMENTENERGY;
-        unitChangeLog::update(x-mx,y-y,player,index,1,1,-damage,MOVEMENTENERGY,0,0,0);
+        map[y][x].uniton=true;
+        map[y][x].unitplayer=player;
+        map[y][x].unitindex=index;
+        unitChangeLog::update(x-mx,y-my,player,index,mx,my,-damage,MOVEMENTENERGY,0,0,0);
     }
     else
     {
@@ -272,7 +282,8 @@ void unit::diseaseEffects()
     int start=energy;
     for(unsigned int i=0; i<diseased.size(); i++)
         energy-=allDiseases[diseased[i]].energyCost;
-    unitChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0);
+    if(energy-start!=0)
+        unitChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0);
 }
 void unit::livingEvents()
 {
@@ -380,7 +391,7 @@ void unit::unseehive(int hiveindex)
 void unit::act()
 {
 }
-bool unit::reproduce(int withwhom)
+void unit::reproduce(int withwhom)
 {
     if(abs(x-allUnits.get(this,withwhom)->x)<=1 && abs(y-allUnits.get(this,withwhom)->y)<=1) //close enough
     {
@@ -405,11 +416,9 @@ bool unit::reproduce(int withwhom)
                 allUnits.data[player].push_back(unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom].strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom].intelligence),-1,-1,-1,speed,lineOfSight,geneMixer(immunity,allUnits.data[player][withwhom].immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom].healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom].woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom].energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom].metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom].maxMetabolicRate),geneMixer(sexuallyMature,allUnits.data[player][withwhom].sexuallyMature))); //adds the new unit. It doesn't really exist though
                 energy-=REPRODUCTIONENERGYCOST;
                 allUnits.get(this,withwhom)->energy-=REPRODUCTIONENERGYCOST;
-                return true;
             }
         }
     }
-    return false; //repro failed
 }
 void unit::giveBirth()
 {
@@ -457,9 +466,38 @@ void unit::giveBirth()
         child->moveToX=child->x=x-1;
         child->moveToY=child->y=y+1;
     }
+    map[child->y][child->x].uniton=true;
+    map[child->y][child->x].unitplayer=player;
+    map[child->y][child->x].unitindex=index;
     unitChangeLog::update(child->x,child->y,player,index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant);
 }
-
+void unit::emergencySleep()
+{
+    if(sleep>EMERGENCYSLEEPLVL && sleep<EMERGENCYENDSLEEP)
+        return; //not emergency
+    for(unsigned int i=0; i<allMinds.data[0].size(); i++)
+    {
+        if(getHiveMindcenterx(i)!=-9999) //legit data - the hivemind is available
+        {
+            return; //a hive mind is in command. I can't sleep without commands
+        }
+    }
+    //no hivemind nearby, must sleep
+    if(sleep<=EMERGENCYSLEEPLVL) //must sleep
+        goToSleep();
+    else //must awaken, middle taken care of on top
+        awaken();
+}
+void unit::goToSleep()
+{
+    if(map[y][x].waste>0 || map[y][x].smallWood>0 || map[y][x].bush>0) //bad ground for sleeping
+        return;
+    sleeping=true;
+}
+void unit::awaken()
+{
+    sleeping=false;
+}
 //getters 
 
 #define Y(type, val) \

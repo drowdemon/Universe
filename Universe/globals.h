@@ -30,8 +30,11 @@ using namespace std;
 #define PREGNANTENERGYCOST 2 //every 1000 units of time pregnant, this is multiplied. So 2,4,6,8,10
 #define REPRODUCTIONENERGYCOST  20
 #define NEWBORNENERGY 200 //I really don't know how much this is
-#define NEWBORNSLEEP  200
+#define NEWBORNSLEEP  400
+#define NEWBORNHUNGER 200
 #define BIRTHHEALTHLOSS  MAXHEALTH*0.1
+#define EMERGENCYSLEEPLVL 5 //when it will fall asleep when out of hive mind control
+#define EMERGENCYENDSLEEP 600 //when it will awaken when sleeping as above and out of hive mind control
 //function declarations
 int geneMixer(int p1, int p2);
 

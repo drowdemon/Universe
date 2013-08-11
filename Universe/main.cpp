@@ -13,13 +13,19 @@ void init()
     mapseenunit.resize(NUMPLAYERS);
     mapseenhive.resize(NUMPLAYERS);
     map.resize(MAPSIZE); //randomly chosen by me
-    mapseenunit.resize(MAPSIZE);
-    mapseenhive.resize(MAPSIZE);
+    for(int i=0; i<NUMPLAYERS; i++)
+    {
+        mapseenunit[i].resize(MAPSIZE);
+        mapseenhive[i].resize(MAPSIZE);
+        for(int j=0; j<MAPSIZE; j++)
+        {
+            mapseenunit[i][j].resize(MAPSIZE);
+            mapseenhive[i][j].resize(MAPSIZE);
+        }
+    }
     for(unsigned int i=0; i<map.size(); i++)
     {
         map[i].resize(MAPSIZE);
-        mapseenunit[i].resize(MAPSIZE);
-        mapseenhive[i].resize(MAPSIZE);
         for(unsigned int j=0; j<map[i].size(); j++)
         {
             map[i][j].x=j;
@@ -74,7 +80,7 @@ void printMap()
     {
         for(unsigned int j=0; j<map[i].size(); j++)
         {
-            outf << "<" << (int)map[i][j].road << "," << (int)map[i][j].water << "," << (int)map[i][j].waste << "," << (int)map[i][j].animal << "," << (int)map[i][j].bush << "," << (int)map[i][j].tree << "," << (int)map[i][j].height << ">";
+            outf << "<" << (int)map[i][j].road << "," << (int)map[i][j].water << "," << (int)map[i][j].waste << "," << (int)map[i][j].animal << "," << (int)map[i][j].bush << "," << (int)map[i][j].tree << "," << (int)map[i][j].height << "," << ((map[i][j].uniton) ? 1 : 0) << ">";
         }
         outf << endl;
     }
@@ -104,8 +110,15 @@ int main()
 {
     srand(time(NULL));
     init();
-    printMap(); //comment out for no output.
     
+    allUnits.data[0].push_back(unit(0,0,10,false,10,10,10,10,30,5,175,50,2,10,15,10,false));
+    unitChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0].health,allUnits.data[0][0].energy,allUnits.data[0][0].hunger,allUnits.data[0][0].sleep,allUnits.data[0][0].pregnant);
+    allUnits.data[0][0].moveToX=20;
+    map[10][10].uniton=true;
+    map[10][10].unitplayer=0;
+    map[10][10].unitindex=0;
+    
+    printMap(); //comment out for no output.
     while(true) //it never closes. Somewhat inconvenient. But its not bothering to use win32 or glut or mfc, with good reason, so this is the best I could do. 
     {
         frames++;

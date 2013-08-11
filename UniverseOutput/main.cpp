@@ -48,7 +48,10 @@ public:
     unsigned char bush;
     unsigned char tree;
     short height;
-    tile(unsigned char r=0, unsigned short wtr=0, unsigned char wst=0, unsigned char a=0, unsigned char b=0, unsigned char t=0, short h=0)
+    bool uniton;
+    short unitplayer;
+    short unitindex;
+    tile(unsigned char r=0, unsigned short wtr=0, unsigned char wst=0, unsigned char a=0, unsigned char b=0, unsigned char t=0, short h=0, bool uo=false)
     {
         road=r;
         water=wtr;
@@ -57,11 +60,41 @@ public:
         bush=b;
         tree=t;
         height=h;
+        uniton=uo;
+        unitplayer=unitindex=-1;
+    }
+};
+
+class unit
+{
+public:
+    int x;
+    int y;
+    int player;
+    int index;
+    int energy;
+    int sleep;
+    int hunger;
+    int health;
+    int pregnant;
+    unit(int px=0, int py=0, int p=-1, int i=-1, int e=0, int s=0, int hgr=0, int h=0, int prg=0)
+    {
+        x=px;
+        y=py;
+        player=p;
+        index=i;
+        energy=e;
+        sleep=s;
+        hunger=hgr;
+        health=h;
+        pregnant=prg;
     }
 };
 
 vector<vector<tile> > map;
+vector<vector<unit> > allunits;
 ifstream *inf;
+ifstream *unitin;
 
 void renderScene()
 {
@@ -210,23 +243,99 @@ void readMap()
     {
         for(unsigned int j=0; j<map.size(); j++)
         {
+            int temp=0;
             inf->get(); //open
-            *inf >> map[i][j].road;
+            *inf >> temp;
+            map[i][j].road=temp;
             inf->get(); //comma
-            *inf >> map[i][j].water;
+            *inf >> temp;
+            map[i][j].water=temp;
             inf->get(); //comma
-            *inf >> map[i][j].waste;
+            *inf >> temp;
+            map[i][j].waste=temp;
             inf->get(); //comma
-            *inf >> map[i][j].animal;
+            *inf >> temp;
+            map[i][j].animal=temp;
             inf->get(); //comma
-            *inf >> map[i][j].bush;
+            *inf >> temp;
+            map[i][j].bush=temp;
             inf->get(); //comma
-            *inf >> map[i][j].tree;
+            *inf >> temp;
+            map[i][j].tree=temp;
             inf->get(); //comma
-            *inf >> map[i][j].height;
+            *inf >> temp;
+            map[i][j].height=temp;
+            inf->get(); //comma
+            *inf >> temp;
+            ((temp==0) ? (map[i][j].uniton=false) : (map[i][j].uniton=true));
             inf->get(); //close
         }
         inf->get(); //newline
+    }
+}
+void readUnit()
+{
+    unit u;
+    int mx;
+    int my;
+    char buf=0;
+    while(true)
+    {
+        unitin->get(buf); //open
+        if(buf=='\n' || buf==0)
+            break; //end. else, its the open bracket
+        *unitin >> u.x;
+        unitin->get(); //comma
+        *unitin >> u.y;
+        unitin->get();//comma
+        *unitin >> mx;
+        unitin->get();//comma
+        *unitin >> my;
+        unitin->get();//comma
+        *unitin >> u.player;
+        unitin->get();//comma
+        *unitin >> u.index;
+        unitin->get();//comma
+        *unitin >> u.energy;
+        unitin->get();//comma
+        *unitin >> u.hunger;
+        unitin->get();//comma
+        *unitin >> u.sleep;
+        unitin->get();//comma
+        *unitin >> u.health;
+        unitin->get();//comma
+        *unitin >> u.pregnant;
+        unitin->get();//end bracket
+        unitin->get();//end line
+        if(u.index+1>allunits[u.player].size())
+        {
+            allunits[u.player].push_back(u);
+            map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].uniton=true;
+            map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].unitplayer=u.player;
+            map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].unitindex=u.index;
+        }
+        else
+        {
+            if(mx!=0 || my!=0)
+            {
+                map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].uniton=false;
+                map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].unitplayer=-1;
+                map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].unitindex=-1;
+            }
+            allunits[u.player][u.index].x+=mx;
+            allunits[u.player][u.index].y+=my;
+            allunits[u.player][u.index].energy+=u.energy;
+            allunits[u.player][u.index].health+=u.health;
+            allunits[u.player][u.index].hunger+=u.hunger;
+            allunits[u.player][u.index].pregnant+=u.pregnant;
+            allunits[u.player][u.index].sleep+=u.sleep;
+            if(mx!=0 || my!=0)
+            {
+                map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].uniton=true;
+                map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].unitplayer=u.player;
+                map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].unitindex=u.index;
+            }
+        }
     }
 }
 
@@ -263,6 +372,9 @@ void timerProc(int arg)
     RGB road(0,255,255);
     RGB grass(0,255,0);
     RGB offwhite(230,255,255);
+    RGB black(0,0,0);
+    
+    readUnit();
     for(int i=0; i<map.size(); i++)
     {
         for(int j=0; j<map[i].size(); j++)
@@ -273,6 +385,8 @@ void timerProc(int arg)
                 makeRect(j*3+50, i*3+50,3,3,road);
             else
                 makeRect(j*3+50, i*3+50,3,3,grass);
+            if(map[i][j].uniton)
+                drawEmptyRect(j*3+50, i*3+50,3,3,black);
         }
     }
     makeRect(700, 50, 550, 600, offwhite);
@@ -314,17 +428,52 @@ void timerProc(int arg)
     renderBitmapString(710,120,0,GLUT_BITMAP_HELVETICA_18,print);
     delete[] print;
     
+    if(ty>=0 && ty<map.size() && tx>=0 && tx<map.size() && map[ty][tx].uniton)
+    {
+        text="energy: ";
+        text+=inttostring(allunits[map[ty][tx].unitplayer][map[ty][tx].unitindex].energy);
+        print = new char[text.length()+1];
+        for(int i=0; i<text.length(); i++)
+            print[i]=text[i];
+        print[text.length()]=0;
+        renderBitmapString(800,100,0,GLUT_BITMAP_HELVETICA_18,print);
+        delete[] print;
+        
+        text="health: ";
+        text+=inttostring(allunits[map[ty][tx].unitplayer][map[ty][tx].unitindex].health);
+        print = new char[text.length()+1];
+        for(int i=0; i<text.length(); i++)
+            print[i]=text[i];
+        print[text.length()]=0;
+        renderBitmapString(800,120,0,GLUT_BITMAP_HELVETICA_18,print);
+        delete[] print;
+        
+        text="hunger: ";
+        text+=inttostring(allunits[map[ty][tx].unitplayer][map[ty][tx].unitindex].hunger);
+        print = new char[text.length()+1];
+        for(int i=0; i<text.length(); i++)
+            print[i]=text[i];
+        print[text.length()]=0;
+        renderBitmapString(800,140,0,GLUT_BITMAP_HELVETICA_18,print);
+        delete[] print;
+    }
+    
     glutSwapBuffers();
 }
 
 int main(int argc, char **argv)
 {
     inf = new ifstream("../Universe/map");
+    unitin = new ifstream ("../Universe/unitChanges");
     map.resize(200);
     for(int i=0; i<200; i++)
     {
         map[i].resize(200);
     }
+    allunits.resize(2);
+    readMap();
+    readUnit();
+    
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowPosition(50,30);
