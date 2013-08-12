@@ -9,6 +9,7 @@
 #include "allunits.h"
 #include "allminds.h"
 #include "currLoopVar.h"
+#include "object.h"
 
 using namespace std;
 
@@ -23,3 +24,4 @@ allminds allMinds;
 vector<unitChangeLog> allUnitChanges;
 ofstream *unitChangeFile;
 curLoopVar curLoops;
+vector<objectDescriptor> allObjectDesc;

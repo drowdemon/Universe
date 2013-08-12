@@ -15,6 +15,8 @@ class curLoopVar
     friend class allminds;
     friend class hiveMind;
     friend class unit;
+    friend class tile;
+    friend class object;
 private:
     int hivePlayer;
     int hiveIndex;

@@ -33,6 +33,8 @@ void init()
         }
     }
     unitChangeFile = new ofstream("unitChanges");
+    
+    allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false));
 }
 
 void waterFlow(int i, int j) //i=y, j=x
@@ -111,12 +113,18 @@ int main()
     srand(time(NULL));
     init();
     
-    allUnits.data[0].push_back(unit(0,0,10,false,10,10,10,10,30,5,175,50,2,10,15,10,false));
+    allUnits.data[0].push_back(unit(0,0,10,false,10,20,10,10,30,5,175,50,2,10,15,10,13));
     unitChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0].health,allUnits.data[0][0].energy,allUnits.data[0][0].hunger,allUnits.data[0][0].sleep,allUnits.data[0][0].pregnant);
-    allUnits.data[0][0].moveToX=20;
+    //allUnits.data[0][0].moveToX=20;
     map[10][10].uniton=true;
     map[10][10].unitplayer=0;
     map[10][10].unitindex=0;
+    allUnits.data[0].push_back(unit(0,1,10,true,10,20,10,11,30,5,175,50,2,10,15,10,13));
+    unitChangeLog::update(allUnits.data[0][1].x,allUnits.data[0][1].y,0,1,0,0,allUnits.data[0][1].health,allUnits.data[0][1].energy,allUnits.data[0][1].hunger,allUnits.data[0][1].sleep,allUnits.data[0][1].pregnant);
+    //allUnits.data[0][0].moveToX=20;
+    map[11][10].uniton=true;
+    map[11][10].unitplayer=0;
+    map[11][10].unitindex=0;
     
     printMap(); //comment out for no output.
     while(true) //it never closes. Somewhat inconvenient. But its not bothering to use win32 or glut or mfc, with good reason, so this is the best I could do. 
@@ -145,7 +153,8 @@ int main()
             for(unsigned int j=0; j<allUnits.data[i].size(); j++)
             {
                 curLoops.unitIndex=j;
-                allUnits.data[i][j].nextFrame();
+                if(!allUnits.data[i][j].nextFrame())
+                    allUnits.data[i][j].die();
             }
         }
         unitChangeLog::communicate(); //comment for no gui

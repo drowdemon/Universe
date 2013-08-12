@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "dataStructures.h"
+#include "object.h"
 
 using namespace std;
 
@@ -28,7 +29,7 @@ class tile;
     Y(short, fetusid) \
     Y(short, sleep) \
     Y(short, energy) \
-    Y(bool, sleeping)
+    Y(bool, sleeping) 
 
 class unit
 {
@@ -38,6 +39,7 @@ friend class metabool;
 friend class hiveMind; //this is ok since hivemind and unit are to be inherited from anyway
 friend class allminds;
 friend int main();
+friend class object;
 private: // all this stuff can only be changed internally
     //more will certainly be added. Our own creatures will inherit from this, and implement some sort of run function, probably
     int player;
@@ -69,6 +71,7 @@ private: // all this stuff can only be changed internally
     short sleep; //how well-rested it is. At some point sleep deprivation starts taking effect
     short energy; //how much energy it has. Replenished by eating. Taken up by living, moving, fighting, etc.
     bool sleeping; //whether it is currently asleep
+    vector<object> carrying;
 
     unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm);
     void diseaseEffects();
@@ -83,13 +86,18 @@ private: // all this stuff can only be changed internally
     bool nextFrame();
     void giveBirth();
     void emergencySleep();
+    void die();
 public:
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
+    void move(short mx, short my); //no obstacle avoidance: each creature will implement that on its own. This just moves to the given square, if that's legal
     void reproduce(int withwhom);
     void goToSleep();
     void awaken();
+    void pickUp(int what, int ox, int oy);
+    void putDown(int objIndex, int px, int py);
     virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI
     //getters
+    vector<object> getcarrying();
 #define Y(type, val) \
     type get ## val() ;
     LISTVARSUNIT

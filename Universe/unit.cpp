@@ -39,7 +39,7 @@ bool unit::nextFrame()
     livingEvents();
     if(!checkLive())
         return false;
-    move();
+    move(); //remove this line
     for(unsigned int i=0; i<allMinds.data[player].size(); i++)
         seehive(i);
     seeunit();
@@ -74,6 +74,8 @@ bool unit::nextFrame()
 void unit::move()
 {
     if(moveToX==x && moveToY==y)
+        return;
+    if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
         return;
     if(frames%speed==0)
     {
@@ -119,6 +121,17 @@ void unit::move()
             }
         }
     }
+}
+void unit::move(short mx, short my)
+{
+    if(moveToX==x && moveToY==y)
+        return;
+    if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
+        return;
+    if(frames%speed!=0)
+        return;
+    if(abs(x-mx)<=1 && abs(y-my)<=1)
+        moveHelper(mx-x,my-y);
 }
 void unit::moveHelper(int mx, int my)
 {
@@ -290,9 +303,13 @@ void unit::livingEvents()
     int deltaE=energy;
     int deltaH=hunger;
     int deltaP=pregnant;
+    int deltaS=sleep;
     int deltaHlth=health;
     energy-=LIVINGENERGY;
-    sleep-=1;
+    if(sleeping)
+        sleep+=3;
+    else
+        sleep--;
     energy-=(MAXHEALTH-health)*woundEnergyCost;
     if(energy<ENERGYCRITPOINT)
     {
@@ -316,7 +333,7 @@ void unit::livingEvents()
     {
         giveBirth(); //changes health and pregnant
     }
-    unitChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,-1,pregnant-deltaP); //plain -1 is sleep
+    unitChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,sleep-deltaS,pregnant-deltaP);
 }
 bool unit::checkLive()
 {
@@ -393,6 +410,8 @@ void unit::act()
 }
 void unit::reproduce(int withwhom)
 {
+    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
+        return;
     if(abs(x-allUnits.get(this,withwhom)->x)<=1 && abs(y-allUnits.get(this,withwhom)->y)<=1) //close enough
     {
         if(age>=sexuallyMature && allUnits.get(this,withwhom)->age>allUnits.get(this,withwhom)->sexuallyMature) //old enough
@@ -413,7 +432,9 @@ void unit::reproduce(int withwhom)
                     unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
                     unitChangeLog::update(allUnits.data[player][withwhom].x,allUnits.data[player][withwhom].y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
                 }
-                allUnits.data[player].push_back(unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom].strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom].intelligence),-1,-1,-1,speed,lineOfSight,geneMixer(immunity,allUnits.data[player][withwhom].immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom].healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom].woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom].energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom].metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom].maxMetabolicRate),geneMixer(sexuallyMature,allUnits.data[player][withwhom].sexuallyMature))); //adds the new unit. It doesn't really exist though
+                allUnits.data[player].push_back(unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom].strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom].intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom].speed)/2,(lineOfSight+allUnits.data[player][withwhom].lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom].immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom].healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom].woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom].energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom].metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom].maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom].sexuallyMature)/2)); //adds the new unit. It doesn't really exist though
+                if(allUnits.data[player][fetusid].maxMetabolicRate>allUnits.data[player][fetusid].metabolicRate)
+                    allUnits.data[player][fetusid].maxMetabolicRate=allUnits.data[player][fetusid].metabolicRate-3;
                 energy-=REPRODUCTIONENERGYCOST;
                 allUnits.get(this,withwhom)->energy-=REPRODUCTIONENERGYCOST;
             }
@@ -424,7 +445,8 @@ void unit::giveBirth()
 {
     pregnant=-1;
     health-=BIRTHHEALTHLOSS;
-    unit* child=allUnits.get(this,fetusid);
+    energy-=BIRTHENERGYLOSS;
+    unit* child=&allUnits.data[player][fetusid];
     child->age=0;
     if(map[y+1][x].walkable(this))
     {
@@ -467,9 +489,9 @@ void unit::giveBirth()
         child->moveToY=child->y=y+1;
     }
     map[child->y][child->x].uniton=true;
-    map[child->y][child->x].unitplayer=player;
-    map[child->y][child->x].unitindex=index;
-    unitChangeLog::update(child->x,child->y,player,index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant);
+    map[child->y][child->x].unitplayer=child->player;
+    map[child->y][child->x].unitindex=child->index;
+    unitChangeLog::update(child->x,child->y,child->player,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant);
 }
 void unit::emergencySleep()
 {
@@ -490,16 +512,81 @@ void unit::emergencySleep()
 }
 void unit::goToSleep()
 {
-    if(map[y][x].waste>0 || map[y][x].smallWood>0 || map[y][x].bush>0) //bad ground for sleeping
+    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
+    if(map[y][x].waste>0 || map[y][x].bush>0) //bad ground for sleeping
+        return;
+    for(unsigned int i=0; i<map[y][x].allObjects.size(); i++)
+    {
+        if(!map[y][x].allObjects[i].getsleepable(this))
+            return;
+    }
     sleeping=true;
 }
 void unit::awaken()
 {
+    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
+        return;
     sleeping=false;
+}
+void unit::die()
+{
+    for(unsigned int i=index+1; i<allUnits.data[player].size(); i++)
+    {
+        allUnits.data[player][i].index--;
+        map[allUnits.data[player][i].y][allUnits.data[player][i].x].unitindex--;
+    }
+    map[y][x].uniton=false;
+    map[y][x].unitplayer=-1;
+    map[y][x].unitindex=-1;
+    allUnits.data[player].erase(allUnits.data[player].begin()+index);
+    unitChangeLog::update(-99999,-99999,player,index,-99999,-99999,-99999,-99999,-99999,-99999,-99999);
+}
+void unit::pickUp(int what, int ox, int oy)
+{
+    if(abs(ox-x)>1 || abs(oy-y)>1) //too far
+        return;
+    if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
+        return;
+    int carriedWeight=0;
+    for(unsigned int i=0; i<carrying.size(); i++)
+        carriedWeight+=carrying[i].weight;
+    for(unsigned int i=0; i<map[oy][ox].allObjects.size(); i++)
+    {
+        if(map[oy][ox].allObjects[i].whatIsIt==what)
+        {
+            if(carriedWeight+map[oy][ox].allObjects[i].weight<=strength) //good
+            {
+                carrying.push_back(map[oy][ox].allObjects[i]);
+                map[oy][ox].allObjects.erase(map[oy][ox].allObjects.begin()+i);
+            }
+            break;
+        }
+    }
+}
+void unit::putDown(int objIndex, int px, int py)
+{
+    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
+        return;
+    if(abs(x-px)>1 || abs(y-py)>1)
+        return; //not allowed
+    carrying[objIndex].x=px;
+    carrying[objIndex].y=py;
+    carrying[objIndex].heldByIndex=-1;
+    carrying[objIndex].heldByPlayer=-1;
+    map[y][x].allObjects.push_back(carrying[objIndex]);
+    carrying.erase(carrying.begin()+objIndex);
 }
 //getters 
 
+vector<object> unit::getcarrying()
+{
+    if(curLoops.unitPlayer==player && curLoops.unitIndex==index) \
+    { 
+        return carrying; \
+    } 
+    return vector<object>(); 
+}
 #define Y(type, val) \
     type unit::get ## val() \
     { \

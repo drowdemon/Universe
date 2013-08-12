@@ -27,6 +27,15 @@ void hiveMind::act()
 #undef X
 
 //getters for units in hive
+vector<object> hiveMind::getUnitInHivecarrying(int index)
+{
+    if(curLoops.hiveIndex==index && curLoops.hivePlayer==player) 
+    { 
+        if(abs(centerx-allUnits.data[player][index].x)<range && abs(centery-allUnits.data[player][index].y)<range) 
+            return allUnits.data[player][index].carrying; 
+    } 
+    return vector<object>(); 
+}
 
 #define Y(type, val) \
     type hiveMind::getUnitInHive ## val(int index) \

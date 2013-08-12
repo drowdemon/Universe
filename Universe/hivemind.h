@@ -2,6 +2,7 @@
 #define	HIVEMIND_H
 
 #include "unit.h"
+#include "object.h"
 
 #define LISTVARSHIVE \
         X(int, centerx) \
@@ -18,6 +19,7 @@ class hiveMind
     friend void unit::seehive(int hiveindex);
     friend void unit::unseehive(int hiveindex);
     friend class tile; //a tile can access anything in here. No need for the universe to hide data from itself
+    friend class object;
 private: 
     int centerx;
     int centery;
@@ -33,7 +35,8 @@ public:
     LISTVARSHIVE
 #undef X
     //getters for units in hive mind
-    
+    vector<object> getUnitInHivecarrying(int index);
+        
 #define Y(type, val) \
     type getUnitInHive ## val(int index);
     LISTVARSUNIT

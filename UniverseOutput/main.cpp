@@ -228,7 +228,6 @@ void renderBitmapString(float x,float y,float z,void *font,char *string, int win
 void processPassiveMouseMove(int x, int y)
 {
     mousex=x;
-    cout << x << " " << y << endl;
     mousey=y;
 }
 void processMouseMove(int x, int y)
@@ -310,9 +309,21 @@ void readUnit()
         if(u.index+1>allunits[u.player].size())
         {
             allunits[u.player].push_back(u);
-            map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].uniton=true;
-            map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].unitplayer=u.player;
-            map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].unitindex=u.index;
+            map[u.y][u.x].uniton=true;
+            map[u.y][u.x].unitplayer=u.player;
+            map[u.y][u.x].unitindex=u.index;
+        }
+        else if(u.x==u.energy && u.x==u.hunger && u.x==u.health && u.x==u.pregnant && u.x==u.sleep && u.x==u.y && u.x==-99999) //death code
+        {
+            for(int i=u.index+1; i<allunits[u.player].size(); i++)
+            {
+                allunits[u.player][i].index--;
+                map[allunits[u.player][i].y][allunits[u.player][i].x].unitindex--;
+            }
+            map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].uniton=false;
+            map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].unitplayer=-1;
+            map[allunits[u.player][u.index].y][allunits[u.player][u.index].x].unitindex=-1;
+            allunits[u.player].erase(allunits[u.player].begin()+u.index);
         }
         else
         {
@@ -455,6 +466,24 @@ void timerProc(int arg)
             print[i]=text[i];
         print[text.length()]=0;
         renderBitmapString(800,140,0,GLUT_BITMAP_HELVETICA_18,print);
+        delete[] print;
+        
+        text="sleep: ";
+        text+=inttostring(allunits[map[ty][tx].unitplayer][map[ty][tx].unitindex].sleep);
+        print = new char[text.length()+1];
+        for(int i=0; i<text.length(); i++)
+            print[i]=text[i];
+        print[text.length()]=0;
+        renderBitmapString(800,160,0,GLUT_BITMAP_HELVETICA_18,print);
+        delete[] print;
+        
+        text="pregnant: ";
+        text+=inttostring(allunits[map[ty][tx].unitplayer][map[ty][tx].unitindex].pregnant);
+        print = new char[text.length()+1];
+        for(int i=0; i<text.length(); i++)
+            print[i]=text[i];
+        print[text.length()]=0;
+        renderBitmapString(800,180,0,GLUT_BITMAP_HELVETICA_18,print);
         delete[] print;
     }
     

@@ -8,7 +8,7 @@
 #include "allunits.h"
 #include "dataStructures.h"
 
-tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, unsigned char sw, short px, short py, short up, short ui, unsigned char b, unsigned char t)
+tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, /*unsigned char sw,*/ short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {
     road=r;
     water=w;
@@ -16,7 +16,7 @@ tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool u
     waste=wst;
     uniton=uo;
     animal=a;
-    smallWood=sw;
+    //smallWood=sw;
     x=px;
     y=py;
     unitindex=ui;
@@ -27,6 +27,8 @@ tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool u
 }
 bool tile::walkable(unit *u)
 {
+    if(curLoops.unitIndex!=u->index || curLoops.unitPlayer!=u->player)
+        return false; //illegal
     if(water>2) //not very shallow water
         return false; //nope
     if(animal!=0) //animal on that tile
@@ -41,6 +43,40 @@ bool tile::walkable(unit *u)
    //   return false;
     if(abs(u->x-x)>1 || abs(u->y-y)>1) //if this tile is more than 1 away vertically or horizontally
         return false; 
+    for(unsigned int i=0; i<allObjects.size(); i++)
+    {
+        if(!allObjectDesc[allObjects[i].whatIsIt].walkable)
+            return false;
+    }
+    return true;
+}
+bool tile::walkable(hiveMind* h, short fx, short fy)
+{
+    if(curLoops.hiveIndex!=h->index || curLoops.hivePlayer!=h->player)
+        return false; //illegal
+    if(abs(fx - h->centerx)>h->range || abs(fy - h->centery)>h->range)
+        return false; //illegal
+    if(abs(x - h->centerx)>h->range || abs(y - h->centery)>h->range)
+        return false; //illegal
+    if(water>2) //not very shallow water
+        return false; //nope
+    if(animal!=0) //animal on that tile
+        return false; //nope
+    if(uniton) //there is already a unit there, assuming all units are 1x1 tiles
+        return false;
+    if(tree>0)
+        return false; //cannot walk on trees
+    if(map[fy][fx].height>height+1) //you can only tolerate a height difference of 1. Maybe this should be increased if height is to be more gradually changing. Also, you can't climb up things easily, but you can fall.
+        return false;
+   // if(origHeight<height-1) //ditto in the other direction
+   //   return false;
+    if(abs(fx-x)>1 || abs(fy-y)>1) //if this tile is more than 1 away vertically or horizontally
+        return false; 
+    for(unsigned int i=0; i<allObjects.size(); i++)
+    {
+        if(!allObjectDesc[allObjects[i].whatIsIt].walkable)
+            return false;
+    }
     return true;
 }
 void tile::moveWater(int tx, int ty)

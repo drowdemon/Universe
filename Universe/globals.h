@@ -12,6 +12,7 @@
 #include "allunits.h"
 #include "allminds.h"
 #include "currLoopVar.h"
+#include "object.h"
 
 using namespace std;
 
@@ -33,8 +34,9 @@ using namespace std;
 #define NEWBORNSLEEP  400
 #define NEWBORNHUNGER 200
 #define BIRTHHEALTHLOSS  MAXHEALTH*0.1
-#define EMERGENCYSLEEPLVL 5 //when it will fall asleep when out of hive mind control
-#define EMERGENCYENDSLEEP 600 //when it will awaken when sleeping as above and out of hive mind control
+#define BIRTHENERGYLOSS  100
+#define EMERGENCYSLEEPLVL 10 //when it will fall asleep when out of hive mind control
+#define EMERGENCYENDSLEEP 700 //when it will awaken when sleeping as above and out of hive mind control
 //function declarations
 int geneMixer(int p1, int p2);
 
@@ -49,4 +51,6 @@ extern allminds allMinds;
 extern vector<unitChangeLog> allUnitChanges;
 extern ofstream *unitChangeFile;
 extern curLoopVar curLoops;
+extern vector<objectDescriptor> allObjectDesc;
+
 #endif	/* GLOBALS_H */

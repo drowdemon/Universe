@@ -2,3 +2,5 @@ build
 dist
 .dep.inc
 nbproject
+Universe/map
+Universe/unitChanges

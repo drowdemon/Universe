@@ -5,17 +5,14 @@
 #include "unit.h"
 #include "hivemind.h"
 #include "dataStructures.h"
+#include "object.h"
 
 using namespace std;
 
 class tile //default - empty grass
 {   
     friend void waterFlow(int,int);
-    friend void unit::move();
-    friend void unit::moveHelper(int,int);
-    friend void unit::infect();
-    friend void unit::giveBirth();
-    friend void unit::goToSleep();
+    friend class unit;
     friend void init();
     friend class vector<tile>;
     friend void printMap();
@@ -30,7 +27,7 @@ private: //private so that you can't just learn anything about any part of the m
     bool uniton; // 1 bit
     unsigned short animal; //no=0, if there's an animal, its the index of that animal in whatever vector we have storing all of the animals. Animals have lots of different properties, so there will probably be an animal class at some point.
     //rightmost 4 bits (&15) amount of wood lying around. leftmost 4 bits (>>4), amount of wood that can be retrieved from present bush. If reaches 0, bush set to 0
-    unsigned char smallWood; //not a tree, but just small branches lying around. You can't use them to build a house, but you can build a lean-to or a fire. number=amount
+    //unsigned char smallWood; //not a tree, but just small branches lying around. You can't use them to build a house, but you can build a lean-to or a fire. number=amount
     short unitplayer;
     short unitindex;
     bool wasteMoved; //1 bit. Only for water tiles. If the waste in the water has moved, don't move it again this time around.
@@ -43,11 +40,13 @@ public:
 private:        
     vector<short> disease; //index of a disease on this tile. -1 if none. If there is a disease on this tile, it is stored in water or waste. A disease in an animal or in a person will be stored separately
     vector<short> diseaseTime; //how long a disease has been on this tile. 
-    tile(unsigned char r=0, unsigned short w=0, short h=0, unsigned char wst=0, bool uo=false, unsigned short a=0, unsigned char sw=0, short px=0, short py=0, short up=-1, short ui=-1, unsigned char b=0, unsigned  char t=0);
+    vector<object> allObjects; //all of the objects on this tile
+    tile(unsigned char r=0, unsigned short w=0, short h=0, unsigned char wst=0, bool uo=false, unsigned short a=0, /*unsigned char sw=0,*/ short px=0, short py=0, short up=-1, short ui=-1, unsigned char b=0, unsigned  char t=0);
     void moveWater(int tx, int ty);
     void spreadDisease();
 public:
-    bool walkable(unit *u); //whether the given unit can walk on the tile. Argument for later compatability with animals. //vehicles will be added later //buildings will be added later
+    bool walkable(unit *u); //whether the given unit can walk on the tile. //vehicles will be added later //buildings will be added later
+    bool walkable(hiveMind *h, short fx, short fy); //whether the given unit can walk on the tile. //vehicles will be added later //buildings will be added later
     pubTile* get(unit& u);
     pubTile* get(hiveMind& h);
 };

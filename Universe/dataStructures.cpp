@@ -3,6 +3,7 @@
 #include "dataStructures.h"
 #include "globals.h"
 #include "tile.h"
+#include "object.h"
 
 diseaseInfo::diseaseInfo(int d, int t, int m)
 {
@@ -51,17 +52,18 @@ void unitChangeLog::communicate()
     allUnitChanges.clear();
 }
 
-pubTile::pubTile(vector<short> d, vector<short> dt, unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, unsigned char sw, short px, short py, short up, short ui, unsigned char b, unsigned char t)
+pubTile::pubTile(vector<short> d, vector<short> dt, vector<object> ao, unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, /*unsigned char sw,*/ short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {
     disease=d;
     diseaseTime=dt;
+    allObjects=ao;
     road=r;
     water=w;
     height=h;
     waste=wst;
     uniton=uo;
     animal=a;
-    smallWood=sw;
+    //smallWood=sw;
     x=px;
     y=py;
     unitindex=ui;
@@ -74,13 +76,14 @@ pubTile::pubTile(tile* t)
 {
     disease=t->disease;
     diseaseTime=t->diseaseTime;
+    allObjects=t->allObjects;
     road=t->road;
     water=t->water;
     height=t->height;
     waste=t->waste;
     uniton=t->uniton;
     animal=t->animal;
-    smallWood=t->smallWood;
+    //smallWood=t->smallWood;
     x=t->x;
     y=t->y;
     unitindex=t->unitindex;
