@@ -3,19 +3,26 @@
 #include "currLoopVar.h"
 #include "globals.h"
 #include "hivemind.h"
+#include "food.h"
+#include "disease.h"
 
 #include <cmath>
+#include <cstdlib>
 
-objectDescriptor::objectDescriptor(short w, short wv, short pid, bool walk, bool sleep)
+objectDescriptor::objectDescriptor(short w, short wv, short pid, bool walk, bool sleep, bool vedib, short aedib, short dis, food pf)
 {
     weight=w;
     weightVariation=wv;
     id=pid;
     walkable=walk;
     sleepable=sleep;
+    vaguelyEdible=vedib;
+    actuallyEdible=aedib;
+    disease=dis;
+    possFood=pf;
 }
 
-object::object(short w, short p, short i, short px, short py, short what)
+object::object(short w, short p, short i, short px, short py, short what, bool aedib, food pf)
 {
     weight=w;
     heldByPlayer=p;
@@ -23,6 +30,63 @@ object::object(short w, short p, short i, short px, short py, short what)
     y=py;
     x=px;
     whatIsIt=what;
+    actuallyEdible=aedib;
+    possFood=pf;
+}
+
+object::object(objectDescriptor& od, short p, short i, short px, short py)
+{
+    weight=od.weight+((rand()%(od.weightVariation*2+1))-od.weightVariation);
+    heldByPlayer=p;
+    heldByIndex=i;
+    x=px;
+    y=py;
+    whatIsIt=od.id;
+    actuallyEdible=od.actuallyEdible;
+    if(od.disease!=-1)
+    {
+        infected.push_back(od.disease);
+        infectionTime.push_back(-1); //forever and ever and ever.
+    }
+    possFood=od.possFood;
+}
+
+bool object::rot()
+{
+    for(unsigned int i=0; i<infectionTime.size(); i++)
+    {
+        if(infectionTime[i]>allDiseases[infected[i]].duration && allDiseases[infected[i]].duration!=-1)
+        {
+            infectionTime.erase(infectionTime.begin()+i);
+            infected.erase(infected.begin()+i);
+            i--;
+        }
+    }
+    if(!possFood)
+        return true;
+    vector<int> dis;
+    dis=possFood.rot();
+    if(dis.size()==1 && dis[0]==-1) //destroy this, it biodegraded
+        return false; //existence failure
+    for(unsigned int i=0; i<dis.size(); i++)
+    {
+        bool good=true;
+        for(unsigned int j=0; j<infected.size(); j++)
+        {
+            if(infected[j]==dis[i])
+            {
+                infectionTime[j]=0;
+                good=false;
+                break;
+            }
+        }
+        if(good)
+        {
+            infected.push_back(dis[i]);
+            infectionTime.push_back(0);
+        }
+    }
+    return true;
 }
 
 #define Z(type, val) \

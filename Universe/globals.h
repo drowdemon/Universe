@@ -37,6 +37,7 @@ using namespace std;
 #define BIRTHENERGYLOSS  100
 #define EMERGENCYSLEEPLVL 10 //when it will fall asleep when out of hive mind control
 #define EMERGENCYENDSLEEP 700 //when it will awaken when sleeping as above and out of hive mind control
+#define REPRODUCTIONTIME  5
 //function declarations
 int geneMixer(int p1, int p2);
 

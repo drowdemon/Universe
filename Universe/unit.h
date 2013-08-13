@@ -72,6 +72,7 @@ private: // all this stuff can only be changed internally
     short energy; //how much energy it has. Replenished by eating. Taken up by living, moving, fighting, etc.
     bool sleeping; //whether it is currently asleep
     vector<object> carrying;
+    short reproducing; //0=no, else=time
 
     unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm);
     void diseaseEffects();
@@ -95,6 +96,7 @@ public:
     void awaken();
     void pickUp(int what, int ox, int oy);
     void putDown(int objIndex, int px, int py);
+    void eat(int objIndex);
     virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI
     //getters
     vector<object> getcarrying();

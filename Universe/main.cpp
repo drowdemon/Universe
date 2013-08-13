@@ -34,7 +34,7 @@ void init()
     }
     unitChangeFile = new ofstream("unitChanges");
     
-    allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false));
+    allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,0,-1,food()));
 }
 
 void waterFlow(int i, int j) //i=y, j=x
@@ -136,6 +136,14 @@ int main()
             {
                 waterFlow(i,j);
                 map[i][j].spreadDisease();
+                for(unsigned int k=0; k<map[i][j].allObjects.size(); k++)
+                {
+                    if(!map[i][j].allObjects[k].rot())
+                    {
+                        map[i][j].allObjects.erase(map[i][j].allObjects.begin()+k);
+                        k--;
+                    }
+                }
             }
         }
         for(unsigned int i=0; i<allMinds.data.size(); i++)
@@ -153,8 +161,19 @@ int main()
             for(unsigned int j=0; j<allUnits.data[i].size(); j++)
             {
                 curLoops.unitIndex=j;
+                for(unsigned int k=0; k<allUnits.data[i][j].carrying.size(); k++)
+                {
+                    if(!allUnits.data[i][j].carrying[k].rot())
+                    {
+                        allUnits.data[i][j].carrying.erase(allUnits.data[i][j].carrying.begin()+k);
+                        k--;
+                    }
+                }
                 if(!allUnits.data[i][j].nextFrame())
+                {
                     allUnits.data[i][j].die();
+                    j--;
+                }
             }
         }
         unitChangeLog::communicate(); //comment for no gui

@@ -1,6 +1,11 @@
 #ifndef OBJECT_H
 #define	OBJECT_H
 
+#include <vector>
+#include "food.h"
+
+using std::vector;
+
 #define OBJECT_SMALLWOOD 0
 
 class unit;
@@ -8,11 +13,12 @@ class hiveMind;
 
 #define LISTVARSOBJVAR \
     Z(short, weight) \
-    Z(short, whatIsIt)
+    Z(short, whatIsIt) \
 
 #define LISTVARSOBJSTAT \
     Z(bool, sleepable) \
-    Z(bool, walkable) 
+    Z(bool, walkable) \
+    Z(bool, vaguelyEdible)
 
 class objectDescriptor
 {
@@ -25,13 +31,19 @@ private:
     short id;
     bool walkable;
     bool sleepable;
-    objectDescriptor(short w, short wv, short pid, bool walk, bool sleep);
+    bool vaguelyEdible; //false=no. Like a piece of wood. Or a rock. NOT edible. true=vaguely.
+    short actuallyEdible; //-3=no. Like above, but private. -2=no. Poisonous (infected with a disease, that will naturally go away in -1 time). -1=no, but not poisonous. Like grass. It just goes straight through the system. 0 or above is yes, and points to the index of the food on the allfoods vector of foods that will probably end up existing. 
+    short disease; //if its poisonous, it will have a disease. Other diseases may exist, but not by default.
+    food possFood;
+    objectDescriptor(short w, short wv, short pid, bool walk, bool sleep, bool vedib, short aedib, short dis, food f);
 };
 
 class object
 {
     friend class tile;
     friend class unit;
+    friend class food;
+    friend int main();
 private:
     short weight;
     short heldByPlayer;
@@ -39,7 +51,13 @@ private:
     short y;
     short x;
     short whatIsIt; //subject to change
-    object(short w, short p, short i, short px, short py, short what);
+    bool actuallyEdible; //will change as rotting occurs
+    vector<short> infected;
+    vector<short> infectionTime;
+    food possFood;
+    object(short w, short p, short i, short px, short py, short what, bool aedib, food pf);
+    object(objectDescriptor& od, short p, short i, short px, short py);
+    bool rot();
 public:
     //short getWeight(unit *u);
 #define Z(type, val) \

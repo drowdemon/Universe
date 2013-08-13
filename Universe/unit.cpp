@@ -4,6 +4,7 @@
 #include "disease.h"
 #include "dataStructures.h"
 #include "hivemind.h"
+#include "food.h"
 
 unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm)
 {
@@ -31,6 +32,7 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
     fetusid=-1;
     hunger=NEWBORNHUNGER;
     sleeping=false;
+    reproducing=0;
 }
 bool unit::nextFrame()
 {
@@ -38,7 +40,7 @@ bool unit::nextFrame()
         return true; //complete successfully
     livingEvents();
     if(!checkLive())
-        return false;
+        return false;   
     move(); //remove this line
     for(unsigned int i=0; i<allMinds.data[player].size(); i++)
         seehive(i);
@@ -73,6 +75,8 @@ bool unit::nextFrame()
 }
 void unit::move()
 {
+    if(sleeping || reproducing>0)
+        return;
     if(moveToX==x && moveToY==y)
         return;
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
@@ -124,6 +128,8 @@ void unit::move()
 }
 void unit::move(short mx, short my)
 {
+    if(sleeping || reproducing>0)
+        return;
     if(moveToX==x && moveToY==y)
         return;
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
@@ -152,6 +158,8 @@ void unit::moveHelper(int mx, int my)
         map[y][x].uniton=true;
         map[y][x].unitplayer=player;
         map[y][x].unitindex=index;
+        for(unsigned int i=0; i<allMinds.data[player].size(); i++)
+            seehive(i);
         unitChangeLog::update(x-mx,y-my,player,index,mx,my,-damage,MOVEMENTENERGY,0,0,0);
     }
     else
@@ -329,6 +337,14 @@ void unit::livingEvents()
     }
     if(pregnant>=0)
         pregnant++;
+    if(reproducing>0)
+    {
+        reproducing++;
+        if(pregnant>0)
+            pregnant--; //not yet
+        if(reproducing>REPRODUCTIONTIME)
+            reproducing=0; //done
+    }
     if(pregnant>=GESTATIONPERIOD) //birth
     {
         giveBirth(); //changes health and pregnant
@@ -410,6 +426,8 @@ void unit::act()
 }
 void unit::reproduce(int withwhom)
 {
+    if(sleeping || reproducing>0)
+        return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
     if(abs(x-allUnits.get(this,withwhom)->x)<=1 && abs(y-allUnits.get(this,withwhom)->y)<=1) //close enough
@@ -512,6 +530,8 @@ void unit::emergencySleep()
 }
 void unit::goToSleep()
 {
+    if(sleeping || reproducing>0)
+        return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
     if(map[y][x].waste>0 || map[y][x].bush>0) //bad ground for sleeping
@@ -544,6 +564,8 @@ void unit::die()
 }
 void unit::pickUp(int what, int ox, int oy)
 {
+    if(sleeping || reproducing>0)
+        return;
     if(abs(ox-x)>1 || abs(oy-y)>1) //too far
         return;
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
@@ -566,6 +588,8 @@ void unit::pickUp(int what, int ox, int oy)
 }
 void unit::putDown(int objIndex, int px, int py)
 {
+    if(sleeping || reproducing>0)
+        return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
     if(abs(x-px)>1 || abs(y-py)>1)
@@ -576,6 +600,24 @@ void unit::putDown(int objIndex, int px, int py)
     carrying[objIndex].heldByPlayer=-1;
     map[y][x].allObjects.push_back(carrying[objIndex]);
     carrying.erase(carrying.begin()+objIndex);
+}
+void unit::eat(int objIndex)
+{
+    if(sleeping || reproducing>0)
+        return;
+    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
+        return;
+    if(carrying[objIndex].actuallyEdible==-3) // totally inedible
+        return;
+    for(unsigned int i=0; i<carrying[objIndex].infected.size(); i++)
+    {
+        diseased.push_back(diseaseInfo(carrying[objIndex].infected[i]));
+        strength-=allDiseases[carrying[objIndex].infected[i]].permStrCost;
+        intelligence-=allDiseases[carrying[objIndex].infected[i]].permIntelCost;
+        immunity-=allDiseases[carrying[objIndex].infected[i]].permImmunCost;
+    }
+    if(carrying[objIndex].actuallyEdible>=0)
+        hunger-=carrying[objIndex].possFood.nutrition;
 }
 //getters 
 

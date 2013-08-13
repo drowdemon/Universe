@@ -6,10 +6,15 @@
 #define WASTE_TRANSMIT 4
 #define CONTACT_TRANSMIT 8
 #define ANIMAL_TRANSMIT 16
+#define ROTTEN_FOOD_TRANSMIT 32
 
 class disease
 {
-public:
+    friend class tile;
+    friend class unit;
+    friend class food;
+    friend class object;
+private:
     int energyCost; //how much energy you lose when you have this
     int strengthCost; //how much str you lose
     int intelCost; //intel loss
