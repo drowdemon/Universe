@@ -5,6 +5,7 @@
 #include "hivemind.h"
 #include "food.h"
 #include "disease.h"
+#include "throw.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -22,7 +23,7 @@ objectDescriptor::objectDescriptor(short w, short wv, short pid, bool walk, bool
     possFood=pf;
 }
 
-object::object(short w, short p, short i, short px, short py, short what, bool aedib, food pf)
+object::object(short w, short p, short i, short px, short py, short what, bool aedib, food pf, short ind)
 {
     weight=w;
     heldByPlayer=p;
@@ -32,6 +33,9 @@ object::object(short w, short p, short i, short px, short py, short what, bool a
     whatIsIt=what;
     actuallyEdible=aedib;
     possFood=pf;
+    speed=0;
+    toX=toY=-1;
+    index=ind;
 }
 
 object::object(objectDescriptor& od, short p, short i, short px, short py)
@@ -87,6 +91,85 @@ bool object::rot()
         }
     }
     return true;
+}
+
+void object::move()
+{
+    int dist=speed/1000+(((rand()%1000)<(speed%1000)) ? 1 : 0);
+    int dx=0;
+    int dy=0;
+    if(dist<sqrt(pow(x-toX,2)+pow(y-toY,2)))
+    {
+        dx=toX-x;
+        dy=toY-y;
+    }
+    else
+    {
+        dx=cos(atan2(toX-x, toY-y))*dist;
+        dy=sin(atan2(toX-x, toY-y))*dist;
+    }
+    int dHeight=0;
+    if(toY-y!=0 && toX-x!=0)
+    {
+        double slope=(toY-y)/(toX-x);
+        if(abs(dx)>=abs(dy)) //tends to horizontal rather than vertical
+        {
+            int cx=abs(dx)/dx;
+            int sum=0;
+            int count=0;
+            for(int i=0; i<=abs(dx); i++)
+            {
+                sum+=map[slope*(i*cx)+y][(i*cx)+x].height;
+                count++;
+            }
+            dHeight=sum/count;
+        }
+        else
+        {
+            int cy=abs(dy)/dy;
+            int sum=0;
+            int count=0;
+            for(int i=0; i<=abs(dy); i++)
+            {
+                sum+=map[(i*cy)+y][((i*cy)/slope)+x].height;
+                count++;
+            }
+            dHeight=sum/count;
+        }
+    }
+    else if(x==toX) //vertical
+    {
+        int sum=0;
+        int cy=abs(dy)/dy;
+        for(int i=0; i<=abs(dy); i++)
+            sum+=map[cy*i+y][x].height;
+        dHeight=sum/abs(dy);
+    }
+    else if(y==toY) //horizontal
+    {
+        int sum=0;
+        int cx=abs(dx)/dx;
+        for(int i=0; i<=abs(dx); i++)
+            sum+=map[y][cx*i+x].height;
+        dHeight=sum/abs(dx);
+    }
+    dHeight=map[y][x].height-dHeight;
+    //the decrease in speed is applied after traveling that distance but before reaching the target. Realistically, speed would decrease real-time, and calculus would probably be involved. Oh well. Screw that. This is a discrete universe, not a continuous one. 
+    speed+=dHeight*Throwing::HeightDiffSpeedChange;
+    speed-=weight*Throwing::SpeedDecPerWeight;
+    if(speed<=0)
+        speed=0;
+    map[y+dy][x+dx].allObjects.push_back(*this);
+    map[y][x].allObjects.erase(map[y][x].allObjects.begin()+index);
+    y+=dy;
+    x+=dx;
+    index=map[y][x].allObjects.size()-1;
+    if(y==toY && x==toX) //I hit my target
+    {
+        if(map[y][x].uniton)
+            allUnits.data[map[y][x].unitplayer][map[y][x].unitindex].hitWithFlyingObject(index);
+        speed=0;
+    }
 }
 
 #define Z(type, val) \

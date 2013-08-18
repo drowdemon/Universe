@@ -40,6 +40,7 @@ friend class hiveMind; //this is ok since hivemind and unit are to be inherited 
 friend class allminds;
 friend int main();
 friend class object;
+friend class Throwing;
 private: // all this stuff can only be changed internally
     //more will certainly be added. Our own creatures will inherit from this, and implement some sort of run function, probably
     int player;
@@ -88,6 +89,7 @@ private: // all this stuff can only be changed internally
     void giveBirth();
     void emergencySleep();
     void die();
+    void hitWithFlyingObject(int objIndex); //UNIMPLEMENTED
 public:
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
     void move(short mx, short my); //no obstacle avoidance: each creature will implement that on its own. This just moves to the given square, if that's legal

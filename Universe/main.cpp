@@ -6,6 +6,7 @@
 #include "globals.h"
 #include <iostream>
 #include <fstream>
+#include <cmath>
 using namespace std;
 
 void init()
@@ -143,6 +144,8 @@ int main()
                         map[i][j].allObjects.erase(map[i][j].allObjects.begin()+k);
                         k--;
                     }
+                    if(map[i][j].allObjects[k].speed>0)
+                        map[i][j].allObjects[k].move();
                 }
             }
         }

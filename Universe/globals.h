@@ -38,6 +38,7 @@ using namespace std;
 #define EMERGENCYSLEEPLVL 10 //when it will fall asleep when out of hive mind control
 #define EMERGENCYENDSLEEP 700 //when it will awaken when sleeping as above and out of hive mind control
 #define REPRODUCTIONTIME  5
+#define WEIGHTPERSTRENGTH 2 //how much weight you can carry per strength point
 //function declarations
 int geneMixer(int p1, int p2);
 

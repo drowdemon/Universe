@@ -170,11 +170,11 @@ void unit::moveHelper(int mx, int my)
 }
 void unit::infect()
 {
-    int immunityloss=0;
-    for(unsigned int i=0; i<diseased.size(); i++)
-        immunityloss+=allDiseases[diseased[i]].immunCost;
     if(frames%INFECTRATE==0)
     {
+        int immunityloss=0;
+        for(unsigned int i=0; i<diseased.size(); i++)
+            immunityloss+=allDiseases[diseased[i]].immunCost;
         for(unsigned int i=0; i<allDiseases.size(); i++) //try to auto-infect
         {
             if(allDiseases[i].first!=2) //can catch this disease at random
@@ -259,6 +259,30 @@ void unit::infect()
                                 {
                                     map[i][j].disease.push_back(diseased[h]);
                                     map[i][j].diseaseTime.push_back(0);
+                                }
+                            }
+                        }
+                        for(unsigned int k=0; k<map[i][j].allObjects.size(); k++)
+                        {
+                            if(map[i][j].allObjects[k].actuallyEdible!=-3 && (allDiseases[diseased[h]].transmit&FOOD_TRANSMIT)>0)
+                            {
+                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance)
+                                {
+                                    bool good=true;
+                                    for(unsigned int d=0; d<map[i][j].allObjects[k].infected.size(); d++)
+                                    {
+                                        if(map[i][j].allObjects[k].infected[d]==diseased[h])
+                                        {
+                                            map[i][j].allObjects[k].infectionTime[d]=0;
+                                            good=false;
+                                            break;
+                                        }
+                                    }
+                                    if(good)
+                                    {
+                                        map[i][j].allObjects[k].infected.push_back(diseased[h]);
+                                        map[i][j].allObjects[k].infectionTime.push_back(0);
+                                    }
                                 }
                             }
                         }
@@ -577,9 +601,14 @@ void unit::pickUp(int what, int ox, int oy)
     {
         if(map[oy][ox].allObjects[i].whatIsIt==what)
         {
-            if(carriedWeight+map[oy][ox].allObjects[i].weight<=strength) //good
+            if(carriedWeight+map[oy][ox].allObjects[i].weight<=strength*WEIGHTPERSTRENGTH) //good
             {
                 carrying.push_back(map[oy][ox].allObjects[i]);
+                carrying[carrying.size()-1].x=-1;
+                carrying[carrying.size()-1].y=-1;
+                carrying[carrying.size()-1].heldByPlayer=player;
+                carrying[carrying.size()-1].heldByIndex=index;
+                carrying[carrying.size()-1].index=carrying.size()-1;
                 map[oy][ox].allObjects.erase(map[oy][ox].allObjects.begin()+i);
             }
             break;
@@ -598,6 +627,7 @@ void unit::putDown(int objIndex, int px, int py)
     carrying[objIndex].y=py;
     carrying[objIndex].heldByIndex=-1;
     carrying[objIndex].heldByPlayer=-1;
+    carrying[objIndex].index=map[y][x].allObjects.size();
     map[y][x].allObjects.push_back(carrying[objIndex]);
     carrying.erase(carrying.begin()+objIndex);
 }
@@ -619,13 +649,17 @@ void unit::eat(int objIndex)
     if(carrying[objIndex].actuallyEdible>=0)
         hunger-=carrying[objIndex].possFood.nutrition;
 }
+void unit::hitWithFlyingObject(int objIndex)
+{
+    
+}
 //getters 
 
 vector<object> unit::getcarrying()
 {
-    if(curLoops.unitPlayer==player && curLoops.unitIndex==index) \
+    if(curLoops.unitPlayer==player && curLoops.unitIndex==index) 
     { 
-        return carrying; \
+        return carrying; 
     } 
     return vector<object>(); 
 }

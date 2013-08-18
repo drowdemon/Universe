@@ -43,6 +43,7 @@ class object
     friend class tile;
     friend class unit;
     friend class food;
+    friend class Throwing;
     friend int main();
 private:
     short weight;
@@ -55,9 +56,14 @@ private:
     vector<short> infected;
     vector<short> infectionTime;
     food possFood;
-    object(short w, short p, short i, short px, short py, short what, bool aedib, food pf);
+    short speed; //divide by 1000 and floor + (rand()%1000)<(decimal part*1000)?1:0).
+    short toX; //where a moving object is going. Euclidean direction.
+    short toY;
+    short index; //in a tiles allobjects or a units carrying, whichever is applicable.
+    object(short w, short p, short i, short px, short py, short what, bool aedib, food pf, short ind);
     object(objectDescriptor& od, short p, short i, short px, short py);
     bool rot();
+    void move();
 public:
     //short getWeight(unit *u);
 #define Z(type, val) \
