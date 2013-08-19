@@ -29,12 +29,17 @@ void hiveMind::act()
 //getters for units in hive
 vector<object> hiveMind::getUnitInHivecarrying(int index)
 {
+    vector<object> ret;
     if(curLoops.hiveIndex==index && curLoops.hivePlayer==player) 
     { 
         if(abs(centerx-allUnits.data[player][index].x)<range && abs(centery-allUnits.data[player][index].y)<range) 
-            return allUnits.data[player][index].carrying; 
+        {
+            for(unsigned int i=0; i<allUnits.data[player][index].carrying.size(); i++)
+                ret.push_back(*(allUnits.data[player][index].carrying[i]));
+            return ret;
+        }
     } 
-    return vector<object>(); 
+    return ret; 
 }
 
 #define Y(type, val) \

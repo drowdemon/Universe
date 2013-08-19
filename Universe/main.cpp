@@ -35,7 +35,7 @@ void init()
     }
     unitChangeFile = new ofstream("unitChanges");
     
-    allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,0,-1,food()));
+    allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,-3,-1,food()));
 }
 
 void waterFlow(int i, int j) //i=y, j=x
@@ -127,6 +127,8 @@ int main()
     map[11][10].unitplayer=0;
     map[11][10].unitindex=0;
     
+    allUnits.data[0][0].carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0));
+    
     printMap(); //comment out for no output.
     while(true) //it never closes. Somewhat inconvenient. But its not bothering to use win32 or glut or mfc, with good reason, so this is the best I could do. 
     {
@@ -139,13 +141,13 @@ int main()
                 map[i][j].spreadDisease();
                 for(unsigned int k=0; k<map[i][j].allObjects.size(); k++)
                 {
-                    if(!map[i][j].allObjects[k].rot())
+                    if(!map[i][j].allObjects[k]->rot())
                     {
                         map[i][j].allObjects.erase(map[i][j].allObjects.begin()+k);
                         k--;
                     }
-                    if(map[i][j].allObjects[k].speed>0)
-                        map[i][j].allObjects[k].move();
+                    if(map[i][j].allObjects[k]->speed>0)
+                        map[i][j].allObjects[k]->move();
                 }
             }
         }
@@ -166,7 +168,7 @@ int main()
                 curLoops.unitIndex=j;
                 for(unsigned int k=0; k<allUnits.data[i][j].carrying.size(); k++)
                 {
-                    if(!allUnits.data[i][j].carrying[k].rot())
+                    if(!allUnits.data[i][j].carrying[k]->rot())
                     {
                         allUnits.data[i][j].carrying.erase(allUnits.data[i][j].carrying.begin()+k);
                         k--;

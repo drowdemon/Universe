@@ -72,7 +72,7 @@ private: // all this stuff can only be changed internally
     short fetusid; //id of child if pregnant
     short sleep; //how well-rested it is. At some point sleep deprivation starts taking effect
     short energy; //how much energy it has. Replenished by eating. Taken up by living, moving, fighting, etc.
-    vector<object> carrying;
+    vector<object*> carrying;
     Throwing throwSkill;
     
     //below are 'acting' variables. If the unit is doing some action, and cannot do other actions because of this, this is where it is recorded.
@@ -102,6 +102,7 @@ private: // all this stuff can only be changed internally
     void resetActions();
     void resetSkills();
 public:
+    ~unit();
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
     void move(short mx, short my); //no obstacle avoidance: each creature will implement that on its own. This just moves to the given square, if that's legal
     void reproduce(int withwhom);

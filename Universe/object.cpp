@@ -38,7 +38,7 @@ object::object(short w, short p, short i, short px, short py, short what, bool a
     index=ind;
 }
 
-object::object(objectDescriptor& od, short p, short i, short px, short py)
+object::object(objectDescriptor& od, short p, short i, short px, short py, short ind)
 {
     weight=od.weight+((rand()%(od.weightVariation*2+1))-od.weightVariation);
     heldByPlayer=p;
@@ -53,6 +53,9 @@ object::object(objectDescriptor& od, short p, short i, short px, short py)
         infectionTime.push_back(-1); //forever and ever and ever.
     }
     possFood=od.possFood;
+    speed=0;
+    toX=toY=-1;
+    index=ind;
 }
 
 bool object::rot()
@@ -96,79 +99,106 @@ bool object::rot()
 void object::move()
 {
     int dist=speed/1000+(((rand()%1000)<(speed%1000)) ? 1 : 0);
-    int dx=0;
-    int dy=0;
-    if(dist<sqrt(pow(x-toX,2)+pow(y-toY,2)))
+    if(dist==0)
+        return;
+    double dx=0;
+    double dy=0;
+    if(sqrt(pow(x-toX,2)+pow(y-toY,2))<=dist)
     {
         dx=toX-x;
         dy=toY-y;
     }
     else
     {
-        dx=cos(atan2(toX-x, toY-y))*dist;
-        dy=sin(atan2(toX-x, toY-y))*dist;
+        dx=(double)cos(atan2((double)(toY-y), (double)(toX-x)))*(double)dist;
+        dy=(double)sin(atan2((double)(toY-y), (double)(toX-x)))*(double)dist;
     }
     int dHeight=0;
-    if(toY-y!=0 && toX-x!=0)
+    if(abs(toY-y)>0.0005 && abs(toX-x)>0.0005) //nonzero
     {
         double slope=(toY-y)/(toX-x);
         if(abs(dx)>=abs(dy)) //tends to horizontal rather than vertical
         {
-            int cx=abs(dx)/dx;
+            int cx=(int)(abs(dx)/dx);
             int sum=0;
             int count=0;
-            for(int i=0; i<=abs(dx); i++)
+            for(double i=0; i<=abs(dx); i+=.1)
             {
-                sum+=map[slope*(i*cx)+y][(i*cx)+x].height;
+                sum+=map[(unsigned int)(slope*(i*cx)+y)][(unsigned int)((i*cx)+x)].height;
                 count++;
             }
             dHeight=sum/count;
         }
         else
         {
-            int cy=abs(dy)/dy;
+            int cy=(int)(abs(dy)/dy);
             int sum=0;
             int count=0;
-            for(int i=0; i<=abs(dy); i++)
+            for(double i=0; i<=abs(dy); i+=.1)
             {
-                sum+=map[(i*cy)+y][((i*cy)/slope)+x].height;
+                sum+=map[(unsigned int)((i*cy)+y)][(unsigned int)(((i*cy)/slope)+x)].height;
                 count++;
             }
             dHeight=sum/count;
         }
     }
-    else if(x==toX) //vertical
+    else if(abs(toX-x)<0.0005) //vertical
     {
         int sum=0;
-        int cy=abs(dy)/dy;
-        for(int i=0; i<=abs(dy); i++)
-            sum+=map[cy*i+y][x].height;
-        dHeight=sum/abs(dy);
+        int cy=(int)(abs(dy)/dy);
+        int count;
+        for(double i=0; i<=abs(dy); i+=.1)
+        {
+            sum+=map[(unsigned int)(cy*i+y)][(unsigned int)x].height;
+            count++;
+        }
+        dHeight=sum/count;
     }
-    else if(y==toY) //horizontal
+    else if(abs(toY-y)<0.0005) //horizontal
     {
         int sum=0;
-        int cx=abs(dx)/dx;
-        for(int i=0; i<=abs(dx); i++)
-            sum+=map[y][cx*i+x].height;
-        dHeight=sum/abs(dx);
+        int cx=(int)(abs(dx)/dx);
+        int count=0;
+        for(double i=0; i<=abs(dx); i+=.1)
+        {
+            sum+=map[(unsigned int)y][(unsigned int)(cx*i+x)].height;
+            count++;
+        }
+        dHeight=sum/count;
     }
-    dHeight=map[y][x].height-dHeight;
+    dHeight=map[(unsigned int)y][(unsigned int)x].height-dHeight;
     //the decrease in speed is applied after traveling that distance but before reaching the target. Realistically, speed would decrease real-time, and calculus would probably be involved. Oh well. Screw that. This is a discrete universe, not a continuous one. 
-    speed+=dHeight*Throwing::HeightDiffSpeedChange;
-    speed-=weight*Throwing::SpeedDecPerWeight;
+    speed+=(dHeight*Throwing::HeightDiffSpeedChange);
+    speed-=(weight*Throwing::SpeedDecPerWeight);
     if(speed<=0)
+    {
         speed=0;
-    map[y+dy][x+dx].allObjects.push_back(*this);
-    map[y][x].allObjects.erase(map[y][x].allObjects.begin()+index);
+        toX=-1;
+        toY=-1;
+    }
+    
     y+=dy;
     x+=dx;
-    index=map[y][x].allObjects.size()-1;
-    if(y==toY && x==toX) //I hit my target
+    if(abs(toY-y)<0.0005 && abs(toX-x)<0.0005) //I hit my target
     {
-        if(map[y][x].uniton)
-            allUnits.data[map[y][x].unitplayer][map[y][x].unitindex].hitWithFlyingObject(index);
-        speed=0;
+        y=toY; //make it the exact int
+        x=toX;
+        if(y<toY)
+            y+=0.000005; //if its slightly less than the int, increase it 
+        if(x<toX)        
+            x+=0.000005;
+    }
+    index=map[(unsigned int)y][(unsigned int)x].allObjects.size();
+    
+    map[(unsigned int)(y)][(unsigned int)(x)].allObjects.push_back(this);
+    map[(unsigned int)(y-dy)][(unsigned int)(x-dx)].allObjects.erase(map[(unsigned int)(y-dy)][(unsigned int)(x-dx)].allObjects.begin()+index);
+    if(abs(toY-y)<0.0005 && abs(toX-x)<0.0005) //I hit my target
+    {
+        if(map[(unsigned int)y][(unsigned int)x].uniton)
+            allUnits.data[map[(unsigned int)y][(unsigned int)x].unitplayer][map[(unsigned int)y][(unsigned int)x].unitindex].hitWithFlyingObject(index);
+        map[(unsigned int)(y)][(unsigned int)(x)].allObjects.back()->speed=0;
+        map[(unsigned int)(y)][(unsigned int)(x)].allObjects.back()->toX=-1;
+        map[(unsigned int)(y)][(unsigned int)(x)].allObjects.back()->toY=-1;
     }
 }
 

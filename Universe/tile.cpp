@@ -45,7 +45,7 @@ bool tile::walkable(unit *u)
         return false; 
     for(unsigned int i=0; i<allObjects.size(); i++)
     {
-        if(!allObjectDesc[allObjects[i].whatIsIt].walkable)
+        if(!allObjectDesc[allObjects[i]->whatIsIt].walkable)
             return false;
     }
     return true;
@@ -74,7 +74,7 @@ bool tile::walkable(hiveMind* h, short fx, short fy)
         return false; 
     for(unsigned int i=0; i<allObjects.size(); i++)
     {
-        if(!allObjectDesc[allObjects[i].whatIsIt].walkable)
+        if(!allObjectDesc[allObjects[i]->whatIsIt].walkable)
             return false;
     }
     return true;
@@ -211,4 +211,13 @@ pubTile* tile::get(hiveMind& h)
     if(mapseenhive[h.player][h.index][y][x].get())
         return new pubTile(this);
     return NULL;
+}
+
+tile::~tile()
+{
+    for(unsigned int i=0; i<allObjects.size(); i++)
+    {
+        delete allObjects[i];
+    }
+    allObjects.clear();
 }

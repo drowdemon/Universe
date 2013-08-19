@@ -41,6 +41,12 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
     liftingOrDropping=false;
     waking=false;
 }
+unit::~unit()
+{
+    for(unsigned int i=0; i<carrying.size(); i++)
+        delete carrying[i];
+    carrying.clear();
+}
 bool unit::nextFrame()
 {
     resetSkills();
@@ -206,24 +212,24 @@ void unit::infect()
                         }
                         for(unsigned int k=0; k<map[i][j].allObjects.size(); k++)
                         {
-                            if(map[i][j].allObjects[k].actuallyEdible!=-3 && (allDiseases[diseased[h]].transmit&FOOD_TRANSMIT)>0)
+                            if(map[i][j].allObjects[k]->actuallyEdible!=-3 && (allDiseases[diseased[h]].transmit&FOOD_TRANSMIT)>0)
                             {
                                 if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance)
                                 {
                                     bool good=true;
-                                    for(unsigned int d=0; d<map[i][j].allObjects[k].infected.size(); d++)
+                                    for(unsigned int d=0; d<map[i][j].allObjects[k]->infected.size(); d++)
                                     {
-                                        if(map[i][j].allObjects[k].infected[d]==diseased[h])
+                                        if(map[i][j].allObjects[k]->infected[d]==diseased[h])
                                         {
-                                            map[i][j].allObjects[k].infectionTime[d]=0;
+                                            map[i][j].allObjects[k]->infectionTime[d]=0;
                                             good=false;
                                             break;
                                         }
                                     }
                                     if(good)
                                     {
-                                        map[i][j].allObjects[k].infected.push_back(diseased[h]);
-                                        map[i][j].allObjects[k].infectionTime.push_back(0);
+                                        map[i][j].allObjects[k]->infected.push_back(diseased[h]);
+                                        map[i][j].allObjects[k]->infectionTime.push_back(0);
                                     }
                                 }
                             }
@@ -389,7 +395,9 @@ void unit::unseehive(int hiveindex)
 }
 void unit::act() //make this empty
 {
-    move(); //remove this line. TESTING ONLY!!!
+    //move(); //remove this line. TESTING ONLY!!!
+    if(index==0 && frames==1)
+        throwObj(0,x+1,y+1);
 }
 void unit::giveBirth()
 {
@@ -475,7 +483,7 @@ void unit::die()
 }
 void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. Object sharpness maybe. How hard/soft it is. 
 {
-    health-=map[y][x].allObjects[objIndex].speed*SPEEDTODAMAGE; 
+    health-=map[y][x].allObjects[objIndex]->speed*SPEEDTODAMAGE; 
 }
 void unit::resetActions() //sleeping is controlled differently, and reproduction is in livingEvents()
 {
@@ -603,7 +611,7 @@ void unit::goToSleep()
         return;
     for(unsigned int i=0; i<map[y][x].allObjects.size(); i++)
     {
-        if(!map[y][x].allObjects[i].getsleepable(this))
+        if(!map[y][x].allObjects[i]->getsleepable(this))
             return;
     }
     sleeping=true;
@@ -624,19 +632,19 @@ void unit::pickUp(int what, int ox, int oy)
         return;
     int carriedWeight=0;
     for(unsigned int i=0; i<carrying.size(); i++)
-        carriedWeight+=carrying[i].weight;
+        carriedWeight+=carrying[i]->weight;
     for(unsigned int i=0; i<map[oy][ox].allObjects.size(); i++)
     {
-        if(map[oy][ox].allObjects[i].whatIsIt==what)
+        if(map[oy][ox].allObjects[i]->whatIsIt==what)
         {
-            if(carriedWeight+map[oy][ox].allObjects[i].weight<=strength*WEIGHTPERSTRENGTH) //good
+            if(carriedWeight+map[oy][ox].allObjects[i]->weight<=strength*WEIGHTPERSTRENGTH) //good
             {
                 carrying.push_back(map[oy][ox].allObjects[i]);
-                carrying[carrying.size()-1].x=-1;
-                carrying[carrying.size()-1].y=-1;
-                carrying[carrying.size()-1].heldByPlayer=player;
-                carrying[carrying.size()-1].heldByIndex=index;
-                carrying[carrying.size()-1].index=carrying.size()-1;
+                carrying[carrying.size()-1]->x=-1;
+                carrying[carrying.size()-1]->y=-1;
+                carrying[carrying.size()-1]->heldByPlayer=player;
+                carrying[carrying.size()-1]->heldByIndex=index;
+                carrying[carrying.size()-1]->index=carrying.size()-1;
                 map[oy][ox].allObjects.erase(map[oy][ox].allObjects.begin()+i);
             }
             break;
@@ -651,11 +659,11 @@ void unit::putDown(int objIndex, int px, int py)
         return;
     if(abs(x-px)>1 || abs(y-py)>1)
         return; //not allowed
-    carrying[objIndex].x=px;
-    carrying[objIndex].y=py;
-    carrying[objIndex].heldByIndex=-1;
-    carrying[objIndex].heldByPlayer=-1;
-    carrying[objIndex].index=map[y][x].allObjects.size();
+    carrying[objIndex]->x=px;
+    carrying[objIndex]->y=py;
+    carrying[objIndex]->heldByIndex=-1;
+    carrying[objIndex]->heldByPlayer=-1;
+    carrying[objIndex]->index=map[y][x].allObjects.size();
     map[y][x].allObjects.push_back(carrying[objIndex]);
     carrying.erase(carrying.begin()+objIndex);
 }
@@ -665,17 +673,17 @@ void unit::eat(int objIndex)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
-    if(carrying[objIndex].actuallyEdible==-3) // totally inedible
+    if(carrying[objIndex]->actuallyEdible==-3) // totally inedible
         return;
-    for(unsigned int i=0; i<carrying[objIndex].infected.size(); i++)
+    for(unsigned int i=0; i<carrying[objIndex]->infected.size(); i++)
     {
-        diseased.push_back(diseaseInfo(carrying[objIndex].infected[i]));
-        strength-=allDiseases[carrying[objIndex].infected[i]].permStrCost;
-        intelligence-=allDiseases[carrying[objIndex].infected[i]].permIntelCost;
-        immunity-=allDiseases[carrying[objIndex].infected[i]].permImmunCost;
+        diseased.push_back(diseaseInfo(carrying[objIndex]->infected[i]));
+        strength-=allDiseases[carrying[objIndex]->infected[i]].permStrCost;
+        intelligence-=allDiseases[carrying[objIndex]->infected[i]].permIntelCost;
+        immunity-=allDiseases[carrying[objIndex]->infected[i]].permImmunCost;
     }
-    if(carrying[objIndex].actuallyEdible>=0)
-        hunger-=carrying[objIndex].possFood.nutrition;
+    if(carrying[objIndex]->actuallyEdible>=0)
+        hunger-=carrying[objIndex]->possFood.nutrition;
 }
 void unit::throwObj(int objIndex, short atX, short atY)
 {
@@ -691,11 +699,14 @@ void unit::throwObj(int objIndex, short atX, short atY)
 
 vector<object> unit::getcarrying()
 {
+    vector<object> ret;
     if(curLoops.unitPlayer==player && curLoops.unitIndex==index) 
     { 
-        return carrying; 
+        for(unsigned int i=0; i<carrying.size(); i++)
+            ret.push_back(*(carrying[i]));
+        return ret;
     } 
-    return vector<object>(); 
+    return ret; 
 }
 #define Y(type, val) \
     type unit::get ## val() \
