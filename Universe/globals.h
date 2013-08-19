@@ -39,6 +39,7 @@ using namespace std;
 #define EMERGENCYENDSLEEP 700 //when it will awaken when sleeping as above and out of hive mind control
 #define REPRODUCTIONTIME  5
 #define WEIGHTPERSTRENGTH 2 //how much weight you can carry per strength point
+#define SPEEDTODAMAGE 1 //for now, only a thrown objects speed determines its damage. Add more to that.
 //function declarations
 int geneMixer(int p1, int p2);
 

@@ -4,6 +4,8 @@
 #include <vector>
 #include <cstdlib>
 #include "globals.h"
+#include "currLoopVar.h"
+#include <cmath>
 
 using namespace std;
 
@@ -14,14 +16,18 @@ const int Throwing::xpToSpeed=2;
 const int Throwing::HeightDiffSpeedChange=-2; //if height increases, speed should decrease, so this is negative
 const int Throwing::SpeedDecPerWeight=5;
 const int Throwing::xpDiffToLearn=500;
-const int Throwing::maxLearnDist=5;
+const int Throwing::maxLearnDistSquared=25;
+const int Throwing::xpToAccuracy=5;
+const int Throwing::seenToXp=2;
+const int Throwing::MovingAccuracyReduction=100;
 
 Throwing::Throwing(int e)
 {
     experience=e;
+    accStageX=accStageY=0;
 }
 
-void Throwing::Throw(int objIndex, unit* who, int x, int y)
+void Throwing::Throw(int objIndex, unit* who, int x, int y, bool moving)
 {
     int objY=who->carrying[objIndex].y;
     int objX=who->carrying[objIndex].x;
@@ -36,12 +42,16 @@ void Throwing::Throw(int objIndex, unit* who, int x, int y)
     int accX=rand()%1000;
     int accY=rand()%1000;
     int sum=0;
-    for(unsigned int i=0; i<accuracyX.size(); i++)
+    vector<int> tempaccX=accuracyX;
+    vector<int> tempaccY=accuracyY;
+    if(moving)
+        tempUnLearn(tempaccX, tempaccY, Throwing::MovingAccuracyReduction);
+    for(unsigned int i=0; i<tempaccX.size(); i++)
     {
         sum+=accuracyX[i];
         if(accX<sum)
         {
-            what->toX=x+(i-((accuracyX.size()-1)/2));
+            what->toX=x+(i-((tempaccX.size()-1)/2));
             if(what->toX<0)
                 what->toX=0;
             else if(what->toX>=MAPSIZE)
@@ -49,17 +59,125 @@ void Throwing::Throw(int objIndex, unit* who, int x, int y)
             break;
         }
     }
-    for(unsigned int i=0; i<accuracyY.size(); i++)
+    for(unsigned int i=0; i<tempaccY.size(); i++)
     {
-        sum+=accuracyY[i];
+        sum+=tempaccY[i];
         if(accY<sum)
         {
-            what->toY=y+(i-((accuracyY.size()-1)/2));
+            what->toY=y+(i-((tempaccY.size()-1)/2));
             if(what->toY<0)
                 what->toY=0;
             else if(what->toY>=MAPSIZE)
                 what->toY=MAPSIZE-1;
             break;
+        }
+    }
+}
+
+void Throwing::learn()
+{
+    experience++;
+    int xSize,ySize;
+    if((xSize=accuracyX.size())==1 && (ySize=accuracyY.size())==1)
+        return;
+    xSize--;
+    ySize--;
+    if(experience%Throwing::xpToAccuracy==0)
+    {
+        if(xSize>0)
+        {
+            if(accuracyX[0]>0)
+            {
+                accuracyX[0]--;
+                accuracyX[accStageX+1]++;
+            }
+            if(accuracyX[xSize]>0)
+            {
+                accuracyX[xSize]--;
+                accuracyX[xSize-1-accStageX]++;
+            }
+            if(accStageX==(xSize-2)/2) //middle
+                accStageX=0;
+            else
+                accStageX++;
+            if(accuracyX[0]==0 && accuracyX[xSize]==0)
+            {
+                accuracyX.pop_back();
+                accuracyX.erase(accuracyX.begin());
+            }
+        }
+        if(ySize>0)
+        {
+            if(accuracyY[0]>0)
+            {
+                accuracyY[0]--;
+                accuracyY[accStageY+1]++;
+            }
+            if(accuracyY[ySize]>0)
+            {
+                accuracyY[ySize]--;
+                accuracyY[ySize-1-accStageY]++;
+            }
+            if(accStageY==(ySize-2)/2) //middle
+                accStageY=0;
+            else
+                accStageY++;
+            if(accuracyY[0]==0 && accuracyY[ySize]==0)
+            {
+                accuracyY.pop_back();
+                accuracyY.erase(accuracyY.begin());
+            }
+        }
+    }
+}
+
+void Throwing::learn(unit* student, unit* teacher)
+{
+    if(student->player!=curLoops.unitPlayer || student->index!=curLoops.unitIndex)
+        return;
+    if(pow(student->x-teacher->x,2)+pow(student->y-teacher->y,2)+pow(map[student->y][student->x].height-map[teacher->y][teacher->x].height,2)<Throwing::maxLearnDistSquared) //in range
+    {
+        if(teacher->throwSkill.threw)
+        {
+            numSeen++;
+            if(numSeen==Throwing::seenToXp)
+            {
+                numSeen=0;
+                learn();
+            }
+        }
+    }
+}
+
+void Throwing::tempUnLearn(vector<int>& accX, vector<int>& accY, unsigned int qty)
+{
+//  accX=accuracyX;
+//  accY=accuracyY;
+    int tempqty=qty;
+    int tempstageX=accStageX;
+    int tempstageY=accStageY;
+    while(tempqty>0)
+    {
+        accX[0]++;
+        accX[1+tempstageX]--;
+        accX[accX.size()-1]++;
+        accX[accX.size()-2-tempstageX]--;
+        if(tempstageX==0)
+        {
+            accX.insert(accX.begin(),0);
+            accX.push_back(0);
+            tempstageX=(accX.size()-3)/2;
+        }
+        
+        accY[0]++;
+        accY[1+tempstageY]--;
+        accY[accY.size()-1]++;
+        accY[accY.size()-2-tempstageY]--;
+        if(tempstageY==0)
+        {
+            accY.insert(accY.begin(),0);
+            accY.push_back(0);
+            tempstageY=(accY.size()-3)/2;
         }
     }
 }

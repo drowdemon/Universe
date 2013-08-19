@@ -4,6 +4,7 @@
 #include <vector>
 #include "dataStructures.h"
 #include "object.h"
+#include "throw.h"
 
 using namespace std;
 
@@ -71,11 +72,19 @@ private: // all this stuff can only be changed internally
     short fetusid; //id of child if pregnant
     short sleep; //how well-rested it is. At some point sleep deprivation starts taking effect
     short energy; //how much energy it has. Replenished by eating. Taken up by living, moving, fighting, etc.
-    bool sleeping; //whether it is currently asleep
     vector<object> carrying;
+    Throwing throwSkill;
+    
+    //below are 'acting' variables. If the unit is doing some action, and cannot do other actions because of this, this is where it is recorded.
     short reproducing; //0=no, else=time
+    bool sleeping; //whether it is currently asleep
+    bool moving;  
+    bool throwing;
+    bool eating;
+    bool liftingOrDropping; //if pickup() or putdown() were called
+    bool waking; //if just called awaken(). It takes some time. 
 
-    unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm);
+    unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP);
     void diseaseEffects();
     bool checkLive();
     void livingEvents();
@@ -89,7 +98,9 @@ private: // all this stuff can only be changed internally
     void giveBirth();
     void emergencySleep();
     void die();
-    void hitWithFlyingObject(int objIndex); //UNIMPLEMENTED
+    void hitWithFlyingObject(int objIndex); //Add to this function
+    void resetActions();
+    void resetSkills();
 public:
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
     void move(short mx, short my); //no obstacle avoidance: each creature will implement that on its own. This just moves to the given square, if that's legal
@@ -99,7 +110,8 @@ public:
     void pickUp(int what, int ox, int oy);
     void putDown(int objIndex, int px, int py);
     void eat(int objIndex);
-    virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI
+    void throwObj(int objIndex, short atX, short atY);
+    virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI. In this class, it should be empty
     //getters
     vector<object> getcarrying();
 #define Y(type, val) \

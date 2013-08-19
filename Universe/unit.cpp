@@ -5,8 +5,9 @@
 #include "dataStructures.h"
 #include "hivemind.h"
 #include "food.h"
+#include "throw.h"
 
-unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm)
+unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP) : throwSkill(throwXP)
 {
     player=p;
     index=i;
@@ -31,17 +32,23 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
     pregnant=-1;
     fetusid=-1;
     hunger=NEWBORNHUNGER;
+    
     sleeping=false;
     reproducing=0;
+    moving=false;  
+    throwing=false;
+    eating=false;
+    liftingOrDropping=false;
+    waking=false;
 }
 bool unit::nextFrame()
 {
+    resetSkills();
     if(age==-1) //in womb
         return true; //complete successfully
     livingEvents();
     if(!checkLive())
         return false;   
-    move(); //remove this line
     for(unsigned int i=0; i<allMinds.data[player].size(); i++)
         seehive(i);
     seeunit();
@@ -71,73 +78,8 @@ bool unit::nextFrame()
     }
     unseeunit();
     emergencySleep();
+    resetActions();
     return true;
-}
-void unit::move()
-{
-    if(sleeping || reproducing>0)
-        return;
-    if(moveToX==x && moveToY==y)
-        return;
-    if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
-        return;
-    if(frames%speed==0)
-    {
-        if(moveToX>x)
-        {
-            if(moveToY>y)
-            {
-                moveHelper(1,1);
-            }
-            else if(moveToY==y)
-            {
-                moveHelper(1,0);
-            }
-            else if(moveToY<y)
-            {
-                moveHelper(1,-1);
-            }
-        }
-        else if(moveToX==x)
-        {
-            if(moveToY>y)
-            {
-                moveHelper(0,1);
-            }
-            else if(moveToY<y)
-            {
-                moveHelper(0,-1);
-            }
-        }
-        if(moveToX<x)
-        {
-            if(moveToY>y)
-            {
-                moveHelper(-1,1);
-            }
-            else if(moveToY==y)
-            {
-                moveHelper(-1,0);
-            }
-            else if(moveToY<y)
-            {
-                moveHelper(-1,-1);
-            }
-        }
-    }
-}
-void unit::move(short mx, short my)
-{
-    if(sleeping || reproducing>0)
-        return;
-    if(moveToX==x && moveToY==y)
-        return;
-    if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
-        return;
-    if(frames%speed!=0)
-        return;
-    if(abs(x-mx)<=1 && abs(y-my)<=1)
-        moveHelper(mx-x,my-y);
 }
 void unit::moveHelper(int mx, int my)
 {
@@ -445,43 +387,9 @@ void unit::unseehive(int hiveindex)
         }
     }
 }
-void unit::act()
+void unit::act() //make this empty
 {
-}
-void unit::reproduce(int withwhom)
-{
-    if(sleeping || reproducing>0)
-        return;
-    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
-        return;
-    if(abs(x-allUnits.get(this,withwhom)->x)<=1 && abs(y-allUnits.get(this,withwhom)->y)<=1) //close enough
-    {
-        if(age>=sexuallyMature && allUnits.get(this,withwhom)->age>allUnits.get(this,withwhom)->sexuallyMature) //old enough
-        {
-            if(gender!=allUnits.get(this,withwhom)->gender) //different genders
-            {
-                if(!gender) //female
-                {
-                    pregnant=0;
-                    fetusid=allUnits.data[player].size();
-                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
-                    unitChangeLog::update(allUnits.data[player][withwhom].x,allUnits.data[player][withwhom].y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
-                }
-                else //partner is female
-                {
-                    allUnits.data[player][withwhom].pregnant=0;
-                    allUnits.data[player][withwhom].fetusid=allUnits.data[player].size();
-                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
-                    unitChangeLog::update(allUnits.data[player][withwhom].x,allUnits.data[player][withwhom].y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
-                }
-                allUnits.data[player].push_back(unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom].strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom].intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom].speed)/2,(lineOfSight+allUnits.data[player][withwhom].lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom].immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom].healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom].woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom].energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom].metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom].maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom].sexuallyMature)/2)); //adds the new unit. It doesn't really exist though
-                if(allUnits.data[player][fetusid].maxMetabolicRate>allUnits.data[player][fetusid].metabolicRate)
-                    allUnits.data[player][fetusid].maxMetabolicRate=allUnits.data[player][fetusid].metabolicRate-3;
-                energy-=REPRODUCTIONENERGYCOST;
-                allUnits.get(this,withwhom)->energy-=REPRODUCTIONENERGYCOST;
-            }
-        }
-    }
+    move(); //remove this line. TESTING ONLY!!!
 }
 void unit::giveBirth()
 {
@@ -552,9 +460,142 @@ void unit::emergencySleep()
     else //must awaken, middle taken care of on top
         awaken();
 }
+void unit::die()
+{
+    for(unsigned int i=index+1; i<allUnits.data[player].size(); i++)
+    {
+        allUnits.data[player][i].index--;
+        map[allUnits.data[player][i].y][allUnits.data[player][i].x].unitindex--;
+    }
+    map[y][x].uniton=false;
+    map[y][x].unitplayer=-1;
+    map[y][x].unitindex=-1;
+    allUnits.data[player].erase(allUnits.data[player].begin()+index);
+    unitChangeLog::update(-99999,-99999,player,index,-99999,-99999,-99999,-99999,-99999,-99999,-99999);
+}
+void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. Object sharpness maybe. How hard/soft it is. 
+{
+    health-=map[y][x].allObjects[objIndex].speed*SPEEDTODAMAGE; 
+}
+void unit::resetActions() //sleeping is controlled differently, and reproduction is in livingEvents()
+{
+    moving=false;
+    throwing=false;
+    eating=false;
+    liftingOrDropping=false;
+    waking=false;
+}
+void unit::resetSkills()
+{
+    throwSkill.threw=false;
+}
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//public functions below --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void unit::move()
+{
+    if(sleeping || reproducing>0 || moving || throwing || waking)
+        return;
+    if(moveToX==x && moveToY==y)
+        return;
+    if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
+        return;
+    if(frames%speed==0)
+    {
+        if(moveToX>x)
+        {
+            if(moveToY>y)
+            {
+                moveHelper(1,1);
+            }
+            else if(moveToY==y)
+            {
+                moveHelper(1,0);
+            }
+            else if(moveToY<y)
+            {
+                moveHelper(1,-1);
+            }
+        }
+        else if(moveToX==x)
+        {
+            if(moveToY>y)
+            {
+                moveHelper(0,1);
+            }
+            else if(moveToY<y)
+            {
+                moveHelper(0,-1);
+            }
+        }
+        if(moveToX<x)
+        {
+            if(moveToY>y)
+            {
+                moveHelper(-1,1);
+            }
+            else if(moveToY==y)
+            {
+                moveHelper(-1,0);
+            }
+            else if(moveToY<y)
+            {
+                moveHelper(-1,-1);
+            }
+        }
+    }
+}
+void unit::move(short mx, short my)
+{
+    if(sleeping || reproducing>0 || moving || throwing || waking)
+        return;
+    if(moveToX==x && moveToY==y)
+        return;
+    if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
+        return;
+    if(frames%speed!=0)
+        return;
+    if(abs(x-mx)<=1 && abs(y-my)<=1)
+        moveHelper(mx-x,my-y);
+}
+void unit::reproduce(int withwhom)
+{
+    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking)
+        return;
+    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
+        return;
+    if(abs(x-allUnits.get(this,withwhom)->x)<=1 && abs(y-allUnits.get(this,withwhom)->y)<=1) //close enough
+    {
+        if(age>=sexuallyMature && allUnits.get(this,withwhom)->age>allUnits.get(this,withwhom)->sexuallyMature) //old enough
+        {
+            if(gender!=allUnits.get(this,withwhom)->gender) //different genders
+            {
+                if(!gender) //female
+                {
+                    pregnant=0;
+                    fetusid=allUnits.data[player].size();
+                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
+                    unitChangeLog::update(allUnits.data[player][withwhom].x,allUnits.data[player][withwhom].y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
+                }
+                else //partner is female
+                {
+                    allUnits.data[player][withwhom].pregnant=0;
+                    allUnits.data[player][withwhom].fetusid=allUnits.data[player].size();
+                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
+                    unitChangeLog::update(allUnits.data[player][withwhom].x,allUnits.data[player][withwhom].y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
+                }
+                allUnits.data[player].push_back(unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom].strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom].intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom].speed)/2,(lineOfSight+allUnits.data[player][withwhom].lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom].immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom].healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom].woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom].energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom].metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom].maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom].sexuallyMature)/2,0)); //adds the new unit. It doesn't really exist though
+                if(allUnits.data[player][fetusid].maxMetabolicRate>allUnits.data[player][fetusid].metabolicRate)
+                    allUnits.data[player][fetusid].maxMetabolicRate=allUnits.data[player][fetusid].metabolicRate-3;
+                energy-=REPRODUCTIONENERGYCOST;
+                allUnits.get(this,withwhom)->energy-=REPRODUCTIONENERGYCOST;
+            }
+        }
+    }
+}
 void unit::goToSleep()
 {
-    if(sleeping || reproducing>0)
+    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -573,22 +614,9 @@ void unit::awaken()
         return;
     sleeping=false;
 }
-void unit::die()
-{
-    for(unsigned int i=index+1; i<allUnits.data[player].size(); i++)
-    {
-        allUnits.data[player][i].index--;
-        map[allUnits.data[player][i].y][allUnits.data[player][i].x].unitindex--;
-    }
-    map[y][x].uniton=false;
-    map[y][x].unitplayer=-1;
-    map[y][x].unitindex=-1;
-    allUnits.data[player].erase(allUnits.data[player].begin()+index);
-    unitChangeLog::update(-99999,-99999,player,index,-99999,-99999,-99999,-99999,-99999,-99999,-99999);
-}
 void unit::pickUp(int what, int ox, int oy)
 {
-    if(sleeping || reproducing>0)
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking)
         return;
     if(abs(ox-x)>1 || abs(oy-y)>1) //too far
         return;
@@ -617,7 +645,7 @@ void unit::pickUp(int what, int ox, int oy)
 }
 void unit::putDown(int objIndex, int px, int py)
 {
-    if(sleeping || reproducing>0)
+    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -633,7 +661,7 @@ void unit::putDown(int objIndex, int px, int py)
 }
 void unit::eat(int objIndex)
 {
-    if(sleeping || reproducing>0)
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -649,9 +677,15 @@ void unit::eat(int objIndex)
     if(carrying[objIndex].actuallyEdible>=0)
         hunger-=carrying[objIndex].possFood.nutrition;
 }
-void unit::hitWithFlyingObject(int objIndex)
+void unit::throwObj(int objIndex, short atX, short atY)
 {
-    
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking)
+        return;
+    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
+        return;
+    if((unsigned int)objIndex>=carrying.size())
+        return;
+    throwSkill.Throw(objIndex, this, atX, atY, moving);
 }
 //getters 
 
