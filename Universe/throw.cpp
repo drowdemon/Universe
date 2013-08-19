@@ -25,14 +25,40 @@ Throwing::Throwing(int e)
 {
     experience=e;
     accStageX=accStageY=0;
+    //These are all pretty random. And they probably should vary more.
+    accuracyX.resize(11);
+    accuracyX[0]=30;
+    accuracyX[10]=30;//60
+    accuracyX[1]=90;
+    accuracyX[9]=90;//240
+    accuracyX[2]=120;
+    accuracyX[8]=120;//480
+    accuracyX[3]=110;
+    accuracyX[7]=110;//700
+    accuracyX[4]=100;
+    accuracyX[6]=100;//900
+    accuracyX[5]=100;//1000
+    
+    accuracyY.resize(11);
+    accuracyY[0]=30;
+    accuracyY[10]=30;//60
+    accuracyY[1]=90;
+    accuracyY[9]=90;//240
+    accuracyY[2]=120;
+    accuracyY[8]=120;//480
+    accuracyY[3]=110;
+    accuracyY[7]=110;//700
+    accuracyY[4]=100;
+    accuracyY[6]=100;//900
+    accuracyY[5]=100;//1000
 }
 
 void Throwing::Throw(int objIndex, unit* who, int x, int y, bool moving)
 {
-    int objY=who->carrying[objIndex].y;
-    int objX=who->carrying[objIndex].x;
+    int objY=who->y;
+    int objX=who->x;
     map[objY][objX].allObjects.push_back(who->carrying[objIndex]);
-    object *what=&(map[objY][objX].allObjects[map[objY][objX].allObjects.size()-1]);
+    object *what=map[objY][objX].allObjects[map[objY][objX].allObjects.size()-1];
     what->x=who->x;
     what->y=who->y;
     who->carrying.erase(who->carrying.begin()+objIndex);
@@ -51,7 +77,7 @@ void Throwing::Throw(int objIndex, unit* who, int x, int y, bool moving)
         sum+=accuracyX[i];
         if(accX<sum)
         {
-            what->toX=x+(i-((tempaccX.size()-1)/2));
+            what->toX=x+((signed int)i-(signed int)((tempaccX.size()-1)/2));
             if(what->toX<0)
                 what->toX=0;
             else if(what->toX>=MAPSIZE)
@@ -59,12 +85,13 @@ void Throwing::Throw(int objIndex, unit* who, int x, int y, bool moving)
             break;
         }
     }
+    sum=0;
     for(unsigned int i=0; i<tempaccY.size(); i++)
     {
         sum+=tempaccY[i];
         if(accY<sum)
         {
-            what->toY=y+(i-((tempaccY.size()-1)/2));
+            what->toY=y+((signed int)i-(signed int)((tempaccY.size()-1)/2));
             if(what->toY<0)
                 what->toY=0;
             else if(what->toY>=MAPSIZE)
@@ -72,6 +99,7 @@ void Throwing::Throw(int objIndex, unit* who, int x, int y, bool moving)
             break;
         }
     }
+    learn();
 }
 
 void Throwing::learn()

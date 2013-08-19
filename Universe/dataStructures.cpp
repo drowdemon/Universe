@@ -76,7 +76,8 @@ pubTile::pubTile(tile* t)
 {
     disease=t->disease;
     diseaseTime=t->diseaseTime;
-    allObjects=t->allObjects;
+    for(unsigned int i=0; i<t->allObjects.size(); i++)
+        allObjects.push_back(*(t->allObjects[i]));
     road=t->road;
     water=t->water;
     height=t->height;

@@ -49,11 +49,11 @@ private:
     short weight;
     short heldByPlayer;
     short heldByIndex;
-    short y;
-    short x;
+    double y;
+    double x;
     short whatIsIt; //subject to change
     bool actuallyEdible; //will change as rotting occurs
-    vector<short> infected;
+    vector<int> infected;
     vector<short> infectionTime;
     food possFood;
     short speed; //divide by 1000 and floor + (rand()%1000)<(decimal part*1000)?1:0).
@@ -61,7 +61,7 @@ private:
     short toY;
     short index; //in a tiles allobjects or a units carrying, whichever is applicable.
     object(short w, short p, short i, short px, short py, short what, bool aedib, food pf, short ind);
-    object(objectDescriptor& od, short p, short i, short px, short py);
+    object(objectDescriptor& od, short p, short i, short px, short py, short ind);
     bool rot();
     void move();
 public:
