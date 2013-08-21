@@ -21,12 +21,14 @@ class allunits
     friend void unit::learn();
     friend class hiveMind;
     friend class object;
+    friend void reformat();
 private:
-    vector<vector<unit> > data;
+    vector<vector<unit*> > data; //It stores pointers to units to save space. 
 public:
     allunits();
     unit* get(unit* u, int index);
     unit* get(hiveMind* h, int index);
+    ~allunits(); //You could just destroy one of the game's main data storage variables, but then it would crash, and the developer doing the destruction wouldn't gain a thing.
 };
 
 #endif	/* ALLUNITS_H */

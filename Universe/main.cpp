@@ -109,25 +109,66 @@ int geneMixer(int p1, int p2)
     return ret;
 }
 
+void reformat()
+{
+    vector<vector<int> > indexMappings;
+    indexMappings.resize(allUnits.data.size());
+    for(unsigned int i=0; i<allUnits.data.size(); i++)
+    {
+        indexMappings[i].resize(allUnits.data[i].size());
+        int currDeleted=0;
+        for(unsigned int j=0; j<allUnits.data[i].size(); j++)
+        {
+            if(!allUnits.data[i][j]) //invalid pointer
+            {
+                allUnits.data[i].erase(allUnits.data[i].begin()+j); //delete it
+                j--;
+                currDeleted++;
+            }
+            else //valid
+            {
+                allUnits.data[i][j]->index-=currDeleted;
+                map[allUnits.data[i][j]->y][allUnits.data[i][j]->x].unitindex-=currDeleted;
+                indexMappings[i][j]=allUnits.data[i][j]->index;
+                for(unsigned int k=0; k<allUnits.data[i][j]->carrying.size(); k++)
+                    allUnits.data[i][j]->carrying[k]->heldByIndex-=currDeleted;
+            }
+        }
+        for(unsigned int i=0; i<allUnits.data.size(); i++)
+        {
+            for(unsigned int j=0; j<allUnits.data[i].size(); j++)
+            {
+                if(allUnits.data[i][j]->fetusid!=-1)
+                    allUnits.data[i][j]->fetusid=indexMappings[i][allUnits.data[i][j]->fetusid];
+                for(unsigned int k=0; k<NUMSKILLS; k++)
+                {
+                    if(allUnits.data[i][j]->learningSkills[k]!=-1)
+                        allUnits.data[i][j]->learningSkills[k]=indexMappings[i][allUnits.data[i][j]->learningSkills[k]];
+                }
+            }
+        }
+    }
+}
+
 int main()
 {
     srand(time(NULL));
     init();
     
-    allUnits.data[0].push_back(unit(0,0,10,false,10,20,10,10,30,5,175,50,2,10,15,10,13,0));
-    unitChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0].health,allUnits.data[0][0].energy,allUnits.data[0][0].hunger,allUnits.data[0][0].sleep,allUnits.data[0][0].pregnant);
+    allUnits.data[0].push_back(new unit(0,0,10,false,10,20,10,10,30,5,175,50,2,10,15,10,13,0));
+    unitChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0]->health,allUnits.data[0][0]->energy,allUnits.data[0][0]->hunger,allUnits.data[0][0]->sleep,allUnits.data[0][0]->pregnant);
     //allUnits.data[0][0].moveToX=20;
     map[10][10].uniton=true;
     map[10][10].unitplayer=0;
     map[10][10].unitindex=0;
-    allUnits.data[0].push_back(unit(0,1,10,true,10,20,10,11,30,5,175,50,2,10,15,10,13,0));
-    unitChangeLog::update(allUnits.data[0][1].x,allUnits.data[0][1].y,0,1,0,0,allUnits.data[0][1].health,allUnits.data[0][1].energy,allUnits.data[0][1].hunger,allUnits.data[0][1].sleep,allUnits.data[0][1].pregnant);
+    allUnits.data[0].push_back(new unit(0,1,10,true,10,20,10,11,30,5,175,50,2,10,15,10,13,0));
+    unitChangeLog::update(allUnits.data[0][1]->x,allUnits.data[0][1]->y,0,1,0,0,allUnits.data[0][1]->health,allUnits.data[0][1]->energy,allUnits.data[0][1]->hunger,allUnits.data[0][1]->sleep,allUnits.data[0][1]->pregnant);
     //allUnits.data[0][0].moveToX=20;
     map[11][10].uniton=true;
     map[11][10].unitplayer=0;
     map[11][10].unitindex=0;
     
-    allUnits.data[0][0].carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0));
+    allUnits.data[0][0]->carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0));
     
     printMap(); //comment out for no output.
     while(true) //it never closes. Somewhat inconvenient. But its not bothering to use win32 or glut or mfc, with good reason, so this is the best I could do. 
@@ -160,26 +201,37 @@ int main()
                 allMinds.data[i][j].act();
             }
         }
+        int numDead=0;
         for(unsigned int i=0; i<allUnits.data.size(); i++)
         {
             curLoops.unitPlayer=i;
             for(unsigned int j=0; j<allUnits.data[i].size(); j++)
             {
-                curLoops.unitIndex=j;
-                for(unsigned int k=0; k<allUnits.data[i][j].carrying.size(); k++)
+                if(!allUnits.data[i][j])
                 {
-                    if(!allUnits.data[i][j].carrying[k]->rot())
+                    numDead++;
+                    continue;
+                }
+                curLoops.unitIndex=j;
+                for(unsigned int k=0; k<allUnits.data[i][j]->carrying.size(); k++)
+                {
+                    if(!allUnits.data[i][j]->carrying[k]->rot())
                     {
-                        allUnits.data[i][j].carrying.erase(allUnits.data[i][j].carrying.begin()+k);
+                        allUnits.data[i][j]->carrying.erase(allUnits.data[i][j]->carrying.begin()+k);
                         k--;
                     }
                 }
-                if(!allUnits.data[i][j].nextFrame())
+                if(!allUnits.data[i][j]->nextFrame())
                 {
-                    allUnits.data[i][j].die();
+                    allUnits.data[i][j]->die();
                     j--;
                 }
             }
+        }
+        if(numDead>=NUMDEADTOREFORMAT)
+        {
+            if(rand()%200==0)
+                reformat();
         }
         unitChangeLog::communicate(); //comment for no gui
     }

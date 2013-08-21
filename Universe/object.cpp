@@ -191,11 +191,11 @@ void object::move()
     index=map[(unsigned int)y][(unsigned int)x].allObjects.size();
     
     map[(unsigned int)(y)][(unsigned int)(x)].allObjects.push_back(this);
-    map[(unsigned int)(y-dy)][(unsigned int)(x-dx)].allObjects.erase(map[(unsigned int)(y-dy)][(unsigned int)(x-dx)].allObjects.begin()+index);
+    map[(unsigned int)(y-dy+0.000005)][(unsigned int)(x-dx+0.000005)].allObjects.erase(map[(unsigned int)(y-dy+0.000005)][(unsigned int)(x-dx+0.000005)].allObjects.begin()+index);
     if(abs(toY-y)<0.0005 && abs(toX-x)<0.0005) //I hit my target
     {
         if(map[(unsigned int)y][(unsigned int)x].uniton)
-            allUnits.data[map[(unsigned int)y][(unsigned int)x].unitplayer][map[(unsigned int)y][(unsigned int)x].unitindex].hitWithFlyingObject(index);
+            allUnits.data[map[(unsigned int)y][(unsigned int)x].unitplayer][map[(unsigned int)y][(unsigned int)x].unitindex]->hitWithFlyingObject(index);
         map[(unsigned int)(y)][(unsigned int)(x)].allObjects.back()->speed=0;
         map[(unsigned int)(y)][(unsigned int)(x)].allObjects.back()->toX=-1;
         map[(unsigned int)(y)][(unsigned int)(x)].allObjects.back()->toY=-1;
@@ -263,9 +263,12 @@ void object::move()
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
         { \
-            if(abs(allUnits.data[h->player][unitIndex].y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex].x - h->centerx)<h->range) \
+            if(allUnits.data[h->player][unitIndex]) \
             { \
-                return val; \
+                if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range) \
+                { \
+                    return val; \
+                } \
             } \
         } \
         return -9999; \
@@ -278,9 +281,12 @@ void object::move()
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
         { \
-            if(abs(allUnits.data[h->player][unitIndex].y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex].x - h->centerx)<h->range) \
+            if(allUnits.data[h->player][unitIndex]) \
             { \
-                return allObjectDesc[whatIsIt].val; \
+                if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range) \
+                { \
+                    return allObjectDesc[whatIsIt].val; \
+                } \
             } \
         } \
         return -9999; \

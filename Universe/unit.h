@@ -42,6 +42,7 @@ friend class metabool;
 friend class hiveMind; //this is ok since hivemind and unit are to be inherited from anyway
 friend class allminds;
 friend int main();
+friend void reformat();
 friend class object;
 friend class Throwing;
 private: // all this stuff can only be changed internally

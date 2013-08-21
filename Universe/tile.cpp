@@ -170,27 +170,27 @@ void tile::spreadDisease()
                     if(map[i][j].uniton)
                     {
                         int immunityloss=0;
-                        for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
-                            immunityloss+=allDiseases[allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]].immunCost;
-                        if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-immunityloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-immunityloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
+                        for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
+                            immunityloss+=allDiseases[allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d]].immunCost;
+                        if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-immunityloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-immunityloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->healthDiseaseInc))
                         {
                             bool good=true;
-                            for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                            for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
                             {
-                                if(disease[h]==allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].disease)
+                                if(disease[h]==allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d].disease)
                                 {
                                     good=false;
-                                    allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].multiplier++;
-                                    allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].flipDir=false;
+                                    allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d].multiplier++;
+                                    allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d].flipDir=false;
                                     break;
                                 }
                             }
                             if(good)
                             {
-                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.push_back(disease[h]);
-                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].strength-=allDiseases[disease[h]].permStrCost;
-                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].intelligence-=allDiseases[disease[h]].permIntelCost;
-                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-=allDiseases[disease[h]].permImmunCost;
+                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.push_back(disease[h]);
+                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->strength-=allDiseases[disease[h]].permStrCost;
+                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->intelligence-=allDiseases[disease[h]].permIntelCost;
+                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-=allDiseases[disease[h]].permImmunCost;
                             }
                         }
                     }

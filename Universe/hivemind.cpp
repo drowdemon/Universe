@@ -32,11 +32,14 @@ vector<object> hiveMind::getUnitInHivecarrying(int index)
     vector<object> ret;
     if(curLoops.hiveIndex==index && curLoops.hivePlayer==player) 
     { 
-        if(abs(centerx-allUnits.data[player][index].x)<range && abs(centery-allUnits.data[player][index].y)<range) 
+        if(allUnits.data[player][index]) //pointer good
         {
-            for(unsigned int i=0; i<allUnits.data[player][index].carrying.size(); i++)
-                ret.push_back(*(allUnits.data[player][index].carrying[i]));
-            return ret;
+            if(abs(centerx-allUnits.data[player][index]->x)<range && abs(centery-allUnits.data[player][index]->y)<range) 
+            {
+                for(unsigned int i=0; i<allUnits.data[player][index]->carrying.size(); i++)
+                    ret.push_back(*(allUnits.data[player][index]->carrying[i]));
+                return ret;
+            }
         }
     } 
     return ret; 
@@ -47,8 +50,11 @@ vector<object> hiveMind::getUnitInHivecarrying(int index)
     { \
         if(curLoops.hiveIndex==index && curLoops.hivePlayer==player) \
         { \
-            if(abs(centerx-allUnits.data[player][index].x)<range && abs(centery-allUnits.data[player][index].y)<range) \
-                return allUnits.data[player][index].val; \
+            if(allUnits.data[player][index]) \
+            { \
+                if(abs(centerx-allUnits.data[player][index]->x)<range && abs(centery-allUnits.data[player][index]->y)<range) \
+                        return allUnits.data[player][index]->val; \
+            } \
         } \
         return -127; \
     } 

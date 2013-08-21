@@ -246,27 +246,27 @@ void unit::infect()
                             if(map[i][j].x!=x || map[i][j].y!=y) //different unit
                             {
                                 int tempimmunloss=0;
-                                for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
-                                    tempimmunloss+=allDiseases[allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]].immunCost;
-                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-tempimmunloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-tempimmunloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].healthDiseaseInc))
+                                for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
+                                    tempimmunloss+=allDiseases[allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d]].immunCost;
+                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-tempimmunloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-tempimmunloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->healthDiseaseInc))
                                 {
                                     bool good=true;
-                                    for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.size(); d++)
+                                    for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
                                     {
-                                        if(diseased[h]==allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d]) //you actually managed to get sick with the same disease TWICE! Good for you!
+                                        if(diseased[h]==allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d]) //you actually managed to get sick with the same disease TWICE! Good for you!
                                         {
                                             good=false;
-                                            allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].multiplier++; //makes the disease more fearsome. Or at least more advanced in development
-                                            allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased[d].flipDir=false; //If you were getting better, screw that! Now you're getting sicker again!
+                                            allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d].multiplier++; //makes the disease more fearsome. Or at least more advanced in development
+                                            allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d].flipDir=false; //If you were getting better, screw that! Now you're getting sicker again!
                                             break;
                                         }
                                     }
                                     if(good)
                                     {
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].diseased.push_back(diseased[h].disease);
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].strength-=allDiseases[diseased[h]].permStrCost;
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].intelligence-=allDiseases[diseased[h]].permIntelCost;
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex].immunity-=allDiseases[diseased[h]].permImmunCost;
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.push_back(diseased[h].disease);
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->strength-=allDiseases[diseased[h]].permStrCost;
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->intelligence-=allDiseases[diseased[h]].permIntelCost;
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-=allDiseases[diseased[h]].permImmunCost;
                                     }
                                 }
                             }
@@ -411,7 +411,7 @@ void unit::giveBirth()
     pregnant=-1;
     health-=BIRTHHEALTHLOSS;
     energy-=BIRTHENERGYLOSS;
-    unit* child=&allUnits.data[player][fetusid];
+    unit* child=allUnits.data[player][fetusid];
     child->age=0;
     if(map[y+1][x].walkable(this))
     {
@@ -477,15 +477,20 @@ void unit::emergencySleep()
 }
 void unit::die()
 {
-    for(unsigned int i=index+1; i<allUnits.data[player].size(); i++)
+    /*for(unsigned int i=index+1; i<allUnits.data[player].size(); i++)
     {
-        allUnits.data[player][i].index--;
-        map[allUnits.data[player][i].y][allUnits.data[player][i].x].unitindex--;
-    }
+        allUnits.data[player][i]->index--;
+        map[allUnits.data[player][i]->y][allUnits.data[player][i]->x].unitindex--;
+    }*/
     map[y][x].uniton=false;
     map[y][x].unitplayer=-1;
     map[y][x].unitindex=-1;
-    allUnits.data[player].erase(allUnits.data[player].begin()+index);
+    if(fetusid!=-1) //if carrying a child in womb
+    {
+        delete allUnits.data[player][fetusid]; //kill it too. Map modifications are not required since the fetus is not technically on the map.
+    }
+    //allUnits.data[player].erase(allUnits.data[player].begin()+index);
+    delete allUnits.data[player][index];
     unitChangeLog::update(-99999,-99999,player,index,-99999,-99999,-99999,-99999,-99999,-99999,-99999);
 }
 void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. Object sharpness maybe. How hard/soft it is. 
@@ -515,7 +520,7 @@ void unit::learn()
             switch(i) //add more cases as skills are added.
             {
                 case 0:
-                    if(throwSkill.learn(this, &allUnits.data[player][learningSkills[i]])) //learn. If you learned, you can't learn anything else this cycle. You were paying attention to the guy doing this particular activity, screw the rest of them.
+                    if(allUnits.data[player][learningSkills[i]] && throwSkill.learn(this, allUnits.data[player][learningSkills[i]])) //checks that teacher is not a null pointer //learn. If you learned, you can't learn anything else this cycle. You were paying attention to the guy doing this particular activity, screw the rest of them.
                         return; 
                     break;
                 default:
@@ -603,6 +608,8 @@ void unit::reproduce(int withwhom)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
+    if(!allUnits.data[player][withwhom]) //mate is a null pointer
+        return;
     if(abs(x-allUnits.get(this,withwhom)->x)<=1 && abs(y-allUnits.get(this,withwhom)->y)<=1) //close enough
     {
         if(age>=sexuallyMature && allUnits.get(this,withwhom)->age>allUnits.get(this,withwhom)->sexuallyMature) //old enough
@@ -614,18 +621,18 @@ void unit::reproduce(int withwhom)
                     pregnant=0;
                     fetusid=allUnits.data[player].size();
                     unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
-                    unitChangeLog::update(allUnits.data[player][withwhom].x,allUnits.data[player][withwhom].y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
+                    unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
                 }
                 else //partner is female
                 {
-                    allUnits.data[player][withwhom].pregnant=0;
-                    allUnits.data[player][withwhom].fetusid=allUnits.data[player].size();
+                    allUnits.data[player][withwhom]->pregnant=0;
+                    allUnits.data[player][withwhom]->fetusid=allUnits.data[player].size();
                     unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
-                    unitChangeLog::update(allUnits.data[player][withwhom].x,allUnits.data[player][withwhom].y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
+                    unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
                 }
-                allUnits.data[player].push_back(unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom].strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom].intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom].speed)/2,(lineOfSight+allUnits.data[player][withwhom].lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom].immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom].healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom].woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom].energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom].metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom].maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom].sexuallyMature)/2,0)); //adds the new unit. It doesn't really exist though
-                if(allUnits.data[player][fetusid].maxMetabolicRate>allUnits.data[player][fetusid].metabolicRate)
-                    allUnits.data[player][fetusid].maxMetabolicRate=allUnits.data[player][fetusid].metabolicRate-3;
+                allUnits.data[player].push_back(new unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom]->strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom]->speed)/2,(lineOfSight+allUnits.data[player][withwhom]->lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom]->immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom]->healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom]->woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom]->energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom]->metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom]->maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2,0)); //adds the new unit. It doesn't really exist though
+                if(allUnits.data[player][fetusid]->maxMetabolicRate>allUnits.data[player][fetusid]->metabolicRate)
+                    allUnits.data[player][fetusid]->maxMetabolicRate=allUnits.data[player][fetusid]->metabolicRate-3;
                 energy-=REPRODUCTIONENERGYCOST;
                 allUnits.get(this,withwhom)->energy-=REPRODUCTIONENERGYCOST;
             }

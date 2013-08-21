@@ -45,6 +45,7 @@ class object
     friend class food;
     friend class Throwing;
     friend int main();
+    friend void reformat();
 private:
     short weight;
     short heldByPlayer;
