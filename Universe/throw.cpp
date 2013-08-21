@@ -159,10 +159,10 @@ void Throwing::learn()
     }
 }
 
-void Throwing::learn(unit* student, unit* teacher)
+bool Throwing::learn(unit* student, unit* teacher)
 {
     if(student->player!=curLoops.unitPlayer || student->index!=curLoops.unitIndex)
-        return;
+        return false;
     if(pow(student->x-teacher->x,2)+pow(student->y-teacher->y,2)+pow(map[student->y][student->x].height-map[teacher->y][teacher->x].height,2)<Throwing::maxLearnDistSquared) //in range
     {
         if(teacher->throwSkill.threw)
@@ -173,8 +173,10 @@ void Throwing::learn(unit* student, unit* teacher)
                 numSeen=0;
                 learn();
             }
+            return true;
         }
     }
+    return false;
 }
 
 void Throwing::tempUnLearn(vector<int>& accX, vector<int>& accY, unsigned int qty)

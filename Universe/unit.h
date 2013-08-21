@@ -10,6 +10,8 @@ using namespace std;
 
 class tile;
 
+#define NUMSKILLS 1
+
 #define LISTVARSUNIT \
     Y(int, player) \
     Y(int, index) \
@@ -74,6 +76,7 @@ private: // all this stuff can only be changed internally
     short energy; //how much energy it has. Replenished by eating. Taken up by living, moving, fighting, etc.
     vector<object*> carrying;
     Throwing throwSkill;
+    short *learningSkills; //one for each skill. Stores -1 if no, else stores index of teacher. Currently: only throwing.
     
     //below are 'acting' variables. If the unit is doing some action, and cannot do other actions because of this, this is where it is recorded.
     short reproducing; //0=no, else=time
@@ -101,6 +104,7 @@ private: // all this stuff can only be changed internally
     void hitWithFlyingObject(int objIndex); //Add to this function
     void resetActions();
     void resetSkills();
+    void learn();
 public:
     ~unit();
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
@@ -112,6 +116,8 @@ public:
     void putDown(int objIndex, int px, int py);
     void eat(int objIndex);
     void throwObj(int objIndex, short atX, short atY);
+    void learnSkillFrom(int learnwhat, short fromwhom); //Currently the only skill is throwing, but there will be more, which is what the first parameter is for
+    void stopLearnSkillFrom(int learnwhat);
     virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI. In this class, it should be empty
     //getters
     vector<object> getcarrying();

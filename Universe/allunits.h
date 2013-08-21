@@ -18,6 +18,7 @@ class allunits
     friend void unit::reproduce(int);
     friend void unit::die();
     friend void unit::giveBirth();
+    friend void unit::learn();
     friend class hiveMind;
     friend class object;
 private:

@@ -43,7 +43,7 @@ private:
     Throwing(int e);
     void Throw(int objIndex, unit *who, int x, int y, bool moving);
     void learn(); //adds 1 to xp, changes accuracy if necessary
-    void learn(unit *student, unit *teacher); //learning from someone. Calls the simpler learn solo if xp is added.
+    bool learn(unit *student, unit *teacher); //learning from someone. Calls the simpler learn solo if xp is added.
     void tempUnLearn(vector<int> &accX, vector<int> &accY, unsigned int qty); //when accuracy is temporarily reduced for whatever reason, this is called.
 };
 

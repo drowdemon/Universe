@@ -6,6 +6,9 @@
 #include "hivemind.h"
 #include "food.h"
 #include "throw.h"
+#include <iostream>
+
+using namespace std;
 
 unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP) : throwSkill(throwXP)
 {
@@ -32,6 +35,9 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
     pregnant=-1;
     fetusid=-1;
     hunger=NEWBORNHUNGER;
+    learningSkills=new short[NUMSKILLS]; //update every time there is a new skill
+    for(int i=0; i<NUMSKILLS; i++)
+        learningSkills[i]=-1;
     
     sleeping=false;
     reproducing=0;
@@ -82,6 +88,7 @@ bool unit::nextFrame()
                 unseehive(i);
         return false;
     }
+    learn(); //learn if you set that you want to and you're near whoever you are learning from and they did something
     unseeunit();
     emergencySleep();
     resetActions();
@@ -497,8 +504,32 @@ void unit::resetSkills()
 {
     throwSkill.threw=false;
 }
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void unit::learn()
+{
+    if(sleeping || reproducing>0 || throwing || liftingOrDropping || waking) //eating and moving are ok
+        return; 
+    for(int i=0; i<NUMSKILLS; i++)
+    {
+        if(learningSkills[i]>=0)
+        {
+            switch(i) //add more cases as skills are added.
+            {
+                case 0:
+                    if(throwSkill.learn(this, &allUnits.data[player][learningSkills[i]])) //learn. If you learned, you can't learn anything else this cycle. You were paying attention to the guy doing this particular activity, screw the rest of them.
+                        return; 
+                    break;
+                default:
+                    cout << "WTF!!! See unit::learn()" << endl;
+                    exit(-84); //let's leak some memory!!
+                    break; //never hit.
+            }
+        }
+    }
+}
+//Lot of empty statements:D------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 //public functions below --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void unit::move()
 {
@@ -694,6 +725,18 @@ void unit::throwObj(int objIndex, short atX, short atY)
     if((unsigned int)objIndex>=carrying.size())
         return;
     throwSkill.Throw(objIndex, this, atX, atY, moving);
+}
+void unit::learnSkillFrom(int learnwhat, short fromwhom)
+{
+    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
+        return;
+    learningSkills[learnwhat]=fromwhom;
+}
+void unit::stopLearnSkillFrom(int learnwhat)
+{
+    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
+        return;
+    learningSkills[learnwhat]=-1;
 }
 //getters 
 
