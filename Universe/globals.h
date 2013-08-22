@@ -43,7 +43,7 @@ using namespace std;
 #define NUMDEADTOREFORMAT 10000 //control how often allUnits is defragged
 #define ENERGYSOFTMAX 6000 //arbitrary, as usual. After this, energy is converted to fat
 #define ENERGYFROMFATPOINT 750 //totally arbitrary. After this (below this), fat is converted to energy. Hunger still increases though.
-#define ENERGYFROMFATRATE 16 //again arbitrary. In frames per event. Weight transforms to fat at this rate.
+#define ENERGYFROMFATRATE 64 //again arbitrary. In frames per event. Weight transforms to fat at this rate.
 #define NEWBORNMINWEIGHT 6 //how light a newborncan be, for constructor. After this, the min weight changes (deterministically) based on age, so it's a member variable.
 #define MOVINGSELFWEIGHTPENALTY 5 //per 50 weight, with it ceiled or floored according to rand()%(weight%50)
 #define MOVINGLIFTEDWEIGHTPENALTY 10 //per 50 weight, same procedure as above

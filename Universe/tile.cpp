@@ -218,6 +218,7 @@ tile::~tile()
     for(unsigned int i=0; i<allObjects.size(); i++)
     {
         delete allObjects[i];
+        allObjects[i]=NULL;
     }
     allObjects.clear();
 }

@@ -58,7 +58,10 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
 unit::~unit()
 {
     for(unsigned int i=0; i<carrying.size(); i++)
+    {
         delete carrying[i];
+        carrying[i]=NULL;
+    }
     carrying.clear();
 }
 bool unit::nextFrame()
@@ -546,10 +549,16 @@ void unit::die()
     
     if(fetusid!=-1) //if carrying a child in womb
     {
+        int p=player;
+        int fi=fetusid;
         delete allUnits.data[player][fetusid]; //kill it too. Map modifications are not required since the fetus is not technically on the map.
+        allUnits.data[p][fi]=NULL;
     }
     //allUnits.data[player].erase(allUnits.data[player].begin()+index);
+    int p=player;
+    int i=index;
     delete allUnits.data[player][index];
+    allUnits.data[p][i]=NULL;
     unitChangeLog::update(-99999,-99999,player,index,-99999,-99999,-99999,-99999,-99999,-99999,-99999);
 }
 void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. Object sharpness maybe. How hard/soft it is. 

@@ -33,6 +33,9 @@ allunits::~allunits()
     for(unsigned int i=0; i<data.size(); i++)
     {
         for(unsigned int j=0; j<data[i].size(); j++)
+        {
             delete data[i][j];
+            data[i][j]=NULL;
+        }
     }
 }
