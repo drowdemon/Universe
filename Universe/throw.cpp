@@ -20,6 +20,7 @@ const int Throwing::maxLearnDistSquared=25;
 const int Throwing::xpToAccuracy=5;
 const int Throwing::seenToXp=2;
 const int Throwing::MovingAccuracyReduction=100;
+const int Throwing::EnergyCostPerStrength=3; //totally random, as are all of these.
 
 Throwing::Throwing(int e)
 {
@@ -53,8 +54,10 @@ Throwing::Throwing(int e)
     accuracyY[5]=100;//1000
 }
 
-void Throwing::Throw(int objIndex, unit* who, int x, int y, bool moving)
+void Throwing::Throw(int objIndex, unit* who, int x, int y, bool moving, int throwStrength)
 {
+    if(throwStrength>who->strength) //throwing stronger than possible. Not permitted.
+        return; 
     int objY=who->y;
     int objX=who->x;
     map[objY][objX].allObjects.push_back(who->carrying[objIndex]);
@@ -64,7 +67,8 @@ void Throwing::Throw(int objIndex, unit* who, int x, int y, bool moving)
     who->carrying.erase(who->carrying.begin()+objIndex);
     what->heldByIndex=what->heldByPlayer=-1;
     what->index=map[objY][objX].allObjects.size()-1;
-    what->speed=Throwing::BaseSpeed+(Throwing::StrengthToSpeed*who->strength/100)-(Throwing::WeightSpeedSubt*what->weight/100)+(Throwing::xpToSpeed*experience/100);
+    what->speed=Throwing::BaseSpeed+(Throwing::StrengthToSpeed*throwStrength/100)-(Throwing::WeightSpeedSubt*what->weight/100)+(Throwing::xpToSpeed*experience/100);
+    who->energy-=throwStrength*Throwing::EnergyCostPerStrength;
     int accX=rand()%1000;
     int accY=rand()%1000;
     int sum=0;

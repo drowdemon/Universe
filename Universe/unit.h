@@ -116,7 +116,7 @@ public:
     void pickUp(int what, int ox, int oy);
     void putDown(int objIndex, int px, int py);
     void eat(int objIndex);
-    void throwObj(int objIndex, short atX, short atY);
+    void throwObj(int objIndex, short atX, short atY, int strength);
     void learnSkillFrom(int learnwhat, short fromwhom); //Currently the only skill is throwing, but there will be more, which is what the first parameter is for
     void stopLearnSkillFrom(int learnwhat);
     virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI. In this class, it should be empty

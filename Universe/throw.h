@@ -16,6 +16,7 @@ private:
     int experience;
     const static int xpDiffToLearn;
     const static int maxLearnDistSquared;
+    const static int EnergyCostPerStrength;
     
     //formula of the form Speed=BaseSpeed+Strength*StrengthToSpeed/100+exp*xpToSpeed/100+Weight*WeightSpeedSubt/100. Same for rest.    
     //This determines how fast an object will go. Every frame, the object slows down according to SpeedDecPerWeight*Weight. The object itself may be aerodynamic or not, and so can have an additional constant modifier. That modifier times the current speed over some power of 10 constant will be subtracted from the speed. Aerodynamic objects will have a negative constant.
@@ -41,7 +42,7 @@ private:
     
     
     Throwing(int e);
-    void Throw(int objIndex, unit *who, int x, int y, bool moving);
+    void Throw(int objIndex, unit *who, int x, int y, bool moving, int throwStrength);
     void learn(); //adds 1 to xp, changes accuracy if necessary
     bool learn(unit *student, unit *teacher); //learning from someone. Calls the simpler learn solo if xp is added.
     void tempUnLearn(vector<int> &accX, vector<int> &accY, unsigned int qty); //when accuracy is temporarily reduced for whatever reason, this is called.

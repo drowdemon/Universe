@@ -404,7 +404,7 @@ void unit::act() //make this empty
 {
     //move(); //remove this line. TESTING ONLY!!!
     if(index==0 && frames==1)
-        throwObj(0,x+1,y+1);
+        throwObj(0,x+1,y+1,strength);
 }
 void unit::giveBirth()
 {
@@ -723,7 +723,7 @@ void unit::eat(int objIndex)
     if(carrying[objIndex]->actuallyEdible>=0)
         hunger-=carrying[objIndex]->possFood.nutrition;
 }
-void unit::throwObj(int objIndex, short atX, short atY)
+void unit::throwObj(int objIndex, short atX, short atY, int strength)
 {
     if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking)
         return;
@@ -731,7 +731,7 @@ void unit::throwObj(int objIndex, short atX, short atY)
         return;
     if((unsigned int)objIndex>=carrying.size())
         return;
-    throwSkill.Throw(objIndex, this, atX, atY, moving);
+    throwSkill.Throw(objIndex, this, atX, atY, moving, strength);
 }
 void unit::learnSkillFrom(int learnwhat, short fromwhom)
 {
