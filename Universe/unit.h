@@ -32,7 +32,9 @@ class tile;
     Y(short, fetusid) \
     Y(short, sleep) \
     Y(short, energy) \
-    Y(bool, sleeping) 
+    Y(bool, sleeping) \
+    Y(short, weight) \
+    Y(short, excreteNeed)
 
 class unit
 {
@@ -64,6 +66,10 @@ private: // all this stuff can only be changed internally
     short metabolicRate; //how quickly hunger rises and energy is consumed. //genetic
     short maxMetabolicRate; //if there is little or no energy, metabolism rises to this rate. At this point, even if the body has food, it cannot gain any more energy than it is currently gaining. This makes it impossible to avoid death by eating a lot. //genetic
     short sexuallyMature; //at what age reproduction is possible. Can vary slightly. //genetic
+    short weight; //pretty self-explanatory
+    short fatToWeight; //how much fatBuildProgress has to advance to transform all of it into another point of weight. genetic.
+    short fatRetrievalEfficiency; //how well can energy be retrieved from fat, as a fraction of fatToWeight. Out of 1000, i.e. 900 is 90% efficiency. genetic.
+    short excreteNeedMax; //If you get to this point, you WILL excrete. Wherever you are. //genetic
 
     //below variables are not passed to constructor
     short moveToX;
@@ -78,17 +84,22 @@ private: // all this stuff can only be changed internally
     vector<object*> carrying;
     Throwing throwSkill;
     short *learningSkills; //one for each skill. Stores -1 if no, else stores index of teacher. Currently: only throwing.
+    short fatBuildProgress; //how far you are on the way to adding weight. 
+    short minWeight; //It cannot go under this. Weight will no longer be transformed to energy.
+    short excreteNeed; //how much it needs to excrete. -1 is no need. Else rises to excreteNeedMax. At that point it does, wherever you happen to be.
     
     //below are 'acting' variables. If the unit is doing some action, and cannot do other actions because of this, this is where it is recorded.
     short reproducing; //0=no, else=time
     bool sleeping; //whether it is currently asleep
-    bool moving;  
+    
+    bool moving;  //These are cleared at the end of the frame
     bool throwing;
     bool eating;
     bool liftingOrDropping; //if pickup() or putdown() were called
     bool waking; //if just called awaken(). It takes some time. 
+    bool excreting; //you can't do shit while you're excreting. 
 
-    unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP);
+    unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP, short wt, short ftw, short fre, short enm);
     void diseaseEffects();
     bool checkLive();
     void livingEvents();
@@ -106,6 +117,7 @@ private: // all this stuff can only be changed internally
     void resetActions();
     void resetSkills();
     void learn();
+    void shit();
 public:
     ~unit();
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
@@ -119,6 +131,7 @@ public:
     void throwObj(int objIndex, short atX, short atY, int strength);
     void learnSkillFrom(int learnwhat, short fromwhom); //Currently the only skill is throwing, but there will be more, which is what the first parameter is for
     void stopLearnSkillFrom(int learnwhat);
+    void excrete();
     virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI. In this class, it should be empty
     //getters
     vector<object> getcarrying();

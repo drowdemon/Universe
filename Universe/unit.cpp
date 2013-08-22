@@ -10,7 +10,7 @@
 
 using namespace std;
 
-unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP) : throwSkill(throwXP)
+unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP, short wt, short ftw, short fre, short enm) : throwSkill(throwXP)
 {
     player=p;
     index=i;
@@ -46,6 +46,14 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
     eating=false;
     liftingOrDropping=false;
     waking=false;
+    weight=wt;
+    fatBuildProgress=0;
+    fatToWeight=ftw;
+    fatRetrievalEfficiency=fre;
+    minWeight=NEWBORNMINWEIGHT;
+    excreteNeed=-1;
+    excreteNeedMax=enm;
+    excreting=false;
 }
 unit::~unit()
 {
@@ -110,6 +118,13 @@ void unit::moveHelper(int mx, int my)
         x+=mx;
         y+=my;
         energy-=MOVEMENTENERGY;
+        energy-=weight/50*MOVINGSELFWEIGHTPENALTY;
+        energy-=((rand()%50)<(weight%50)) ? MOVINGSELFWEIGHTPENALTY : 0;
+        int sumcarried=0;
+        for(unsigned int i=0; i<carrying.size(); i++)
+            sumcarried+=carrying[i]->weight;
+        energy-=sumcarried/50*MOVINGLIFTEDWEIGHTPENALTY;
+        energy-=((rand()%50)<(sumcarried%50)) ? MOVINGLIFTEDWEIGHTPENALTY : 0;
         map[y][x].uniton=true;
         map[y][x].unitplayer=player;
         map[y][x].unitindex=index;
@@ -292,18 +307,29 @@ void unit::livingEvents()
     int deltaP=pregnant;
     int deltaS=sleep;
     int deltaHlth=health;
-    energy-=LIVINGENERGY;
+    energy-=LIVINGENERGYPERSTRENGTH*strength;
+    energy-= ((rand()%5)<(strength%5)) ? LIVINGENERGYPERSTRENGTH : 0;
     if(sleeping)
         sleep+=3;
     else
         sleep--;
     energy-=(MAXHEALTH-health)*woundEnergyCost;
+    if(energy<ENERGYFROMFATPOINT)
+    {
+        if(weight>NEWBORNMINWEIGHT && frames%ENERGYFROMFATRATE==0)
+        {
+            weight--;
+            energy+=fatToWeight*fatRetrievalEfficiency/1000;
+        }
+    }
     if(energy<ENERGYCRITPOINT)
     {
         if(frames%maxMetabolicRate==0)
         {
             hunger++;
             energy+=energyPerFood;
+            if(hunger%EXCRETIONFREQ==0 && hunger!=0)
+                excreteNeed=0;
         }
     }
     else
@@ -312,10 +338,15 @@ void unit::livingEvents()
         {
             hunger++;
             energy+=energyPerFood;
+            if(hunger%EXCRETIONFREQ==0 && hunger!=0)
+                excreteNeed=0;
         }
     }
     if(pregnant>=0)
+    {
         pregnant++;
+        energy-=PREGNANTENERGYCOST*(2*(pregnant/1000));
+    }
     if(reproducing>0)
     {
         reproducing++;
@@ -327,6 +358,22 @@ void unit::livingEvents()
     if(pregnant>=GESTATIONPERIOD) //birth
     {
         giveBirth(); //changes health and pregnant
+    }
+    if(energy>ENERGYSOFTMAX)
+    {
+        energy--;
+        fatBuildProgress++;
+        if(fatBuildProgress>=fatToWeight)
+        {
+            fatBuildProgress=0;
+            weight++; 
+        }
+    }
+    if(excreteNeed>=0)
+    {
+        excreteNeed++;
+        if(excreteNeed>=excreteNeedMax)
+            shit();
     }
     unitChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,sleep-deltaS,pregnant-deltaP);
 }
@@ -485,6 +532,18 @@ void unit::die()
     map[y][x].uniton=false;
     map[y][x].unitplayer=-1;
     map[y][x].unitindex=-1;
+    for(unsigned int i=0; i<carrying.size(); i++) //drop everything
+    {
+        carrying[i]->x=x;
+        carrying[i]->y=y;
+        carrying[i]->heldByIndex=-1;
+        carrying[i]->heldByPlayer=-1;
+        carrying[i]->index=map[y][x].allObjects.size();
+        map[y][x].allObjects.push_back(carrying[i]);
+    }
+    map[y][x].allObjects.push_back(new object(allObjectDesc[OBJECT_CORPSE],-1,-1,x,y,map[y][x].allObjects.size()));
+    map[y][x].allObjects.back()->weight=weight;
+    
     if(fetusid!=-1) //if carrying a child in womb
     {
         delete allUnits.data[player][fetusid]; //kill it too. Map modifications are not required since the fetus is not technically on the map.
@@ -511,7 +570,7 @@ void unit::resetSkills()
 }
 void unit::learn()
 {
-    if(sleeping || reproducing>0 || throwing || liftingOrDropping || waking) //eating and moving are ok
+    if(sleeping || reproducing>0 || throwing || liftingOrDropping || waking || excreting) //eating and moving are ok
         return; 
     for(int i=0; i<NUMSKILLS; i++)
     {
@@ -531,6 +590,12 @@ void unit::learn()
         }
     }
 }
+void unit::shit() //excrete is public. shit is private.
+{
+    map[y][x].waste++;
+    excreteNeed=-1;
+    excreting=true;
+}
 //Lot of empty statements:D------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 //public functions below --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -538,7 +603,7 @@ void unit::learn()
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void unit::move()
 {
-    if(sleeping || reproducing>0 || moving || throwing || waking)
+    if(sleeping || reproducing>0 || moving || throwing || waking || excreting)
         return;
     if(moveToX==x && moveToY==y)
         return;
@@ -591,7 +656,7 @@ void unit::move()
 }
 void unit::move(short mx, short my)
 {
-    if(sleeping || reproducing>0 || moving || throwing || waking)
+    if(sleeping || reproducing>0 || moving || throwing || waking || excreting)
         return;
     if(moveToX==x && moveToY==y)
         return;
@@ -604,7 +669,7 @@ void unit::move(short mx, short my)
 }
 void unit::reproduce(int withwhom)
 {
-    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking)
+    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking || excreting)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -630,7 +695,7 @@ void unit::reproduce(int withwhom)
                     unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
                     unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
                 }
-                allUnits.data[player].push_back(new unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom]->strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom]->speed)/2,(lineOfSight+allUnits.data[player][withwhom]->lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom]->immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom]->healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom]->woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom]->energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom]->metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom]->maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2,0)); //adds the new unit. It doesn't really exist though
+                allUnits.data[player].push_back(new unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom]->strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom]->speed)/2,(lineOfSight+allUnits.data[player][withwhom]->lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom]->immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom]->healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom]->woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom]->energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom]->metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom]->maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2,0,(rand()%4)+6,geneMixer(fatToWeight,allUnits.data[player][withwhom]->fatToWeight),geneMixer(fatRetrievalEfficiency,allUnits.data[player][withwhom]->fatRetrievalEfficiency),geneMixer(excreteNeedMax,allUnits.data[player][withwhom]->excreteNeedMax))); //adds the new unit. It doesn't really exist though
                 if(allUnits.data[player][fetusid]->maxMetabolicRate>allUnits.data[player][fetusid]->metabolicRate)
                     allUnits.data[player][fetusid]->maxMetabolicRate=allUnits.data[player][fetusid]->metabolicRate-3;
                 energy-=REPRODUCTIONENERGYCOST;
@@ -641,7 +706,7 @@ void unit::reproduce(int withwhom)
 }
 void unit::goToSleep()
 {
-    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking)
+    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking || excreting)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -662,7 +727,7 @@ void unit::awaken()
 }
 void unit::pickUp(int what, int ox, int oy)
 {
-    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking)
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting)
         return;
     if(abs(ox-x)>1 || abs(oy-y)>1) //too far
         return;
@@ -691,7 +756,7 @@ void unit::pickUp(int what, int ox, int oy)
 }
 void unit::putDown(int objIndex, int px, int py)
 {
-    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking)
+    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking || excreting)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -707,7 +772,7 @@ void unit::putDown(int objIndex, int px, int py)
 }
 void unit::eat(int objIndex)
 {
-    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking)
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -722,10 +787,12 @@ void unit::eat(int objIndex)
     }
     if(carrying[objIndex]->actuallyEdible>=0)
         hunger-=carrying[objIndex]->possFood.nutrition;
+    if(hunger<0)
+        hunger=0; //not entirely accurate, but there is some physical limit to how much you can eat. Here, there is no limit, but eventually it doesn't do anything when you eat.
 }
 void unit::throwObj(int objIndex, short atX, short atY, int strength)
 {
-    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking)
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -744,6 +811,15 @@ void unit::stopLearnSkillFrom(int learnwhat)
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
     learningSkills[learnwhat]=-1;
+}
+void unit::excrete()
+{
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting || moving)
+        return;
+    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
+        return;
+    if(excreteNeed>-1) //You are not allowed to produce waste whenever you want. Why? It seems like you wouldn't want to anyway, but this way you cannot go to someone else's city and wage biological warfare by constantly shiting on it.
+        shit();
 }
 //getters 
 

@@ -36,6 +36,7 @@ void init()
     unitChangeFile = new ofstream("unitChanges");
     
     allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,-3,-1,food()));
+    allObjectDesc.push_back(objectDescriptor(50,5,OBJECT_CORPSE,true,true,true,-2,-1,food())); //INCORRECT STATS. DEFINITELY. 
 }
 
 void waterFlow(int i, int j) //i=y, j=x
@@ -155,13 +156,15 @@ int main()
     srand(time(NULL));
     init();
     
-    allUnits.data[0].push_back(new unit(0,0,10,false,10,20,10,10,30,5,175,50,2,10,15,10,13,0));
+    allUnits.data[0].push_back(new unit(0,0,10,false,10,20,10,10,20,5,175,50,2,10,15,10,13,0,100,150,850,200));
+    allUnits.data[0][0]->minWeight=60;
     unitChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0]->health,allUnits.data[0][0]->energy,allUnits.data[0][0]->hunger,allUnits.data[0][0]->sleep,allUnits.data[0][0]->pregnant);
     //allUnits.data[0][0].moveToX=20;
     map[10][10].uniton=true;
     map[10][10].unitplayer=0;
     map[10][10].unitindex=0;
-    allUnits.data[0].push_back(new unit(0,1,10,true,10,20,10,11,30,5,175,50,2,10,15,10,13,0));
+    allUnits.data[0].push_back(new unit(0,1,10,true,10,20,10,11,20,5,175,50,2,10,15,10,13,0,100,150,850,200));
+    allUnits.data[0][1]->minWeight=60;
     unitChangeLog::update(allUnits.data[0][1]->x,allUnits.data[0][1]->y,0,1,0,0,allUnits.data[0][1]->health,allUnits.data[0][1]->energy,allUnits.data[0][1]->hunger,allUnits.data[0][1]->sleep,allUnits.data[0][1]->pregnant);
     //allUnits.data[0][0].moveToX=20;
     map[11][10].uniton=true;

@@ -7,6 +7,7 @@
 using std::vector;
 
 #define OBJECT_SMALLWOOD 0
+#define OBJECT_CORPSE 1
 
 class unit;
 class hiveMind;
@@ -32,7 +33,7 @@ private:
     bool walkable;
     bool sleepable;
     bool vaguelyEdible; //false=no. Like a piece of wood. Or a rock. NOT edible. true=vaguely.
-    short actuallyEdible; //-3=no. Like above, but private. -2=no. Poisonous (infected with a disease, that will naturally go away in -1 time). -1=no, but not poisonous. Like grass. It just goes straight through the system. 0 or above is yes, and points to the index of the food on the allfoods vector of foods that will probably end up existing. 
+    short actuallyEdible; //-3=no. Like above, but private. -2=no. Poisonous (infected with a disease, that will naturally go away in -1 time. Includes raw meat). -1=no, but not poisonous. Like grass. It just goes straight through the system. 0 or above is yes, and points to the index of the food on the allfoods vector of foods that will probably end up existing. 
     short disease; //if its poisonous, it will have a disease. Other diseases may exist, but not by default.
     food possFood;
     objectDescriptor(short w, short wv, short pid, bool walk, bool sleep, bool vedib, short aedib, short dis, food f);

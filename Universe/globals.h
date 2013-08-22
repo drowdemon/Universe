@@ -21,26 +21,33 @@ using namespace std;
 #define MAPSIZE 200
 #define INFECTRATE 10
 #define MAXHEALTH 100
-#define MOVEMENTENERGY 5
-#define LIVINGENERGY 1
+#define MOVEMENTENERGY 15
+#define LIVINGENERGYPERSTRENGTH 1  //muscle takes more energy to sustain. Per 5 strength.
 #define FALLINGMULTIPLIER 0.5 //when you fall, the distance fallen * this = damage done
 #define MAXHUNGER 1000
-#define ENERGYCRITPOINT 100 //if energy falls below this, maxmetabolicrate is used
+#define ENERGYCRITPOINT 300 //if energy falls below this, maxmetabolicrate is used
 #define NUMPLAYERS 2
 #define GESTATIONPERIOD 5000 //arbitrary, measured in system ticks. No clue how long this is
-#define PREGNANTENERGYCOST 2 //every 1000 units of time pregnant, this is multiplied. So 2,4,6,8,10
-#define REPRODUCTIONENERGYCOST  20
-#define NEWBORNENERGY 200 //I really don't know how much this is
+#define PREGNANTENERGYCOST 3 //every 1000 units of time pregnant, this is multiplied. So 3,6,9,12,15
+#define REPRODUCTIONENERGYCOST  60
+#define NEWBORNENERGY 600 //I really don't know how much this is
 #define NEWBORNSLEEP  400
 #define NEWBORNHUNGER 200
 #define BIRTHHEALTHLOSS  MAXHEALTH*0.1
-#define BIRTHENERGYLOSS  100
+#define BIRTHENERGYLOSS  400
 #define EMERGENCYSLEEPLVL 10 //when it will fall asleep when out of hive mind control
 #define EMERGENCYENDSLEEP 700 //when it will awaken when sleeping as above and out of hive mind control
 #define REPRODUCTIONTIME  5
 #define WEIGHTPERSTRENGTH 2 //how much weight you can carry per strength point
 #define SPEEDTODAMAGE 1 //for now, only a thrown objects speed determines its damage. Add more to that.
 #define NUMDEADTOREFORMAT 10000 //control how often allUnits is defragged
+#define ENERGYSOFTMAX 6000 //arbitrary, as usual. After this, energy is converted to fat
+#define ENERGYFROMFATPOINT 750 //totally arbitrary. After this (below this), fat is converted to energy. Hunger still increases though.
+#define ENERGYFROMFATRATE 16 //again arbitrary. In frames per event. Weight transforms to fat at this rate.
+#define NEWBORNMINWEIGHT 6 //how light a newborncan be, for constructor. After this, the min weight changes (deterministically) based on age, so it's a member variable.
+#define MOVINGSELFWEIGHTPENALTY 5 //per 50 weight, with it ceiled or floored according to rand()%(weight%50)
+#define MOVINGLIFTEDWEIGHTPENALTY 10 //per 50 weight, same procedure as above
+#define EXCRETIONFREQ 100 //how much hunger has to rise for excretion to be required.
 //function declarations
 int geneMixer(int p1, int p2);
 
