@@ -52,7 +52,7 @@ void unitChangeLog::communicate()
     allUnitChanges.clear();
 }
 
-pubTile::pubTile(vector<short> d, vector<short> dt, vector<object> ao, unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, /*unsigned char sw,*/ short px, short py, short up, short ui, unsigned char b, unsigned char t)
+/*pubTile::pubTile(vector<short> d, vector<short> dt, vector<object> ao, unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, *unsigned char sw,/ short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {
     disease=d;
     diseaseTime=dt;
@@ -91,4 +91,4 @@ pubTile::pubTile(tile* t)
     unitplayer=t->unitplayer;    
     bush=t->bush;
     tree=t->tree;
-}
+}*/

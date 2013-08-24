@@ -13,10 +13,10 @@
 class metabool
 {
 private:
-    bool b;
+    unsigned char b; //0=false, 1=true, 2=true for landscape but not units
 public:
     metabool();
-    bool get();
+    unsigned char get();
     friend void unit::seeunit();
     friend void unit::seehive(int);
     friend void unit::unseehive(int);

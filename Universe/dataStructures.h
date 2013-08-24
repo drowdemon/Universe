@@ -47,7 +47,7 @@ public:
     static void communicate();
 };
 
-class pubTile
+/*class pubTile
 {
 public:
     unsigned char road; //0=none, after that its how good the road is. 0-7 inclusive - 4 bits
@@ -67,9 +67,9 @@ public:
     vector<short> disease; //index of a disease on this tile. -1 if none. If there is a disease on this tile, it is stored in water or waste. A disease in an animal or in a person will be stored separately
     vector<short> diseaseTime; //how long a disease has been on this tile. 
     vector<object> allObjects;
-    pubTile(vector<short> d, vector<short> dt, vector<object> ao, unsigned char r=0, unsigned short w=0, short h=0, unsigned char wst=0, bool uo=false, unsigned short a=0, /*unsigned char sw=0,*/ short px=0, short py=0, short up=-1, short ui=-1, unsigned char b=0, unsigned  char t=0);
+    pubTile(vector<short> d, vector<short> dt, vector<object> ao, unsigned char r=0, unsigned short w=0, short h=0, unsigned char wst=0, bool uo=false, unsigned short a=0, /unsigned char sw=0,* short px=0, short py=0, short up=-1, short ui=-1, unsigned char b=0, unsigned  char t=0);
     pubTile(tile* t);
-};
+};*/
 
 #endif	/* DATASTRUCTURES_H */
 

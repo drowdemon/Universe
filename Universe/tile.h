@@ -9,6 +9,23 @@
 
 using namespace std;
 
+#define LISTVARSTILE \
+    X(unsigned char, road) \
+    X(unsigned short, water) \
+    X(short, height) \
+    X(unsigned char, waste) \
+    X(unsigned short, animal) \
+    X(unsigned char, bush) \
+    X(unsigned char, tree) \
+    X(short, x) \
+    X(short, y) \
+    X(vector<short>, disease) 
+
+#define LISTVARSTILEUNIT \
+    X(bool, uniton) \
+    X(short, unitplayer) \
+    X(short, unitindex)
+    
 class tile //default - empty grass
 {   
     friend void waterFlow(int,int);
@@ -17,7 +34,7 @@ class tile //default - empty grass
     friend class vector<tile>;
     friend void printMap();
     friend int main();
-    friend pubTile::pubTile(tile*);
+    //friend pubTile::pubTile(tile*);
     friend class Throwing;
     friend class object;
     friend void reformat();
@@ -26,7 +43,7 @@ private: //private so that you can't just learn anything about any part of the m
     unsigned char road; //0=none, after that its how good the road is. 0-7 inclusive - 4 bits
     unsigned short water; //0=none, after that depth. Can get very deep. Starts at height and goes down
     short height; //can get very high or very deep
-    unsigned char waste; //I think you can have multiple bits of waste on one tile. At least up to 3 inclusive. So 3 bits.
+    unsigned char waste; //I think you can have multiple bits of waste on one tile. At least up to 7 inclusive. So 4 bits.
     bool uniton; // 1 bit
     unsigned short animal; //no=0, if there's an animal, its the index of that animal in whatever vector we have storing all of the animals. Animals have lots of different properties, so there will probably be an animal class at some point.
     //rightmost 4 bits (&15) amount of wood lying around. leftmost 4 bits (>>4), amount of wood that can be retrieved from present bush. If reaches 0, bush set to 0
@@ -35,7 +52,7 @@ private: //private so that you can't just learn anything about any part of the m
     short unitindex;
     bool wasteMoved; //1 bit. Only for water tiles. If the waste in the water has moved, don't move it again this time around.
     unsigned char bush; //7 bits. 0=none. 1=yes, no food. 2-127 - amount of food on the bush + 1. Can use last bit for something else.
-    unsigned char tree; //7 bits. 0=none. 1-127 - amount of wood ungathered from tree. As you cut wood from it, decreases to 0. If nonzero, not a walkable tile.        
+    unsigned char tree; //7 bits. 0=none. 1-127 - amount of wood ungathered from tree. As you cut wood from it, decreases to 0. If nonzero, not a walkable tile. If 127, tree must be cut down before gathering wood.        
 public:
     short x;
     short y;
@@ -51,8 +68,16 @@ public:
     ~tile();
     bool walkable(unit *u); //whether the given unit can walk on the tile. //vehicles will be added later //buildings will be added later
     bool walkable(hiveMind *h, short fx, short fy); //whether the given unit can walk on the tile. //vehicles will be added later //buildings will be added later
-    pubTile* get(unit& u);
-    pubTile* get(hiveMind& h);
+    //pubTile* get(unit& u);
+    //pubTile* get(hiveMind& h);
+    vector<object>* getallObjects(unit &u);
+    vector<object>* getallObjects(hiveMind &h);
+#define X(type, val) \
+    type * get ## val(unit& u); \
+    type * get ## val(hiveMind& h);
+    LISTVARSTILE
+    LISTVARSTILEUNIT
+#undef X
 };
 
 #endif	/* TILE_H */

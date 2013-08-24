@@ -36,6 +36,20 @@ class tile;
     Y(short, weight) \
     Y(short, excreteNeed)
 
+#define LISTVARSUNITSEENBYOTHER \
+    Z(int, player) \
+    Z(int, index) \
+    Z(short, strength) \
+    Z(bool, gender) \
+    Z(char, age) \
+    Z(short, x) \
+    Z(short, y) \
+    Z(short, sexuallyMature) \
+    Z(short, health) \
+    Z(short, pregnant) \
+    Z(bool, sleeping) \
+    Z(short, weight) 
+
 class unit
 {
 friend class tile; //a tile can access anything in here. No need for the universe to hide data from itself
@@ -154,6 +168,11 @@ public:
     type getHiveMind ## val(int hiveIndex) ;
     LISTVARSHIVE
 #undef X
+    //getters for when someone else sees this unit
+#define Z(type,val) \
+    type getNonSelf ## val(unit* looking) ;
+    LISTVARSUNITSEENBYOTHER
+#undef Z
 };
 
 #endif	/* UNIT_H */

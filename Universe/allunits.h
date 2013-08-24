@@ -26,7 +26,7 @@ private:
     vector<vector<unit*> > data; //It stores pointers to units to save space. 
 public:
     allunits();
-    unit* get(unit* u, int index);
+    unit* get(unit* u, int index, int player);
     unit* get(hiveMind* h, int index);
     ~allunits(); //You could just destroy one of the game's main data storage variables, but then it would crash, and the developer doing the destruction wouldn't gain a thing.
 };

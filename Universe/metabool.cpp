@@ -2,10 +2,10 @@
 
 metabool::metabool()
 {
-    b=false;
+    b=0;
 }
 
-bool metabool::get()
+unsigned char metabool::get()
 {
     return b;
 }

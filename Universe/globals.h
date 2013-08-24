@@ -48,6 +48,10 @@ using namespace std;
 #define MOVINGSELFWEIGHTPENALTY 5 //per 50 weight, with it ceiled or floored according to rand()%(weight%50)
 #define MOVINGLIFTEDWEIGHTPENALTY 10 //per 50 weight, same procedure as above
 #define EXCRETIONFREQ 100 //how much hunger has to rise for excretion to be required.
+#define MAXWASTEONTILE 7 //how much waste can be on a tile
+#define CAMEOPER25BUSH 1 //cameo per 25 bush. Last few not counted. 127 is the same as 120, namely 4. 24 gets 0.
+#define CAMEOFORTREE 2   //cameo for a tree being there
+#define CAMEOFORROAD -2 //cameo lost for being on a road of any quality. Note: This does not increase a units line of sight, but merely counteracts cameo that the unit on the road may have. If the unit has none, units looking at it won't be able to see it from further than usual.
 //function declarations
 int geneMixer(int p1, int p2);
 

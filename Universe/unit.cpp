@@ -398,10 +398,25 @@ void unit::seeunit()
     {
         for(int j=-i; j<=i; j++)
         {
-            mapseenunit[player][y+i][x+j].b=true;
-            mapseenunit[player][y-i][x+j].b=true;
-            mapseenunit[player][y+j][x+i].b=true;
-            mapseenunit[player][y+j][x-i].b=true;
+            if((( ((map[y+i][x+j].bush>=125) ? 124 : map[y+i][x+j].bush) / 25 * CAMEOPER25BUSH) + (((map[y+i][x+j].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+i][x+j].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
+                mapseenunit[player][y+i][x+j].b=2;
+            else
+                mapseenunit[player][y+i][x+j].b=1;
+            
+            if((( ((map[y-i][x+j].bush>=125) ? 124 : map[y-i][x+j].bush) / 25 * CAMEOPER25BUSH) + (((map[y-i][x+j].tree>0)?1:0) * CAMEOFORTREE) + (((map[y-i][x+j].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
+                mapseenunit[player][y-i][x+j].b=2;
+            else
+                mapseenunit[player][y-i][x+j].b=1;
+            
+            if((( ((map[y+j][x+i].bush>=125) ? 124 : map[y+j][x+i].bush) / 25 * CAMEOPER25BUSH) + (((map[y+j][x+i].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+j][x+i].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
+                mapseenunit[player][y+j][x+i].b=2;
+            else
+                mapseenunit[player][y+j][x+i].b=1;
+            
+            if((( ((map[y+j][x-i].bush>=125) ? 124 : map[y+j][x-i].bush) / 25 * CAMEOPER25BUSH) + (((map[y+j][x-i].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+j][x-i].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
+                mapseenunit[player][y+j][x-i].b=2;
+            else
+                mapseenunit[player][y+j][x-i].b=1;
         }
     }
 }
@@ -411,10 +426,10 @@ void unit::unseeunit()
     {
         for(int j=-i; j<=i; j++)
         {
-            mapseenunit[player][y+i][x+j].b=false;
-            mapseenunit[player][y-i][x+j].b=false;
-            mapseenunit[player][y+j][x+i].b=false;
-            mapseenunit[player][y+j][x-i].b=false;
+            mapseenunit[player][y+i][x+j].b=0;
+            mapseenunit[player][y-i][x+j].b=0;
+            mapseenunit[player][y+j][x+i].b=0;
+            mapseenunit[player][y+j][x-i].b=0;
         }
     }
 }
@@ -426,6 +441,25 @@ void unit::seehive(int hiveindex)
         {
             for(int j=-i; j<=i; j++)
             {
+                if((( ((map[y+i][x+j].bush>=125) ? 124 : map[y+i][x+j].bush) / 25 * CAMEOPER25BUSH) + (((map[y+i][x+j].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+i][x+j].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
+                    mapseenhive[player][hiveindex][y+i][x+j].b=2;
+                else
+                    mapseenhive[player][hiveindex][y+i][x+j].b=1;
+
+                if((( ((map[y-i][x+j].bush>=125) ? 124 : map[y-i][x+j].bush) / 25 * CAMEOPER25BUSH) + (((map[y-i][x+j].tree>0)?1:0) * CAMEOFORTREE) + (((map[y-i][x+j].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
+                    mapseenhive[player][hiveindex][y-i][x+j].b=2;
+                else
+                    mapseenhive[player][hiveindex][y-i][x+j].b=1;
+
+                if((( ((map[y+j][x+i].bush>=125) ? 124 : map[y+j][x+i].bush) / 25 * CAMEOPER25BUSH) + (((map[y+j][x+i].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+j][x+i].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
+                    mapseenhive[player][hiveindex][y+j][x+i].b=2;
+                else
+                    mapseenhive[player][hiveindex][y+j][x+i].b=1;
+
+                if((( ((map[y+j][x-i].bush>=125) ? 124 : map[y+j][x-i].bush) / 25 * CAMEOPER25BUSH) + (((map[y+j][x-i].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+j][x-i].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
+                    mapseenhive[player][hiveindex][y+j][x-i].b=2;
+                else
+                    mapseenhive[player][hiveindex][y+j][x-i].b=1;
                 mapseenhive[player][hiveindex][y+i][x+j].b=true;
                 mapseenhive[player][hiveindex][y-i][x+j].b=true;
                 mapseenhive[player][hiveindex][y+j][x+i].b=true;
@@ -436,19 +470,19 @@ void unit::seehive(int hiveindex)
 }
 void unit::unseehive(int hiveindex)
 {
-    if(abs(allMinds.data[player][hiveindex].centerx-x)<allMinds.data[player][hiveindex].range && abs(allMinds.data[player][hiveindex].centery-y)<allMinds.data[player][hiveindex].range) //in range of hive
-    {
+    //if(abs(allMinds.data[player][hiveindex].centerx-x)<allMinds.data[player][hiveindex].range && abs(allMinds.data[player][hiveindex].centery-y)<allMinds.data[player][hiveindex].range) //in range of hive
+    //{
         for(int i=0; i<=lineOfSight; i++) //hides map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
         {
             for(int j=-i; j<=i; j++) //now its in a square because it was before, and since there are no repeats its the same amount of work
             {
-                mapseenhive[player][hiveindex][y+i][x+j].b=false;
-                mapseenhive[player][hiveindex][y-i][x+j].b=false;
-                mapseenhive[player][hiveindex][y+j][x+i].b=false;
-                mapseenhive[player][hiveindex][y+j][x-i].b=false;
+                mapseenhive[player][hiveindex][y+i][x+j].b=0;
+                mapseenhive[player][hiveindex][y-i][x+j].b=0;
+                mapseenhive[player][hiveindex][y+j][x+i].b=0;
+                mapseenhive[player][hiveindex][y+j][x-i].b=0;
             }
         }
-    }
+    //}
 }
 void unit::act() //make this empty
 {
@@ -601,7 +635,44 @@ void unit::learn()
 }
 void unit::shit() //excrete is public. shit is private.
 {
-    map[y][x].waste++;
+    if(map[y][x].waste<MAXWASTEONTILE)
+        map[y][x].waste++;
+    else
+    {
+        for(int i=0; ; i++) //searches for a square that isn't filled to the brim with excrement
+        {
+            bool good=false;
+            for(int j=-i; j<=i; j++)
+            {
+                if(map[y+i][x+j].waste<MAXWASTEONTILE)
+                {
+                    map[y+i][x+j].waste++;
+                    good=true;
+                    break;
+                }
+                else if(map[y-i][x+j].waste<MAXWASTEONTILE)
+                {
+                    map[y-i][x+j].waste++;
+                    good=true;
+                    break;
+                }
+                else if(map[y+j][x+i].waste<MAXWASTEONTILE)
+                {
+                    map[y+j][x+j].waste++;
+                    good=true;
+                    break;
+                }
+                else if(map[y+j][x-i].waste<MAXWASTEONTILE)
+                {
+                    map[y+i][x-j].waste++;
+                    good=true;
+                    break;
+                }
+            }
+            if(good)
+                break;
+        }
+    }
     excreteNeed=-1;
     excreting=true;
 }
@@ -684,11 +755,11 @@ void unit::reproduce(int withwhom)
         return;
     if(!allUnits.data[player][withwhom]) //mate is a null pointer
         return;
-    if(abs(x-allUnits.get(this,withwhom)->x)<=1 && abs(y-allUnits.get(this,withwhom)->y)<=1) //close enough
+    if(abs(x-allUnits.get(this,withwhom,player)->x)<=1 && abs(y-allUnits.get(this,withwhom,player)->y)<=1) //close enough
     {
-        if(age>=sexuallyMature && allUnits.get(this,withwhom)->age>allUnits.get(this,withwhom)->sexuallyMature) //old enough
+        if(age>=sexuallyMature && allUnits.get(this,withwhom,player)->age>allUnits.get(this,withwhom,player)->sexuallyMature) //old enough
         {
-            if(gender!=allUnits.get(this,withwhom)->gender) //different genders
+            if(gender!=allUnits.get(this,withwhom,player)->gender) //different genders
             {
                 if(!gender) //female
                 {
@@ -708,7 +779,7 @@ void unit::reproduce(int withwhom)
                 if(allUnits.data[player][fetusid]->maxMetabolicRate>allUnits.data[player][fetusid]->metabolicRate)
                     allUnits.data[player][fetusid]->maxMetabolicRate=allUnits.data[player][fetusid]->metabolicRate-3;
                 energy-=REPRODUCTIONENERGYCOST;
-                allUnits.get(this,withwhom)->energy-=REPRODUCTIONENERGYCOST;
+                allUnits.get(this,withwhom,player)->energy-=REPRODUCTIONENERGYCOST;
             }
         }
     }
@@ -869,3 +940,20 @@ vector<object> unit::getcarrying()
     } 
     LISTVARSHIVE
 #undef X
+            
+//getters for when seen by some other unit
+#define Z(type, val) \
+    type unit::getNonSelf ## val(unit* looking) \
+    { \
+        if(looking) \
+        { \
+            if(curLoops.unitIndex==looking->index && curLoops.unitPlayer==looking->player) \
+            { \
+                if(mapseenunit[looking->player][y][x].get()==1) \
+                    return val; \
+            } \
+        } \
+        return (sizeof(type)==1)?(-127):(-9999); \
+    } 
+    LISTVARSUNITSEENBYOTHER
+#undef Z                    

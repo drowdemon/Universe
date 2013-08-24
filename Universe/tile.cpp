@@ -199,20 +199,6 @@ void tile::spreadDisease()
         }
     }
 }
-
-pubTile* tile::get(unit& u)
-{
-    if(mapseenunit[u.player][y][x].get())
-        return new pubTile(this);
-    return NULL;
-}
-pubTile* tile::get(hiveMind& h)
-{
-    if(mapseenhive[h.player][h.index][y][x].get())
-        return new pubTile(this);
-    return NULL;
-}
-
 tile::~tile()
 {
     for(unsigned int i=0; i<allObjects.size(); i++)
@@ -222,3 +208,97 @@ tile::~tile()
     }
     allObjects.clear();
 }
+
+//getters
+#define X(type, val) \
+    type * tile::get ## val(unit& u) \
+    { \
+        if(mapseenunit[u.player][y][x].get()>0) \
+        { \
+            type *ret = new type; \
+            *ret=val; \
+            return ret; \
+        } \
+        return NULL; \
+    } \
+    type * tile::get ## val(hiveMind& h) \
+    { \
+        if(mapseenhive[h.player][h.index][y][x].get()>0) \
+        { \
+            type *ret = new type; \
+            *ret=val; \
+            return ret; \
+        } \
+        return NULL; \
+    }
+    LISTVARSTILE
+#undef X
+
+vector<object>* tile::getallObjects(unit& u) 
+{ 
+    if(mapseenunit[u.player][y][x].get()>0) 
+    { 
+        vector<object> *ret = new vector<object>; 
+        for(unsigned int i=0; i<allObjects.size(); i++)
+            ret->push_back(*allObjects[i]);
+        return ret; 
+    } 
+    return NULL; 
+}
+
+vector<object>* tile::getallObjects(hiveMind& h) 
+{ 
+    if(mapseenhive[h.player][h.index][y][x].get()>0) 
+    { 
+        vector<object> *ret = new vector<object>; 
+        for(unsigned int i=0; i<allObjects.size(); i++)
+            ret->push_back(*allObjects[i]);
+        return ret; 
+    } 
+    return NULL; 
+} 
+
+#define X(type, val) \
+    type * tile::get ## val(unit& u) \
+    { \
+        type *ret = new type; \
+        if(mapseenunit[u.player][y][x].get()==1) \
+        { \
+            *ret=val; \
+            return ret; \
+        } \
+        if(sizeof(type)==sizeof(bool)) \
+            *ret=false; \
+        else \
+            *ret=-1; \
+        return ret; \
+    } \
+    type * tile::get ## val(hiveMind& h) \
+    { \
+        type *ret = new type; \
+        if(mapseenhive[h.player][h.index][y][x].get()==1) \
+        { \
+            *ret=val; \
+            return ret; \
+        } \
+        if(sizeof(type)==sizeof(bool)) \
+            *ret=false; \
+        else \
+            *ret=-1; \
+        return ret; \
+    }
+    LISTVARSTILEUNIT
+#undef X
+
+/*pubTile* tile::get(unit& u)
+{
+    if(mapseenunit[u.player][y][x].get()>0)
+        return new pubTile(this);
+    return NULL;
+}
+pubTile* tile::get(hiveMind& h)
+{
+    if(mapseenhive[h.player][h.index][y][x].get()>0)
+        return new pubTile(this);
+    return NULL;
+}*/
