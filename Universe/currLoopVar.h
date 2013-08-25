@@ -18,6 +18,7 @@ class curLoopVar
     friend class tile;
     friend class object;
     friend class Throwing;
+    friend class commWrapper;
 private:
     int hivePlayer;
     int hiveIndex;

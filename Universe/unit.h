@@ -5,6 +5,7 @@
 #include "dataStructures.h"
 #include "object.h"
 #include "throw.h"
+#include "commWrapper.h"
 
 using namespace std;
 
@@ -61,6 +62,7 @@ friend int main();
 friend void reformat();
 friend class object;
 friend class Throwing;
+friend class commWrapper;
 private: // all this stuff can only be changed internally
     //more will certainly be added. Our own creatures will inherit from this, and implement some sort of run function, probably
     int player;
@@ -112,7 +114,10 @@ private: // all this stuff can only be changed internally
     bool liftingOrDropping; //if pickup() or putdown() were called
     bool waking; //if just called awaken(). It takes some time. 
     bool excreting; //you can't do shit while you're excreting. 
+public:
+    commWrapper allCommuniques;
 
+private:
     unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP, short wt, short ftw, short fre, short enm);
     void diseaseEffects();
     bool checkLive();
@@ -133,7 +138,7 @@ private: // all this stuff can only be changed internally
     void learn();
     void shit();
 public:
-    ~unit();
+    virtual ~unit();
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
     void move(short mx, short my); //no obstacle avoidance: each creature will implement that on its own. This just moves to the given square, if that's legal
     void reproduce(int withwhom);

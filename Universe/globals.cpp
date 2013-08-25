@@ -25,3 +25,4 @@ vector<unitChangeLog> allUnitChanges;
 ofstream *unitChangeFile;
 curLoopVar curLoops;
 vector<objectDescriptor> allObjectDesc;
+bool tileConstructorAllowed=true;

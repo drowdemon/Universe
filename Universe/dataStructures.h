@@ -27,6 +27,13 @@ public:
     point(int px, int py);
 };
 
+class pointRad : point
+{
+public:
+    int rad;
+    pointRad(int px, int py, int pr);
+};
+
 class unitChangeLog
 {
 private:

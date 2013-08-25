@@ -23,6 +23,11 @@ point::point(int px, int py)
     y=py;
 }
 
+pointRad::pointRad(int px, int py, int pr) : point(px, py)
+{
+    rad=pr;
+}
+
 unitChangeLog::unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm)
 {
     xorig=xo;

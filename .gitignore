@@ -4,3 +4,4 @@ dist
 nbproject
 Universe/map
 Universe/unitChanges
+GenerateBoolTransCode/outputCode

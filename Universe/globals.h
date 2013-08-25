@@ -67,5 +67,6 @@ extern vector<unitChangeLog> allUnitChanges;
 extern ofstream *unitChangeFile;
 extern curLoopVar curLoops;
 extern vector<objectDescriptor> allObjectDesc;
+extern bool tileConstructorAllowed;
 
 #endif	/* GLOBALS_H */

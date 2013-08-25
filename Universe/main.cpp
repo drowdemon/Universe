@@ -33,6 +33,7 @@ void init()
             map[i][j].y=i;
         }
     }
+    tileConstructorAllowed=false;
     unitChangeFile = new ofstream("unitChanges");
     
     allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,-3,-1,food()));
@@ -133,6 +134,7 @@ void reformat()
                 indexMappings[i][j]=allUnits.data[i][j]->index;
                 for(unsigned int k=0; k<allUnits.data[i][j]->carrying.size(); k++)
                     allUnits.data[i][j]->carrying[k]->heldByIndex-=currDeleted;
+                allUnits.data[i][j]->allCommuniques.index-=currDeleted;
             }
         }
         for(unsigned int i=0; i<allUnits.data.size(); i++)

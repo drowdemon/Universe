@@ -10,6 +10,8 @@
 
 tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, /*unsigned char sw,*/ short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {
+    if(!tileConstructorAllowed)
+        return;
     road=r;
     water=w;
     height=h;
