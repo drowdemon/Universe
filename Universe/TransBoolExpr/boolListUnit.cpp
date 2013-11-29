@@ -3,6 +3,7 @@
 #include <tuple>
 #include <cstdlib>
 #include <iostream>
+#include "vectorOpOverloads.h"
 
 using namespace std;
 
@@ -34,9 +35,9 @@ unitTuple boolListUnit::run(unitTuple data)
         vector<int> tempPerformOps=performOps;
         for(unsigned int j=0; j<parens[i].size(); j++)
         {
-            tempRes[parens[i][j]]=(ops[performOps[parens[i][j]]])(res[parens[i][j]],res[parens[i][j]+1]);
-            tempRes.erase(tempRes.begin()+parens[i][j]+1);
-            tempPerformOps.erase(tempPerformOps.begin()+parens[i][j]);
+            tempRes[parens[i][j]-j]=(ops[performOps[parens[i][j]]])(res[parens[i][j]],res[parens[i][j]+1]);
+            tempRes.erase(tempRes.begin()+parens[i][j]+1-j);
+            tempPerformOps.erase(tempPerformOps.begin()+parens[i][j]-j);
         }
         res=tempRes;
         performOps=tempPerformOps;
@@ -48,7 +49,7 @@ unitTuple boolListUnit::run(unitTuple data)
     }
     if(res[0]) //true, return requested info
     {
-        return make_tuple((wantedData[0] ? get<0>(data) : NULL),(wantedData[1] ? get<1>(data) : NULL),(wantedData[2] ? get<2>(data) : NULL),(wantedData[3] ? get<3>(data) : NULL),(wantedData[4] ? get<4>(data) : NULL),(wantedData[5] ? get<5>(data) : NULL),(wantedData[6] ? get<6>(data) : NULL),(wantedData[7] ? get<7>(data) : NULL),(wantedData[8] ? get<8>(data) : NULL),(wantedData[9] ? get<9>(data) : NULL),(wantedData[10] ? get<10>(data) : NULL),(wantedData[11] ? get<11>(data) : NULL),(wantedData[12] ? get<12>(data) : NULL),(wantedData[13] ? get<13>(data) : NULL),(wantedData[14] ? get<14>(data) : NULL),(wantedData[15] ? get<15>(data) : NULL),(wantedData[16] ? get<16>(data) : NULL),(wantedData[17] ? get<17>(data) : NULL),(wantedData[18] ? get<18>(data) : NULL),(wantedData[19] ? get<19>(data) : NULL),(wantedData[20] ? get<20>(data) : NULL),(wantedData[21] ? get<21>(data) : NULL));
+        return make_tuple((wantedData[0] ? get<0>(data) : NULL),(wantedData[1] ? get<1>(data) : NULL),(wantedData[2] ? get<2>(data) : NULL),(wantedData[3] ? get<3>(data) : NULL),(wantedData[4] ? get<4>(data) : NULL),(wantedData[5] ? get<5>(data) : NULL),(wantedData[6] ? get<6>(data) : NULL),(wantedData[7] ? get<7>(data) : NULL),(wantedData[8] ? get<8>(data) : NULL),(wantedData[9] ? get<9>(data) : NULL),(wantedData[10] ? get<10>(data) : NULL),(wantedData[11] ? get<11>(data) : NULL),(wantedData[12] ? get<12>(data) : NULL),(wantedData[13] ? get<13>(data) : NULL),(wantedData[14] ? get<14>(data) : NULL),(wantedData[15] ? get<15>(data) : NULL),(wantedData[16] ? get<16>(data) : NULL),(wantedData[17] ? get<17>(data) : NULL),(wantedData[18] ? get<18>(data) : NULL),(wantedData[19] ? get<19>(data) : NULL),(wantedData[20] ? get<20>(data) : NULL),(wantedData[21] ? get<21>(data) : NULL),(wantedData[21] ? get<22>(data) : NULL));
     }
     else
     {
@@ -76,6 +77,7 @@ unitTuple boolListUnit::run(unitTuple data)
         get<19>(empty)=NULL;
         get<20>(empty)=NULL;
         get<21>(empty)=NULL;
+        get<22>(empty)=NULL;
         // </editor-fold>
         return empty;
     }
@@ -130,6 +132,8 @@ bool boolListUnit::helper(unitTuple data, int condInd)
             return helper2(get<20>(data), data, condInd);
         case 21:
             return helper2(get<21>(data), data, condInd);
+        case 22:
+            return helper2(get<22>(data), data, condInd);
             // </editor-fold>
     }
     cout << "Error in boolList::helper" << endl;
@@ -189,6 +193,8 @@ bool boolListUnit::helper2(T &datapoint, unitTuple data, int condInd)
                 return helper3(*datapoint,*(get<20>(data)),condInd);
             case 21:
                 return helper3(*datapoint,*(get<21>(data)),condInd);
+            case 22:
+                return helper3(*datapoint,*(get<22>(data)),condInd);
             //</editor-fold>
         }
     }

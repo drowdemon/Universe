@@ -118,6 +118,7 @@ public:
     commWrapper allCommuniques;
 
 private:
+	unit(); //use only if about to rewrite this. Should never exist on map. Nothing is initialized.
     unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP, short wt, short ftw, short fre, short enm);
     void diseaseEffects();
     bool checkLive();
@@ -139,6 +140,7 @@ private:
     void shit();
 public:
     virtual ~unit();
+    unit& operator=(const unit &source);
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
     void move(short mx, short my); //no obstacle avoidance: each creature will implement that on its own. This just moves to the given square, if that's legal
     void reproduce(int withwhom);

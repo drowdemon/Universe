@@ -1,5 +1,7 @@
 #include "commProtocol.h"
+#include "unit.h"
 
-communicationProtocol::communicationProtocol()
+communicationProtocol::communicationProtocol(unit *wa)
 {
+    *whoAsks=*wa;
 }

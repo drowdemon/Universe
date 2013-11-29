@@ -3,6 +3,8 @@
 #include <tuple>
 #include <cstdlib>
 #include <iostream>
+#include "vectorOpOverloads.h"
+#include "../object.h"
 
 using namespace std;
 
@@ -34,9 +36,9 @@ tileTuple boolListTile::run(tileTuple data)
         vector<int> tempPerformOps=performOps;
         for(unsigned int j=0; j<parens[i].size(); j++)
         {
-            tempRes[parens[i][j]]=(ops[performOps[parens[i][j]]])(res[parens[i][j]],res[parens[i][j]+1]);
-            tempRes.erase(tempRes.begin()+parens[i][j]+1);
-            tempPerformOps.erase(tempPerformOps.begin()+parens[i][j]);
+            tempRes[parens[i][j]-j]=(ops[performOps[parens[i][j]]])(res[parens[i][j]],res[parens[i][j]+1]);
+            tempRes.erase(tempRes.begin()+parens[i][j]+1-j);
+            tempPerformOps.erase(tempPerformOps.begin()+parens[i][j]-j);
         }
         res=tempRes;
         performOps=tempPerformOps;
@@ -48,7 +50,7 @@ tileTuple boolListTile::run(tileTuple data)
     }
     if(res[0]) //true, return requested info
     {
-        return make_tuple((wantedData[0] ? get<0>(data) : NULL),(wantedData[1] ? get<1>(data) : NULL),(wantedData[2] ? get<2>(data) : NULL),(wantedData[3] ? get<3>(data) : NULL),(wantedData[4] ? get<4>(data) : NULL),(wantedData[5] ? get<5>(data) : NULL),(wantedData[6] ? get<6>(data) : NULL),(wantedData[7] ? get<7>(data) : NULL),(wantedData[8] ? get<8>(data) : NULL),(wantedData[9] ? get<9>(data) : NULL),(wantedData[10] ? get<10>(data) : NULL),(wantedData[11] ? get<11>(data) : NULL));
+        return make_tuple((wantedData[0] ? get<0>(data) : NULL),(wantedData[1] ? get<1>(data) : NULL),(wantedData[2] ? get<2>(data) : NULL),(wantedData[3] ? get<3>(data) : NULL),(wantedData[4] ? get<4>(data) : NULL),(wantedData[5] ? get<5>(data) : NULL),(wantedData[6] ? get<6>(data) : NULL),(wantedData[7] ? get<7>(data) : NULL),(wantedData[8] ? get<8>(data) : NULL),(wantedData[9] ? get<9>(data) : NULL),(wantedData[10] ? get<10>(data) : NULL),(wantedData[11] ? get<11>(data) : NULL),(wantedData[12] ? get<12>(data) : NULL));
     }
     else
     {
@@ -66,6 +68,7 @@ tileTuple boolListTile::run(tileTuple data)
         get<9>(empty)=NULL;
         get<10>(empty)=NULL;
         get<11>(empty)=NULL;
+        get<12>(empty)=NULL;
         // </editor-fold>
         return empty;
     }
@@ -100,6 +103,8 @@ bool boolListTile::helper(tileTuple data, int condInd)
             return helper2(get<10>(data), data, condInd);
         case 11:
             return helper2(get<11>(data), data, condInd);
+        case 12:
+            return helper2(get<12>(data), data, condInd);    
             // </editor-fold>
     }
     cout << "Error in boolList::helper" << endl;
@@ -139,6 +144,8 @@ bool boolListTile::helper2(T &datapoint, tileTuple data, int condInd)
                 return helper3(*datapoint,*(get<10>(data)),condInd);
             case 11:
                 return helper3(*datapoint,*(get<11>(data)),condInd);
+            case 12:
+                return helper3(*datapoint,*(get<12>(data)),condInd);
             //</editor-fold>
         }
     }

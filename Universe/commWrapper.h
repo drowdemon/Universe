@@ -15,7 +15,7 @@ private:
     int index; //index updating handled in reformat()
 public:
     commWrapper();
-    void push(communicationProtocol &cp);
+    void push(communicationProtocol &cp, unit *u);
     communicationProtocol read(unit *u, int index);
     void erase(unit *u, int index);
     void popBack(unit *u);

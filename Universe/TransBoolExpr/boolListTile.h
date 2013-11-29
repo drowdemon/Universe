@@ -11,7 +11,9 @@ using std::tuple;
 #define ANDIND 0
 #define ORIND 1
 
-typedef tuple<unsigned char*, unsigned short*, short*, unsigned char*, unsigned short*, unsigned char*, unsigned char*, short*, short*, bool*, short*, short*> tileTuple;
+class object;
+
+typedef tuple<unsigned char*, unsigned short*, short*, unsigned char*, unsigned short*, unsigned char*, unsigned char*, short*, short*, bool*, short*, short*, vector<object*>*> tileTuple;
 
 class boolListTile
 {
