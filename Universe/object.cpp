@@ -23,7 +23,7 @@ objectDescriptor::objectDescriptor(short w, short wv, short pid, bool walk, bool
     possFood=pf;
 }
 
-object::object(short w, short p, short i, short px, short py, short what, bool aedib, food pf, short ind)
+object::object(short w, short p, short i, short px, short py, short what, bool aedib, food pf, short ind, short h)
 {
     weight=w;
     heldByPlayer=p;
@@ -36,9 +36,10 @@ object::object(short w, short p, short i, short px, short py, short what, bool a
     speed=0;
     toX=toY=-1;
     index=ind;
+    height=h;
 }
 
-object::object(objectDescriptor& od, short p, short i, short px, short py, short ind)
+object::object(objectDescriptor& od, short p, short i, short px, short py, short ind, short h)
 {
     weight=od.weight+((rand()%(od.weightVariation*2+1))-od.weightVariation);
     heldByPlayer=p;
@@ -56,6 +57,7 @@ object::object(objectDescriptor& od, short p, short i, short px, short py, short
     speed=0;
     toX=toY=-1;
     index=ind;
+    height=h;
 }
 
 bool object::rot()
@@ -207,8 +209,11 @@ void object::move()
     { \
         if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer) \
         { \
-            if((heldByPlayer==u->player && heldByIndex==u->index) || (abs(x-u->x)<=1 && abs(y-u->y)<=1)) \
-                return val; \
+            if((heldByPlayer==u->player && heldByIndex==u->index) || (mapseenunit[u->player][y][x].get()>0)) \
+            { \
+                if(height>=map[y][x].height) \
+                    return val; \
+            } \
         } \
         return -9999; \
     } 
@@ -220,8 +225,11 @@ void object::move()
     { \
         if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer) \
         { \
-            if((heldByPlayer==u->player && heldByIndex==u->index) || (abs(x-u->x)<=1 && abs(y-u->y)<=1)) \
-                return allObjectDesc[whatIsIt].val; \
+            if((heldByPlayer==u->player && heldByIndex==u->index) || (mapseenunit[u->player][y][x].get()>0)) \
+            { \
+                if(height>=map[y][x].height) \
+                    return allObjectDesc[whatIsIt].val; \
+            } \
         } \
         return -9999; \
     } 
@@ -233,7 +241,7 @@ void object::move()
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
         { \
-            if(abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range) \
+            if(wy==y && wx==x && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][y][x].get()>0 && height>=map[y][x].height) \
             { \
                 return val; \
             } \
@@ -248,7 +256,7 @@ void object::move()
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
         { \
-            if(abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range) \
+            if(wx==x && wy==y && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][y][x].get()>0 && height>=map[y][x].height) \
             { \
                 return allObjectDesc[whatIsIt].val; \
             } \
@@ -261,11 +269,11 @@ void object::move()
 #define Z(type, val) \
     type object::get ## val(hiveMind *h, short unitIndex) \
     { \
-        if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
+        if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer && h->player==heldByPlayer && unitIndex==heldByIndex) \
         { \
             if(allUnits.data[h->player][unitIndex]) \
             { \
-                if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range) \
+                if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range && height>=map[y][x].height && mapseenhive[h->player][h->index][y][x].get()==1) \
                 { \
                     return val; \
                 } \
@@ -279,11 +287,11 @@ void object::move()
 #define Z(type, val) \
     type object::get ## val(hiveMind *h, short unitIndex) \
     { \
-        if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
+        if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer && h->player==heldByPlayer && unitIndex==heldByIndex) \
         { \
             if(allUnits.data[h->player][unitIndex]) \
             { \
-                if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range) \
+                if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range && height>=map[y][x].height && mapseenhive[h->player][h->index][y][x].get()==1) \
                 { \
                     return allObjectDesc[whatIsIt].val; \
                 } \

@@ -173,7 +173,7 @@ int main()
     map[11][10].unitplayer=0;
     map[11][10].unitindex=0;
     
-    allUnits.data[0][0]->carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0));
+    allUnits.data[0][0]->carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0,map[allUnits.data[0][0]->y][allUnits.data[0][0]->x].height));
     
     printMap(); //comment out for no output.
     while(true) //it never closes. Somewhat inconvenient. But its not bothering to use win32 or glut or mfc, with good reason, so this is the best I could do. 

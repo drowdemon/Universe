@@ -9,6 +9,7 @@ using std::vector;
 
 class unit;
 class hiveMind;
+class commWrapper;
 
 class allunits
 {
@@ -22,8 +23,9 @@ class allunits
     friend class hiveMind;
     friend class object;
     friend void reformat();
+	friend class commWrapper;
 private:
-    vector<vector<unit*> > data; //It stores pointers to units to save space. 
+    vector<vector<unit*> > data; //It stores pointers to units to save stack space. 
 public:
     allunits();
     unit* get(unit* u, int index, int player);

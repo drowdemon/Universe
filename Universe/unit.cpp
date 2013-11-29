@@ -10,6 +10,10 @@
 
 using namespace std;
 
+unit::unit() : throwSkill(0)
+{
+}
+
 unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP, short wt, short ftw, short fre, short enm) : throwSkill(throwXP)
 {
     player=p;
@@ -578,7 +582,7 @@ void unit::die()
         carrying[i]->index=map[y][x].allObjects.size();
         map[y][x].allObjects.push_back(carrying[i]);
     }
-    map[y][x].allObjects.push_back(new object(allObjectDesc[OBJECT_CORPSE],-1,-1,x,y,map[y][x].allObjects.size()));
+    map[y][x].allObjects.push_back(new object(allObjectDesc[OBJECT_CORPSE],-1,-1,x,y,map[y][x].allObjects.size(),map[y][x].height));
     map[y][x].allObjects.back()->weight=weight;
     
     if(fetusid!=-1) //if carrying a child in womb
@@ -681,6 +685,54 @@ void unit::shit() //excrete is public. shit is private.
 //public functions below --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+unit& unit::operator=(const unit &source)
+{
+    player=source.player;
+    index=source.index;
+    sleep=source.sleep;
+    energy=source.energy;
+    strength=source.strength;
+    gender=source.gender;
+    intelligence=source.intelligence;
+    age=source.age;
+    moveToX=source.moveToX;
+    x=source.x;
+    moveToY=source.moveToY;
+    y=source.y;   
+    speed=source.speed;
+    lineOfSight=source.lineOfSight;
+    immunity=source.immunity;
+    health=source.health;
+    healthDiseaseInc=source.healthDiseaseInc;
+    woundEnergyCost=source.woundEnergyCost;
+    energyPerFood=source.energyPerFood;
+    metabolicRate=source.metabolicRate;
+    maxMetabolicRate=source.maxMetabolicRate;
+    sexuallyMature=source.sexuallyMature;
+    pregnant=source.pregnant;
+    fetusid=source.fetusid;
+    hunger=source.hunger;
+    learningSkills=new short[NUMSKILLS]; //update every time there is a new skill
+    for(int i=0; i<NUMSKILLS; i++)
+        learningSkills[i]=source.learningSkills[i];
+    
+    sleeping=source.sleeping;
+    reproducing=source.reproducing;
+    moving=source.moving;  
+    throwing=source.throwing;
+    eating=source.eating;
+    liftingOrDropping=source.liftingOrDropping;
+    waking=source.waking;
+    weight=source.weight;
+    fatBuildProgress=source.fatBuildProgress;
+    fatToWeight=source.fatToWeight;
+    fatRetrievalEfficiency=source.fatRetrievalEfficiency;
+    minWeight=NEWBORNMINWEIGHT;
+    excreteNeed=-1;
+    excreteNeedMax=source.excreteNeedMax;
+    excreting=false;
+    return *this;
+}
 void unit::move()
 {
     if(sleeping || reproducing>0 || moving || throwing || waking || excreting)
@@ -738,7 +790,7 @@ void unit::move(short mx, short my)
 {
     if(sleeping || reproducing>0 || moving || throwing || waking || excreting)
         return;
-    if(moveToX==x && moveToY==y)
+    if(mx==0 && my==0)
         return;
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
         return;
@@ -755,11 +807,12 @@ void unit::reproduce(int withwhom)
         return;
     if(!allUnits.data[player][withwhom]) //mate is a null pointer
         return;
-    if(abs(x-allUnits.get(this,withwhom,player)->x)<=1 && abs(y-allUnits.get(this,withwhom,player)->y)<=1) //close enough
+    unit* uwith=allUnits.get(this,withwhom,player);
+    if(abs(x-uwith->x)<=1 && abs(y-uwith->y)<=1) //close enough
     {
-        if(age>=sexuallyMature && allUnits.get(this,withwhom,player)->age>allUnits.get(this,withwhom,player)->sexuallyMature) //old enough
+        if(age>=sexuallyMature && uwith->age>uwith->sexuallyMature) //old enough
         {
-            if(gender!=allUnits.get(this,withwhom,player)->gender) //different genders
+            if(gender!=uwith->gender) //different genders
             {
                 if(!gender) //female
                 {
@@ -779,10 +832,11 @@ void unit::reproduce(int withwhom)
                 if(allUnits.data[player][fetusid]->maxMetabolicRate>allUnits.data[player][fetusid]->metabolicRate)
                     allUnits.data[player][fetusid]->maxMetabolicRate=allUnits.data[player][fetusid]->metabolicRate-3;
                 energy-=REPRODUCTIONENERGYCOST;
-                allUnits.get(this,withwhom,player)->energy-=REPRODUCTIONENERGYCOST;
+                allUnits.data[player][withwhom]->energy-=REPRODUCTIONENERGYCOST;
             }
         }
     }
+    delete uwith;
 }
 void unit::goToSleep()
 {

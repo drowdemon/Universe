@@ -6,13 +6,15 @@
 #include <vector>
 #include <tuple>
 
+class object;
+
 using std::vector;
 using std::tuple;
 
 #define ANDIND 0
 #define ORIND 1
 
-typedef tuple<int*,int*,short*,bool*,short*,char*,short*,short*,short*,short*,short*,short*,short*,short*,short*,short*,short*,short*,short*,bool*,short*,short*> unitTuple;
+typedef tuple<int*,int*,short*,bool*,short*,char*,short*,short*,short*,short*,short*,short*,short*,short*,short*,short*,short*,short*,short*,bool*,short*,short*,vector<object*>*> unitTuple;
 
 class boolListUnit
 {

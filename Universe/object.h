@@ -47,6 +47,10 @@ class object
     friend class Throwing;
     friend int main();
     friend void reformat();
+    friend bool operator==(vector<object*> v, int i);
+    friend bool operator==(int i, vector<object*> v);
+    friend bool operator!=(vector<object*> v, int i);
+    friend bool operator!=(int i, vector<object*> v);
 private:
     short weight;
     short heldByPlayer;
@@ -62,8 +66,9 @@ private:
     short toX; //where a moving object is going. Euclidean direction.
     short toY;
     short index; //in a tiles allobjects or a units carrying, whichever is applicable.
-    object(short w, short p, short i, short px, short py, short what, bool aedib, food pf, short ind);
-    object(objectDescriptor& od, short p, short i, short px, short py, short ind);
+    short height;
+    object(short w, short p, short i, short px, short py, short what, bool aedib, food pf, short ind, short h);
+    object(objectDescriptor& od, short p, short i, short px, short py, short ind, short h);
     bool rot();
     void move();
 public:
