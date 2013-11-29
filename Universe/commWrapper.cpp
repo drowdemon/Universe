@@ -12,6 +12,7 @@ commWrapper::commWrapper()
 
 void commWrapper::push(communicationProtocol& cp, unit *u)
 {
+
     if(cp.whoAsks->index==u->index && cp.whoAsks->player==u->player && u->index==curLoops.unitIndex && u->player==curLoops.unitPlayer && (abs(u->x-allUnits.data[player][index]->x)+abs(u->y-allUnits.data[player][index]->y)) < SPEAKDIST)
         communiques.push_back(cp);
 }
