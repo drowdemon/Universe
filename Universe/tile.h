@@ -43,7 +43,7 @@ private: //private so that you can't just learn anything about any part of the m
     short height; //can get very high or very deep
     unsigned char waste; //I think you can have multiple bits of waste on one tile. At least up to 7 inclusive. So 4 bits.
     bool uniton; // 1 bit
-    unsigned short animal; //no=0, if there's an animal, its the index of that animal in whatever vector we have storing all of the animals. Animals have lots of different properties, so there will probably be an animal class at some point.
+    unsigned short animal; //no=0, if there's an animal, its the index+1 of that animal in whatever vector we have storing all of the animals. Animals have lots of different properties, so there will probably be an animal class at some point.
     //rightmost 4 bits (&15) amount of wood lying around. leftmost 4 bits (>>4), amount of wood that can be retrieved from present bush. If reaches 0, bush set to 0
     //unsigned char smallWood; //not a tree, but just small branches lying around. You can't use them to build a house, but you can build a lean-to or a fire. number=amount
     short unitplayer;

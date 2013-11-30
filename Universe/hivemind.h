@@ -27,7 +27,9 @@ private:
     int player;
     int index;
     hiveMind(int cx, int cy, int r, int p, int i);
+	hiveMind(); //DO NOT USE, LIKE unit DEFAULT CONSTRUCTOR
 public:    
+	hiveMind& operator=(const hiveMind &source);
     virtual void act();
     //below are getters
 #define X(type, val) \
@@ -35,12 +37,13 @@ public:
     LISTVARSHIVE
 #undef X
     //getters for units in hive mind
-    vector<object> getUnitInHivecarrying(int index);
+	unit* getUnitInHive(int index);
+    //vector<object> getUnitInHivecarrying(int index);
         
-#define Y(type, val) \
+/*#define Y(type, val) \
     type getUnitInHive ## val(int index);
     LISTVARSUNIT
-#undef Y
+#undef Y*/
 };
 
 #endif	/* HIVEMIND_H */

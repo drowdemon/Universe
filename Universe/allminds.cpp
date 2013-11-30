@@ -15,7 +15,11 @@ hiveMind* allminds::get(unit* u, int index) //can only be used with current unit
     if(p!=curLoops.unitPlayer || u->index!=curLoops.unitIndex)
         return NULL;
     if(abs(u->x-data[p][index].centerx)<data[p][index].range && abs(u->y-data[p][index].centery)<data[p][index].range)
-        return &data[p][index];
+    {
+        hiveMind *ret = new hiveMind;
+        *ret = (data[p][index]);
+        return ret;
+    }
     return NULL;
 }
 hiveMind* allminds::get(hiveMind* h, int index)
@@ -24,6 +28,10 @@ hiveMind* allminds::get(hiveMind* h, int index)
     if(p!=curLoops.hivePlayer || h->index!=curLoops.hiveIndex)
         return NULL;
     if(abs(h->centerx-data[p][index].centerx)<data[p][index].range && abs(h->centery-data[p][index].centery)<data[p][index].range)
-        return &data[p][index];
+    {
+        hiveMind *ret = new hiveMind;
+        *ret = (data[p][index]);
+        return ret;
+    }
     return NULL;
 }

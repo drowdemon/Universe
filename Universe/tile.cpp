@@ -215,6 +215,8 @@ tile::~tile()
 #define X(type, val) \
     type * tile::get ## val(unit& u) \
     { \
+        if(u.player!=curLoops.unitPlayer || u.index!=curLoops.unitIndex) \
+            return NULL; \
         if(mapseenunit[u.player][y][x].get()>0) \
         { \
             type *ret = new type; \
@@ -225,6 +227,8 @@ tile::~tile()
     } \
     type * tile::get ## val(hiveMind& h) \
     { \
+        if(h.player!=curLoops.hivePlayer || h.index!=curLoops.hiveIndex) \
+            return NULL; \
         if(mapseenhive[h.player][h.index][y][x].get()>0) \
         { \
             type *ret = new type; \
@@ -238,6 +242,8 @@ tile::~tile()
 
 vector<object>* tile::getallObjects(unit& u) 
 { 
+    if(u.player!=curLoops.unitPlayer || u.index!=curLoops.unitIndex) \
+        return NULL; \
     if(mapseenunit[u.player][y][x].get()>0) 
     { 
         vector<object> *ret = new vector<object>; 
@@ -250,6 +256,8 @@ vector<object>* tile::getallObjects(unit& u)
 
 vector<object>* tile::getallObjects(hiveMind& h) 
 { 
+    if(h.player!=curLoops.hivePlayer || h.index!=curLoops.hiveIndex) \
+        return NULL; \
     if(mapseenhive[h.player][h.index][y][x].get()>0) 
     { 
         vector<object> *ret = new vector<object>; 
@@ -263,6 +271,8 @@ vector<object>* tile::getallObjects(hiveMind& h)
 #define X(type, val) \
     type * tile::get ## val(unit& u) \
     { \
+        if(u.player!=curLoops.unitPlayer || u.index!=curLoops.unitIndex) \
+            return NULL; \
         type *ret = new type; \
         if(mapseenunit[u.player][y][x].get()==1) \
         { \
@@ -277,6 +287,8 @@ vector<object>* tile::getallObjects(hiveMind& h)
     } \
     type * tile::get ## val(hiveMind& h) \
     { \
+        if(h.player!=curLoops.hivePlayer || h.index!=curLoops.hiveIndex) \
+            return NULL; \
         type *ret = new type; \
         if(mapseenhive[h.player][h.index][y][x].get()==1) \
         { \

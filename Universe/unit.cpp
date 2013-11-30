@@ -464,10 +464,10 @@ void unit::seehive(int hiveindex)
                     mapseenhive[player][hiveindex][y+j][x-i].b=2;
                 else
                     mapseenhive[player][hiveindex][y+j][x-i].b=1;
-                mapseenhive[player][hiveindex][y+i][x+j].b=true;
+                /*mapseenhive[player][hiveindex][y+i][x+j].b=true;
                 mapseenhive[player][hiveindex][y-i][x+j].b=true;
                 mapseenhive[player][hiveindex][y+j][x+i].b=true;
-                mapseenhive[player][hiveindex][y+j][x-i].b=true;
+                mapseenhive[player][hiveindex][y+j][x-i].b=true;*/
             }
         }
     }

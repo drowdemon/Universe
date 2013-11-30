@@ -11,6 +11,21 @@ hiveMind::hiveMind(int cx, int cy, int r, int p, int i)
     index=i;
 }
 
+hiveMind::hiveMind()
+{
+    
+}
+
+hiveMind &hiveMind::operator =(const hiveMind& source)
+{
+    centerx=source.centerx;
+    centery=source.centery;
+    range=source.range;
+    player=source.player;
+    index=source.index;
+    return *this;
+}
+
 void hiveMind::act()
 {
 }
@@ -27,7 +42,24 @@ void hiveMind::act()
 #undef X
 
 //getters for units in hive
-vector<object> hiveMind::getUnitInHivecarrying(int index)
+unit *hiveMind::getUnitInHive(int index)
+{
+    if(curLoops.hiveIndex==index && curLoops.hivePlayer==player) 
+    { 
+        if(allUnits.data[player][index]) 
+        { 
+            if(abs(centerx-allUnits.data[player][index]->x)<range && abs(centery-allUnits.data[player][index]->y)<range) 
+            { 
+                unit *ret = new unit; 
+                *ret = *allUnits.data[player][index]; 
+                return ret; 
+            } 
+        } 
+    }
+    return NULL;
+}
+
+/*vector<object> hiveMind::getUnitInHivecarrying(int index)
 {
     vector<object> ret;
     if(curLoops.hiveIndex==index && curLoops.hivePlayer==player) 
@@ -59,4 +91,4 @@ vector<object> hiveMind::getUnitInHivecarrying(int index)
         return -127; \
     } 
     LISTVARSUNIT
-#undef Y
+#undef Y*/
