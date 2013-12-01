@@ -151,6 +151,7 @@ void reformat()
             }
         }
     }
+    unitChangeLog::update(-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999);
 }
 
 int main()
@@ -168,7 +169,7 @@ int main()
     allUnits.data[0].push_back(new unit(0,1,10,true,10,20,10,11,20,5,175,50,2,30,13,8,13,0,100,150,850,200));
     allUnits.data[0][1]->minWeight=60;
     unitChangeLog::update(allUnits.data[0][1]->x,allUnits.data[0][1]->y,0,1,0,0,allUnits.data[0][1]->health,allUnits.data[0][1]->energy,allUnits.data[0][1]->hunger,allUnits.data[0][1]->sleep,allUnits.data[0][1]->pregnant);
-    //allUnits.data[0][0].moveToX=20;
+    allUnits.data[0][0]->moveToX=20;
     map[11][10].uniton=true;
     map[11][10].unitplayer=0;
     map[11][10].unitindex=0;

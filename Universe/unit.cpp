@@ -314,7 +314,7 @@ void unit::livingEvents()
     int deltaP=pregnant;
     int deltaS=sleep;
     int deltaHlth=health;
-    energy-=LIVINGENERGYPERSTRENGTH*strength;
+    energy-=LIVINGENERGYPERSTRENGTH*strength/5;
     energy-= ((rand()%5)<(strength%5)) ? LIVINGENERGYPERSTRENGTH : 0;
     if(sleeping)
         sleep+=3;
@@ -557,9 +557,9 @@ void unit::unseehive(int hiveindex)
 }
 void unit::act() //make this empty
 {
-    //move(); //remove this line. TESTING ONLY!!!
-    if(index==0 && frames==1)
-        throwObj(0,x+1,y+1,strength);
+    move(); //remove this line. TESTING ONLY!!!
+    /*if(index==0 && frames==1)
+        throwObj(0,x+1,y+1,strength);*/
 }
 void unit::giveBirth()
 {
@@ -664,7 +664,7 @@ void unit::die()
     int i=index;
     delete allUnits.data[player][index];
     allUnits.data[p][i]=NULL;
-    unitChangeLog::update(-99999,-99999,player,index,-99999,-99999,-99999,-99999,-99999,-99999,-99999);
+    unitChangeLog::update(-99999,-99999,p,i,-99999,-99999,-99999,-99999,-99999,-99999,-99999);
 }
 void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. Object sharpness maybe. How hard/soft it is. 
 {
