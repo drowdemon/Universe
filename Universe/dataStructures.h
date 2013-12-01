@@ -27,7 +27,7 @@ public:
     point(int px, int py);
 };
 
-class pointRad : point
+class pointRad : public point
 {
 public:
     int rad;
@@ -52,6 +52,14 @@ public:
     unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm);
     static void update(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm); //comment the body of this for no gui.
     static void communicate();
+};
+
+class visionObstacle : public point
+{
+public:
+	double slope1;
+	double slope2;
+	visionObstacle(int px, int py);
 };
 
 /*class pubTile

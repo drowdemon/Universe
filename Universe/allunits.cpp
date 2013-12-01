@@ -14,7 +14,7 @@ unit* allunits::get(unit* u, int index, int player) //can get any other unit, bu
     int p=u->player;
     if(p!=curLoops.unitPlayer || u->index!=curLoops.unitIndex)
         return NULL;
-    if(mapseenunit[p][data[player][index]->y][data[player][index]->x].get()==1) //can see them
+    if(mapseenunit[p][data[player][index]->y][data[player][index]->x].get(u)==1) //can see them
     {
         unit* ret=new unit;
         *ret=*data[player][index];
@@ -27,7 +27,7 @@ unit* allunits::get(hiveMind* h, int index) //MUST DELETE RESULTS
     int p=h->player;
     if(p!=curLoops.hivePlayer || h->index!=curLoops.hiveIndex)
         return NULL;
-    if(mapseenhive[p][h->index][data[p][index]->y][data[p][index]->x].get()==1) //can see them
+    if(mapseenhive[p][h->index][data[p][index]->y][data[p][index]->x].get(h)==1) //can see them
     {
         unit* ret=new unit;
         *ret=*data[p][index];

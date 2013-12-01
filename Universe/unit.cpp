@@ -398,11 +398,65 @@ bool unit::checkLive()
 }
 void unit::seeunit()
 {
-    for(int i=0; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
+    vector<visionObstacle> obstacles; //stores slope to obstacles
+    mapseenunit[player][y][x].b=1; //own square is completely visable
+    for(int i=1; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
     {
         for(int j=-i; j<=i; j++)
         {
-            if((( ((map[y+i][x+j].bush>=125) ? 124 : map[y+i][x+j].bush) / 25 * CAMEOPER25BUSH) + (((map[y+i][x+j].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+i][x+j].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
+            bool allowed[4]={true,true,true,true};
+            double curSlopes[4]={(double)i/(double)j,(double)(-i)/(double)j,(double)j/(double)i,(double)j/(double)(-i)};
+            point curPoints[4]={point(j,i),point(j,-i),point(i,j),point(-i,j)};
+            for(unsigned int k=0; k<obstacles.size(); k++)
+            {
+                for(int h=0; h<4; h++)
+                {
+                    if(allowed[h]==false)
+                        continue;
+                    if(curSlopes[h]!=1.0/0.0) //slope is normal
+                    {
+                        if(obstacles[k].slope1<obstacles[k].slope2) //Q I or Q II   //Also includes all times when obstacles is on an axis
+                        {
+                            if((curPoints[h].y>0) || (obstacles[k].y==0 || obstacles[k].x==0)) //correct quadrant, or on axis
+                            {
+                                if(obstacles[k].slope2<curSlopes[h] && curSlopes[h]<obstacles[k].slope1) //between two slopes of obstacle: unseen
+                                {
+                                    if((obstacles[k].y==0 && ((curPoints[h].x<0)==(obstacles[k].x<0))) || (obstacles[k].x==0 && ((curPoints[h].y<0)==(obstacles[k].y<0)))) //extra test for the points on an axis
+                                        allowed[h]=false;
+                                }
+                            }
+                        }
+                        else //Q III,Q IV //s2<s1.
+                        {
+                            if(curPoints[h].y<0)
+                            {
+                                if(obstacles[k].slope1<curSlopes[h] && curSlopes[h]<obstacles[k].slope2)
+                                    allowed[h]=false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(abs(curPoints[h].y)>abs(obstacles[k].y) && ((curPoints[h].y<0)==(curPoints[h].y<0))) //point is greater than obstacle and has the same sign as the obstacle
+                            allowed[h]=false;
+                    }
+                }
+            }
+            bool *ret;
+            for(int h=0; h<4; h++) //for all 4 points I'm checking
+            {
+                if(allowed[h]) //if its not behind an obstacle
+                {
+                    if((( ((map[y+curPoints[h].y][x+curPoints[h].x].bush>=125) ? 124 : map[y+curPoints[h].y][x+curPoints[h].x].bush) / 25 * CAMEOPER25BUSH) + (((map[y+curPoints[h].y][x+curPoints[h].x].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+curPoints[h].y][x+curPoints[h].x].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
+                        mapseenunit[player][y+curPoints[h].y][x+curPoints[h].x].b=2;  //can see tile but not units on it
+                    else
+                        mapseenunit[player][y+curPoints[h].y][x+curPoints[h].x].b=1;  //can see tile and units on it                  
+                    if((ret = map[y+curPoints[h].y][x+curPoints[h].x].blocksVision(this))) //if I saw an obstacle, add it to the list of obstacles
+                        obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
+                    delete ret; //delete the pointer. No memory leaks.
+                }
+            }
+            /*if((( ((map[y+i][x+j].bush>=125) ? 124 : map[y+i][x+j].bush) / 25 * CAMEOPER25BUSH) + (((map[y+i][x+j].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+i][x+j].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
                 mapseenunit[player][y+i][x+j].b=2;
             else
                 mapseenunit[player][y+i][x+j].b=1;
@@ -420,7 +474,20 @@ void unit::seeunit()
             if((( ((map[y+j][x-i].bush>=125) ? 124 : map[y+j][x-i].bush) / 25 * CAMEOPER25BUSH) + (((map[y+j][x-i].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+j][x-i].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
                 mapseenunit[player][y+j][x-i].b=2;
             else
-                mapseenunit[player][y+j][x-i].b=1;
+                mapseenunit[player][y+j][x-i].b=1;*/
+            
+            //if I just saw an obstacle, add it to the list of obstacles
+            /*bool* rets[4];
+            if((rets[0]=map[y+i][x+j].blocksVision(this)))
+                obstacles.push_back(visionObstacle(j,i));
+            if((rets[1]=map[y-i][x+j].blocksVision(this)))
+                obstacles.push_back(visionObstacle(j,-i));
+            if((rets[2]=map[y+j][x+i].blocksVision(this)))
+                obstacles.push_back(visionObstacle(i,j));
+            if((rets[3]=map[y+j][x-i].blocksVision(this)))
+                obstacles.push_back(visionObstacle(-i,j));
+            for(int i=0; i<4; i++)
+                delete rets[i];*/
         }
     }
 }
@@ -1003,7 +1070,7 @@ vector<object> unit::getcarrying()
         { \
             if(curLoops.unitIndex==looking->index && curLoops.unitPlayer==looking->player) \
             { \
-                if(mapseenunit[looking->player][y][x].get()==1) \
+                if(mapseenunit[looking->player][y][x].get(looking)==1) \
                     return val; \
             } \
         } \

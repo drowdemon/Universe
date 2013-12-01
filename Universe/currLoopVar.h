@@ -19,11 +19,13 @@ class curLoopVar
     friend class object;
     friend class Throwing;
     friend class commWrapper;
+	friend class metabool;
 private:
     int hivePlayer;
     int hiveIndex;
     int unitPlayer;
     int unitIndex;
+	static bool created;
 public:
     curLoopVar();
 };

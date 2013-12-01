@@ -9,6 +9,7 @@
 #define	METABOOL_H
 
 #include "unit.h"
+#include "hivemind.h"
 
 class metabool
 {
@@ -16,7 +17,8 @@ private:
     unsigned char b; //0=false, 1=true, 2=true for landscape but not units
 public:
     metabool();
-    unsigned char get();
+    unsigned char get(unit *u);
+	unsigned char get(hiveMind *h);
     friend void unit::seeunit();
     friend void unit::seehive(int);
     friend void unit::unseehive(int);

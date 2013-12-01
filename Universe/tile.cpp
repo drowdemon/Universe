@@ -201,6 +201,19 @@ void tile::spreadDisease()
         }
     }
 }
+bool* tile::blocksVision(unit *u)
+{
+    if(u->player!=curLoops.unitPlayer || u->index!=curLoops.unitIndex)
+        return NULL; //cheaters. Thou fail.
+    bool *good= new bool;
+    *good = (bush>20 || tree>0);
+    if(*good)
+    {
+        if(mapseenunit[u->player][y][x].get(u)==1 && uniton==true)
+            *good=false;
+    }
+    return good;
+}
 tile::~tile()
 {
     for(unsigned int i=0; i<allObjects.size(); i++)
@@ -217,7 +230,7 @@ tile::~tile()
     { \
         if(u.player!=curLoops.unitPlayer || u.index!=curLoops.unitIndex) \
             return NULL; \
-        if(mapseenunit[u.player][y][x].get()>0) \
+        if(mapseenunit[u.player][y][x].get(&u)>0) \
         { \
             type *ret = new type; \
             *ret=val; \
@@ -229,7 +242,7 @@ tile::~tile()
     { \
         if(h.player!=curLoops.hivePlayer || h.index!=curLoops.hiveIndex) \
             return NULL; \
-        if(mapseenhive[h.player][h.index][y][x].get()>0) \
+        if(mapseenhive[h.player][h.index][y][x].get(&h)>0) \
         { \
             type *ret = new type; \
             *ret=val; \
@@ -244,7 +257,7 @@ vector<object>* tile::getallObjects(unit& u)
 { 
     if(u.player!=curLoops.unitPlayer || u.index!=curLoops.unitIndex) \
         return NULL; \
-    if(mapseenunit[u.player][y][x].get()>0) 
+    if(mapseenunit[u.player][y][x].get(&u)>0) 
     { 
         vector<object> *ret = new vector<object>; 
         for(unsigned int i=0; i<allObjects.size(); i++)
@@ -258,7 +271,7 @@ vector<object>* tile::getallObjects(hiveMind& h)
 { 
     if(h.player!=curLoops.hivePlayer || h.index!=curLoops.hiveIndex) \
         return NULL; \
-    if(mapseenhive[h.player][h.index][y][x].get()>0) 
+    if(mapseenhive[h.player][h.index][y][x].get(&h)>0) 
     { 
         vector<object> *ret = new vector<object>; 
         for(unsigned int i=0; i<allObjects.size(); i++)
@@ -274,7 +287,7 @@ vector<object>* tile::getallObjects(hiveMind& h)
         if(u.player!=curLoops.unitPlayer || u.index!=curLoops.unitIndex) \
             return NULL; \
         type *ret = new type; \
-        if(mapseenunit[u.player][y][x].get()==1) \
+        if(mapseenunit[u.player][y][x].get(&u)==1) \
         { \
             *ret=val; \
             return ret; \
@@ -290,7 +303,7 @@ vector<object>* tile::getallObjects(hiveMind& h)
         if(h.player!=curLoops.hivePlayer || h.index!=curLoops.hiveIndex) \
             return NULL; \
         type *ret = new type; \
-        if(mapseenhive[h.player][h.index][y][x].get()==1) \
+        if(mapseenhive[h.player][h.index][y][x].get(&h)==1) \
         { \
             *ret=val; \
             return ret; \

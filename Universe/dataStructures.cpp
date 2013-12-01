@@ -28,6 +28,40 @@ pointRad::pointRad(int px, int py, int pr) : point(px, py)
     rad=pr;
 }
 
+visionObstacle::visionObstacle(int dx, int dy) : point(dx,dy)
+{
+    if((dx>0 && dy>0) || (dx<0 && dy<0)) //q I and q III : q I s2<1; q III s1<s2
+    {
+        slope1=((double)dy+0.5) / ((double)dx-0.5); 
+        slope2=((double)dy-0.5) / ((double)dx+0.5);
+    }
+    else if((dx<0 && dy>0) || (dx>0 && dy<0)) //q II and q IV : q II s2<1; q IV s1<s2
+    {
+        slope1=((double)dy-0.5) / ((double)dx-0.5);
+        slope2=((double)dy+0.5) / ((double)dx+0.5);
+    }
+    else if(dy==0 && dx>0) //on +x axis
+    {
+        slope1=((double)dy+0.5) / ((double)dx-0.5); //s2<s1
+        slope2=((double)dy-0.5) / ((double)dx-0.5);
+    }
+    else if(dy==0 && dx<0) //on -x axis
+    {
+        slope1=((double)dy-0.5) / ((double)dx+0.5); //s2<s1
+        slope2=((double)dy+0.5) / ((double)dx+0.5);
+    }
+    else if(dx==0 && dy>0) //on +y axis
+    {
+        slope1=((double)dy-0.5) / ((double)dx+0.5); //s2<s1
+        slope2=((double)dy-0.5) / ((double)dx-0.5); 
+    }
+    else if(dx==0 && dy<0) //on -y axis
+    {
+        slope1=((double)dy+0.5) / ((double)dx-0.5); //s2<s1
+        slope2=((double)dy+0.5) / ((double)dx+0.5); 
+    }
+}
+
 unitChangeLog::unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm)
 {
     xorig=xo;

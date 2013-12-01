@@ -64,6 +64,7 @@ public:
 private:
     void moveWater(int tx, int ty);
     void spreadDisease();
+	bool* blocksVision(unit *u);
 public:
     virtual ~tile();
     bool walkable(unit *u); //whether the given unit can walk on the tile. //vehicles will be added later //buildings will be added later

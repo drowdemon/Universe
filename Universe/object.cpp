@@ -209,7 +209,7 @@ void object::move()
     { \
         if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer) \
         { \
-            if((heldByPlayer==u->player && heldByIndex==u->index) || (mapseenunit[u->player][y][x].get()>0)) \
+            if((heldByPlayer==u->player && heldByIndex==u->index) || (mapseenunit[u->player][y][x].get(u)>0)) \
             { \
                 if(height>=map[y][x].height) \
                     return val; \
@@ -225,7 +225,7 @@ void object::move()
     { \
         if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer) \
         { \
-            if((heldByPlayer==u->player && heldByIndex==u->index) || (mapseenunit[u->player][y][x].get()>0)) \
+            if((heldByPlayer==u->player && heldByIndex==u->index) || (mapseenunit[u->player][y][x].get(u)>0)) \
             { \
                 if(height>=map[y][x].height) \
                     return allObjectDesc[whatIsIt].val; \
@@ -241,7 +241,7 @@ void object::move()
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
         { \
-            if(wy==y && wx==x && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][y][x].get()>0 && height>=map[y][x].height) \
+            if(wy==y && wx==x && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][y][x].get(h)>0 && height>=map[y][x].height) \
             { \
                 return val; \
             } \
@@ -256,7 +256,7 @@ void object::move()
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
         { \
-            if(wx==x && wy==y && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][y][x].get()>0 && height>=map[y][x].height) \
+            if(wx==x && wy==y && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][y][x].get(h)>0 && height>=map[y][x].height) \
             { \
                 return allObjectDesc[whatIsIt].val; \
             } \
@@ -273,7 +273,7 @@ void object::move()
         { \
             if(allUnits.data[h->player][unitIndex]) \
             { \
-                if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range && height>=map[y][x].height && mapseenhive[h->player][h->index][y][x].get()==1) \
+                if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range && height>=map[y][x].height && mapseenhive[h->player][h->index][y][x].get(h)==1) \
                 { \
                     return val; \
                 } \
@@ -291,7 +291,7 @@ void object::move()
         { \
             if(allUnits.data[h->player][unitIndex]) \
             { \
-                if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range && height>=map[y][x].height && mapseenhive[h->player][h->index][y][x].get()==1) \
+                if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range && height>=map[y][x].height && mapseenhive[h->player][h->index][y][x].get(h)==1) \
                 { \
                     return allObjectDesc[whatIsIt].val; \
                 } \

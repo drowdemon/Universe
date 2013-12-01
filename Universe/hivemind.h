@@ -20,6 +20,7 @@ class hiveMind
     friend void unit::unseehive(int hiveindex);
     friend class tile; //a tile can access anything in here. No need for the universe to hide data from itself
     friend class object;
+	friend class metabool;
 private: 
     int centerx;
     int centery;
