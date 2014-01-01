@@ -58,6 +58,7 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
     excreteNeed=-1;
     excreteNeedMax=enm;
     excreting=false;
+    movingprog=0;
 }
 unit::~unit()
 {
@@ -95,7 +96,10 @@ bool unit::nextFrame()
                 unseehive(i);
         return false;
     }
+    int tempmovingprog=movingprog;
     act(); //AI
+    if(movingprog==tempmovingprog) //did not move
+        movingprog=0; //no progress on moving
     if(!checkLive())
     {
         unseeunit();    
@@ -118,7 +122,7 @@ void unit::moveHelper(int mx, int my)
             health-=(damage=(int)((double)(map[y][x].height-map[y+my][x+mx].height-1)*(double)FALLINGMULTIPLIER));
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
             unseehive(i);
-        
+        unseeunit();
         map[y][x].uniton=false;
         map[y][x].unitplayer=-1;
         map[y][x].unitindex=-1;
@@ -137,7 +141,8 @@ void unit::moveHelper(int mx, int my)
         map[y][x].unitindex=index;
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
             seehive(i);
-        unitChangeLog::update(x-mx,y-my,player,index,mx,my,-damage,MOVEMENTENERGY,0,0,0);
+        vector<point> seensq = seeunit(true);
+        unitChangeLog::update(x-mx,y-my,player,index,mx,my,-damage,MOVEMENTENERGY,0,0,0,&seensq);
     }
     else
     {
@@ -305,7 +310,7 @@ void unit::diseaseEffects()
     for(unsigned int i=0; i<diseased.size(); i++)
         energy-=allDiseases[diseased[i]].energyCost;
     if(energy-start!=0)
-        unitChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0);
+        unitChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0,NULL);
 }
 void unit::livingEvents()
 {
@@ -382,7 +387,7 @@ void unit::livingEvents()
         if(excreteNeed>=excreteNeedMax)
             shit();
     }
-    unitChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,sleep-deltaS,pregnant-deltaP);
+    unitChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,sleep-deltaS,pregnant-deltaP,NULL);
 }
 bool unit::checkLive()
 {
@@ -415,20 +420,20 @@ void unit::seeunit()
                         continue;
                     if(curSlopes[h]!=1.0/0.0) //slope is normal
                     {
-                        if(obstacles[k].slope1<obstacles[k].slope2) //Q I or Q II   //Also includes all times when obstacles is on an axis
+                        if(obstacles[k].slope1>obstacles[k].slope2) //Q I or Q II   //Also includes all times when obstacle is on an axis
                         {
-                            if((curPoints[h].y>0) || (obstacles[k].y==0 || obstacles[k].x==0)) //correct quadrant, or on axis
+                            if((curPoints[h].y<0) || (obstacles[k].y==0 || obstacles[k].x==0)) //correct quadrant, or on axis. y flipped because everything is flipped
                             {
-                                if(obstacles[k].slope2<curSlopes[h] && curSlopes[h]<obstacles[k].slope1) //between two slopes of obstacle: unseen
+                                if((obstacles[k].slope2<curSlopes[h] && curSlopes[h]<obstacles[k].slope1 && obstacles[k].x!=0) || ((obstacles[k].slope2>curSlopes[h] || curSlopes[h]>obstacles[k].slope1) && obstacles[k].x==0)) //between two slopes of obstacle: unseen
                                 {
-                                    if((obstacles[k].y==0 && ((curPoints[h].x<0)==(obstacles[k].x<0))) || (obstacles[k].x==0 && ((curPoints[h].y<0)==(obstacles[k].y<0)))) //extra test for the points on an axis
+                                    if((obstacles[k].y==0 && ((curPoints[h].x<0)==(obstacles[k].x<0))) || (obstacles[k].x==0 && ((curPoints[h].y<0)==(obstacles[k].y<0))) || (obstacles[k].x!=0 && obstacles[k].y!=0)) //extra test for the points on an axis //check this
                                         allowed[h]=false;
                                 }
                             }
                         }
                         else //Q III,Q IV //s2<s1.
                         {
-                            if(curPoints[h].y<0)
+                            if(curPoints[h].y>0) //y flipped b/c everything is flipped. y axis goes negative->positive top->down
                             {
                                 if(obstacles[k].slope1<curSlopes[h] && curSlopes[h]<obstacles[k].slope2)
                                     allowed[h]=false;
@@ -437,7 +442,7 @@ void unit::seeunit()
                     }
                     else
                     {
-                        if(abs(curPoints[h].y)>abs(obstacles[k].y) && ((curPoints[h].y<0)==(curPoints[h].y<0))) //point is greater than obstacle and has the same sign as the obstacle
+                        if(curPoints[h].x==obstacles[k].x && abs(curPoints[h].y)>abs(obstacles[k].y) && ((curPoints[h].y<0)==(obstacles[h].y<0))) //point is greater than obstacle and has the same sign as the obstacle
                             allowed[h]=false;
                     }
                 }
@@ -451,45 +456,81 @@ void unit::seeunit()
                         mapseenunit[player][y+curPoints[h].y][x+curPoints[h].x].b=2;  //can see tile but not units on it
                     else
                         mapseenunit[player][y+curPoints[h].y][x+curPoints[h].x].b=1;  //can see tile and units on it                  
-                    if((ret = map[y+curPoints[h].y][x+curPoints[h].x].blocksVision(this))) //if I saw an obstacle, add it to the list of obstacles
+                    ret = map[y+curPoints[h].y][x+curPoints[h].x].blocksVision(this); //if I saw an obstacle, add it to the list of obstacles
+                    if(*ret)
                         obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
                     delete ret; //delete the pointer. No memory leaks.
                 }
             }
-            /*if((( ((map[y+i][x+j].bush>=125) ? 124 : map[y+i][x+j].bush) / 25 * CAMEOPER25BUSH) + (((map[y+i][x+j].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+i][x+j].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
-                mapseenunit[player][y+i][x+j].b=2;
-            else
-                mapseenunit[player][y+i][x+j].b=1;
-            
-            if((( ((map[y-i][x+j].bush>=125) ? 124 : map[y-i][x+j].bush) / 25 * CAMEOPER25BUSH) + (((map[y-i][x+j].tree>0)?1:0) * CAMEOFORTREE) + (((map[y-i][x+j].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
-                mapseenunit[player][y-i][x+j].b=2;
-            else
-                mapseenunit[player][y-i][x+j].b=1;
-            
-            if((( ((map[y+j][x+i].bush>=125) ? 124 : map[y+j][x+i].bush) / 25 * CAMEOPER25BUSH) + (((map[y+j][x+i].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+j][x+i].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
-                mapseenunit[player][y+j][x+i].b=2;
-            else
-                mapseenunit[player][y+j][x+i].b=1;
-            
-            if((( ((map[y+j][x-i].bush>=125) ? 124 : map[y+j][x-i].bush) / 25 * CAMEOPER25BUSH) + (((map[y+j][x-i].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+j][x-i].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
-                mapseenunit[player][y+j][x-i].b=2;
-            else
-                mapseenunit[player][y+j][x-i].b=1;*/
-            
-            //if I just saw an obstacle, add it to the list of obstacles
-            /*bool* rets[4];
-            if((rets[0]=map[y+i][x+j].blocksVision(this)))
-                obstacles.push_back(visionObstacle(j,i));
-            if((rets[1]=map[y-i][x+j].blocksVision(this)))
-                obstacles.push_back(visionObstacle(j,-i));
-            if((rets[2]=map[y+j][x+i].blocksVision(this)))
-                obstacles.push_back(visionObstacle(i,j));
-            if((rets[3]=map[y+j][x-i].blocksVision(this)))
-                obstacles.push_back(visionObstacle(-i,j));
-            for(int i=0; i<4; i++)
-                delete rets[i];*/
         }
     }
+}
+vector<point> unit::seeunit(bool gui)
+{
+    vector<point> toreturn;
+    vector<visionObstacle> obstacles; //stores slope to obstacles
+    mapseenunit[player][y][x].b=1; //own square is completely visable
+    for(int i=1; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
+    {
+        for(int j=-i; j<=i; j++)
+        {
+            bool allowed[4]={true,true,true,true};
+            double curSlopes[4]={(double)i/(double)j,(double)(-i)/(double)j,(double)j/(double)i,(double)j/(double)(-i)};
+            point curPoints[4]={point(j,i),point(j,-i),point(i,j),point(-i,j)};
+            for(unsigned int k=0; k<obstacles.size(); k++)
+            {
+                for(int h=0; h<4; h++)
+                {
+                    if(allowed[h]==false)
+                        continue;
+                    if(curSlopes[h]!=1.0/0.0) //slope is normal
+                    {
+                        if(obstacles[k].slope1>obstacles[k].slope2) //Q I or Q II   //Also includes all times when obstacle is on an axis
+                        {
+                            if((curPoints[h].y<0) || (obstacles[k].y==0 || obstacles[k].x==0)) //correct quadrant, or on axis. y flipped because everything is flipped
+                            {
+                                if((obstacles[k].slope2<curSlopes[h] && curSlopes[h]<obstacles[k].slope1 && obstacles[k].x!=0) || ((obstacles[k].slope2>curSlopes[h] || curSlopes[h]>obstacles[k].slope1) && obstacles[k].x==0)) //between two slopes of obstacle: unseen
+                                {
+                                    if((obstacles[k].y==0 && ((curPoints[h].x<0)==(obstacles[k].x<0))) || (obstacles[k].x==0 && ((curPoints[h].y<0)==(obstacles[k].y<0))) || (obstacles[k].x!=0 && obstacles[k].y!=0)) //extra test for the points on an axis //check this
+                                        allowed[h]=false;
+                                }
+                            }
+                        }
+                        else //Q III,Q IV //s2<s1.
+                        {
+                            if(curPoints[h].y>0) //y flipped b/c everything is flipped. y axis goes negative->positive top->down
+                            {
+                                if(obstacles[k].slope1<curSlopes[h] && curSlopes[h]<obstacles[k].slope2)
+                                    allowed[h]=false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(curPoints[h].x==obstacles[k].x && abs(curPoints[h].y)>abs(obstacles[k].y) && ((curPoints[h].y<0)==(obstacles[h].y<0))) //point is greater than obstacle and has the same sign as the obstacle
+                            allowed[h]=false;
+                    }
+                }
+            }
+            bool *ret;
+            for(int h=0; h<4; h++) //for all 4 points I'm checking
+            {
+                if(allowed[h]) //if its not behind an obstacle
+                {
+                    if((( ((map[y+curPoints[h].y][x+curPoints[h].x].bush>=125) ? 124 : map[y+curPoints[h].y][x+curPoints[h].x].bush) / 25 * CAMEOPER25BUSH) + (((map[y+curPoints[h].y][x+curPoints[h].x].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+curPoints[h].y][x+curPoints[h].x].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
+                        mapseenunit[player][y+curPoints[h].y][x+curPoints[h].x].b=2;  //can see tile but not units on it
+                    else
+                        mapseenunit[player][y+curPoints[h].y][x+curPoints[h].x].b=1;  //can see tile and units on it                  
+                    toreturn.push_back(point(x+curPoints[h].x,y+curPoints[h].y));
+                    ret = map[y+curPoints[h].y][x+curPoints[h].x].blocksVision(this); //if I saw an obstacle, add it to the list of obstacles
+                    if(*ret)
+                        obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
+                    delete ret; //delete the pointer. No memory leaks.
+                }
+            }
+        }
+    }
+    return toreturn;
 }
 void unit::unseeunit()
 {
@@ -508,33 +549,64 @@ void unit::seehive(int hiveindex)
 {
     if(abs(allMinds.data[player][hiveindex].centerx-x)<allMinds.data[player][hiveindex].range && abs(allMinds.data[player][hiveindex].centery-y)<allMinds.data[player][hiveindex].range) //in range of hive
     {
-        for(int i=0; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
+        vector<visionObstacle> obstacles; //stores slope to obstacles
+        mapseenhive[player][hiveindex][y][x].b=1; //own square is completely visable
+        for(int i=1; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
         {
             for(int j=-i; j<=i; j++)
             {
-                if((( ((map[y+i][x+j].bush>=125) ? 124 : map[y+i][x+j].bush) / 25 * CAMEOPER25BUSH) + (((map[y+i][x+j].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+i][x+j].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
-                    mapseenhive[player][hiveindex][y+i][x+j].b=2;
-                else
-                    mapseenhive[player][hiveindex][y+i][x+j].b=1;
-
-                if((( ((map[y-i][x+j].bush>=125) ? 124 : map[y-i][x+j].bush) / 25 * CAMEOPER25BUSH) + (((map[y-i][x+j].tree>0)?1:0) * CAMEOFORTREE) + (((map[y-i][x+j].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
-                    mapseenhive[player][hiveindex][y-i][x+j].b=2;
-                else
-                    mapseenhive[player][hiveindex][y-i][x+j].b=1;
-
-                if((( ((map[y+j][x+i].bush>=125) ? 124 : map[y+j][x+i].bush) / 25 * CAMEOPER25BUSH) + (((map[y+j][x+i].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+j][x+i].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
-                    mapseenhive[player][hiveindex][y+j][x+i].b=2;
-                else
-                    mapseenhive[player][hiveindex][y+j][x+i].b=1;
-
-                if((( ((map[y+j][x-i].bush>=125) ? 124 : map[y+j][x-i].bush) / 25 * CAMEOPER25BUSH) + (((map[y+j][x-i].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+j][x-i].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>j)?i:j)))
-                    mapseenhive[player][hiveindex][y+j][x-i].b=2;
-                else
-                    mapseenhive[player][hiveindex][y+j][x-i].b=1;
-                /*mapseenhive[player][hiveindex][y+i][x+j].b=true;
-                mapseenhive[player][hiveindex][y-i][x+j].b=true;
-                mapseenhive[player][hiveindex][y+j][x+i].b=true;
-                mapseenhive[player][hiveindex][y+j][x-i].b=true;*/
+                bool allowed[4]={true,true,true,true};
+                double curSlopes[4]={(double)i/(double)j,(double)(-i)/(double)j,(double)j/(double)i,(double)j/(double)(-i)};
+                point curPoints[4]={point(j,i),point(j,-i),point(i,j),point(-i,j)};
+                for(unsigned int k=0; k<obstacles.size(); k++)
+                {
+                    for(int h=0; h<4; h++)
+                    {
+                        if(allowed[h]==false)
+                            continue;
+                        if(curSlopes[h]!=1.0/0.0) //slope is normal
+                        {
+                            if(obstacles[k].slope1<obstacles[k].slope2) //Q I or Q II   //Also includes all times when obstacles is on an axis
+                            {
+                                if((curPoints[h].y>0) || (obstacles[k].y==0 || obstacles[k].x==0)) //correct quadrant, or on axis
+                                {
+                                    if(obstacles[k].slope2<curSlopes[h] && curSlopes[h]<obstacles[k].slope1) //between two slopes of obstacle: unseen
+                                    {
+                                        if((obstacles[k].y==0 && ((curPoints[h].x<0)==(obstacles[k].x<0))) || (obstacles[k].x==0 && ((curPoints[h].y<0)==(obstacles[k].y<0)))) //extra test for the points on an axis
+                                            allowed[h]=false;
+                                    }
+                                }
+                            }
+                            else //Q III,Q IV //s2<s1.
+                            {
+                                if(curPoints[h].y<0)
+                                {
+                                    if(obstacles[k].slope1<curSlopes[h] && curSlopes[h]<obstacles[k].slope2)
+                                        allowed[h]=false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if(abs(curPoints[h].y)>abs(obstacles[k].y) && ((curPoints[h].y<0)==(curPoints[h].y<0))) //point is greater than obstacle and has the same sign as the obstacle
+                                allowed[h]=false;
+                        }
+                    }
+                }
+                bool *ret;
+                for(int h=0; h<4; h++) //for all 4 points I'm checking
+                {
+                    if(allowed[h]) //if its not behind an obstacle
+                    {
+                        if((( ((map[y+curPoints[h].y][x+curPoints[h].x].bush>=125) ? 124 : map[y+curPoints[h].y][x+curPoints[h].x].bush) / 25 * CAMEOPER25BUSH) + (((map[y+curPoints[h].y][x+curPoints[h].x].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+curPoints[h].y][x+curPoints[h].x].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
+                            mapseenhive[player][hiveindex][y+curPoints[h].y][x+curPoints[h].x].b=2;  //can see tile but not units on it
+                        else
+                            mapseenhive[player][hiveindex][y+curPoints[h].y][x+curPoints[h].x].b=1;  //can see tile and units on it                  
+                        if((ret = map[y+curPoints[h].y][x+curPoints[h].x].blocksVision(this))) //if I saw an obstacle, add it to the list of obstacles
+                            obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
+                        delete ret; //delete the pointer. No memory leaks.
+                    }
+                }
             }
         }
     }
@@ -611,7 +683,7 @@ void unit::giveBirth()
     map[child->y][child->x].uniton=true;
     map[child->y][child->x].unitplayer=child->player;
     map[child->y][child->x].unitindex=child->index;
-    unitChangeLog::update(child->x,child->y,child->player,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant);
+    unitChangeLog::update(child->x,child->y,child->player,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant,NULL);
 }
 void unit::emergencySleep()
 {
@@ -664,7 +736,9 @@ void unit::die()
     int i=index;
     delete allUnits.data[player][index];
     allUnits.data[p][i]=NULL;
-    unitChangeLog::update(-99999,-99999,p,i,-99999,-99999,-99999,-99999,-99999,-99999,-99999);
+    vector<point> *t= new vector<point>();
+    unitChangeLog::update(-99999,-99999,p,i,-99999,-99999,-99999,-99999,-99999,-99999,-99999,t);
+    delete t;
 }
 void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. Object sharpness maybe. How hard/soft it is. 
 {
@@ -798,9 +872,10 @@ unit& unit::operator=(const unit &source)
     excreteNeed=-1;
     excreteNeedMax=source.excreteNeedMax;
     excreting=false;
+    movingprog=0;
     return *this;
 }
-void unit::move()
+void unit::move() //make moving an int to force continual
 {
     if(sleeping || reproducing>0 || moving || throwing || waking || excreting)
         return;
@@ -808,8 +883,10 @@ void unit::move()
         return;
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
         return;
-    if(frames%speed==0)
+    movingprog++;
+    if(movingprog==speed)
     {
+        movingprog=0;
         if(moveToX>x)
         {
             if(moveToY>y)
@@ -861,8 +938,10 @@ void unit::move(short mx, short my)
         return;
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
         return;
-    if(frames%speed!=0)
+    movingprog++;
+    if(movingprog!=speed)
         return;
+    movingprog=0;
     if(abs(x-mx)<=1 && abs(y-my)<=1)
         moveHelper(mx-x,my-y);
 }
@@ -885,15 +964,15 @@ void unit::reproduce(int withwhom)
                 {
                     pregnant=0;
                     fetusid=allUnits.data[player].size();
-                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
-                    unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
+                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
+                    unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
                 }
                 else //partner is female
                 {
                     allUnits.data[player][withwhom]->pregnant=0;
                     allUnits.data[player][withwhom]->fetusid=allUnits.data[player].size();
-                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0);
-                    unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1);
+                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
+                    unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
                 }
                 allUnits.data[player].push_back(new unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom]->strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom]->speed)/2,(lineOfSight+allUnits.data[player][withwhom]->lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom]->immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom]->healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom]->woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom]->energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom]->metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom]->maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2,0,(rand()%4)+6,geneMixer(fatToWeight,allUnits.data[player][withwhom]->fatToWeight),geneMixer(fatRetrievalEfficiency,allUnits.data[player][withwhom]->fatRetrievalEfficiency),geneMixer(excreteNeedMax,allUnits.data[player][withwhom]->excreteNeedMax))); //adds the new unit. It doesn't really exist though
                 if(allUnits.data[player][fetusid]->maxMetabolicRate>allUnits.data[player][fetusid]->metabolicRate)

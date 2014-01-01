@@ -48,9 +48,10 @@ private:
     int hungermod;
     int sleepmod;
     int pregnantmod;
+	vector<point> *sight;
 public:
-    unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm);
-    static void update(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm); //comment the body of this for no gui.
+    unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s);
+    static void update(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s); //comment the body of this for no gui.
     static void communicate();
 };
 

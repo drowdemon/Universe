@@ -151,7 +151,7 @@ void reformat()
             }
         }
     }
-    unitChangeLog::update(-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999);
+    unitChangeLog::update(-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,NULL);
 }
 
 int main()
@@ -161,18 +161,20 @@ int main()
     
     allUnits.data[0].push_back(new unit(0,0,10,false,10,20,10,10,20,5,175,50,2,30,13,8,13,0,100,150,850,200));
     allUnits.data[0][0]->minWeight=60;
-    unitChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0]->health,allUnits.data[0][0]->energy,allUnits.data[0][0]->hunger,allUnits.data[0][0]->sleep,allUnits.data[0][0]->pregnant);
+    unitChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0]->health,allUnits.data[0][0]->energy,allUnits.data[0][0]->hunger,allUnits.data[0][0]->sleep,allUnits.data[0][0]->pregnant,NULL);
     //allUnits.data[0][0].moveToX=20;
     map[10][10].uniton=true;
     map[10][10].unitplayer=0;
     map[10][10].unitindex=0;
-    allUnits.data[0].push_back(new unit(0,1,10,true,10,20,10,11,20,5,175,50,2,30,13,8,13,0,100,150,850,200));
+    /*allUnits.data[0].push_back(new unit(0,1,10,true,10,20,10,11,20,5,175,50,2,30,13,8,13,0,100,150,850,200));
     allUnits.data[0][1]->minWeight=60;
-    unitChangeLog::update(allUnits.data[0][1]->x,allUnits.data[0][1]->y,0,1,0,0,allUnits.data[0][1]->health,allUnits.data[0][1]->energy,allUnits.data[0][1]->hunger,allUnits.data[0][1]->sleep,allUnits.data[0][1]->pregnant);
-    allUnits.data[0][0]->moveToX=20;
+    unitChangeLog::update(allUnits.data[0][1]->x,allUnits.data[0][1]->y,0,1,0,0,allUnits.data[0][1]->health,allUnits.data[0][1]->energy,allUnits.data[0][1]->hunger,allUnits.data[0][1]->sleep,allUnits.data[0][1]->pregnant,NULL);
     map[11][10].uniton=true;
     map[11][10].unitplayer=0;
-    map[11][10].unitindex=0;
+    map[11][10].unitindex=0;*/
+    
+    allUnits.data[0][0]->moveToX=11;
+    map[11][11].bush=100;
     
     allUnits.data[0][0]->carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0,map[allUnits.data[0][0]->y][allUnits.data[0][0]->x].height));
     
@@ -193,7 +195,7 @@ int main()
                         map[i][j].allObjects.erase(map[i][j].allObjects.begin()+k);
                         k--;
                     }
-                    if(map[i][j].allObjects[k]->speed>0)
+                    else if(map[i][j].allObjects[k]->speed>0)
                         map[i][j].allObjects[k]->move();
                 }
             }

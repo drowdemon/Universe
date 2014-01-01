@@ -31,12 +31,20 @@ public:
     }
 };
 
-struct ARGB
+class ARGB
 {
+public:
     unsigned char a;
     unsigned char r;
     unsigned char g;
     unsigned char b;
+    ARGB(unsigned char pa, unsigned char pr, unsigned char pg, unsigned char pb)
+    {
+        a=pa;
+        r=pr;
+        g=pg;
+        b=pb;
+    }
 };
 
 class tile
@@ -66,6 +74,18 @@ public:
     }
 };
 
+class point
+{
+public:
+    int x;
+    int y;
+    point(int px, int py)
+    {
+        x=px;
+        y=py;
+    }
+};
+
 class unit
 {
 public:
@@ -78,7 +98,8 @@ public:
     int hunger;
     int health;
     int pregnant;
-    unit(int px=0, int py=0, int p=-1, int i=-1, int e=0, int s=0, int hgr=0, int h=0, int prg=0)
+    vector<point> *sight;
+    unit(int px=0, int py=0, int p=-1, int i=-1, int e=0, int s=0, int hgr=0, int h=0, int prg=0, vector<point> *sght=NULL)
     {
         x=px;
         y=py;
@@ -89,6 +110,14 @@ public:
         hunger=hgr;
         health=h;
         pregnant=prg;
+        if(sght==NULL)
+            sight=NULL;
+        else
+        {
+            sight = new vector<point>;
+            for(unsigned int i=0; i<sght->size(); i++)
+                sight->push_back(point(((*sght)[i]).x, ((*sght)[i]).y));
+        }
     }
 };
 
@@ -275,13 +304,14 @@ void readMap()
 }
 void readUnit()
 {
-    unit *u = new unit;
     int mx;
     int my;
     char buf=0;
     bool change=false;
     while(true)
     {
+        unit *u = new unit;
+        u->sight = new vector<point>;
         unitin->get(buf); //open
         if(buf=='\n' || buf==0)
         {
@@ -312,6 +342,25 @@ void readUnit()
         *unitin >> u->health;
         unitin->get();//comma
         *unitin >> u->pregnant;
+        unitin->get();//end bracket
+        unitin->get();//open bracket
+        int num1=0;
+        int num2=0;
+        while(true)
+        {
+            *unitin >> num1;
+            if(num1<0)
+                break; //store exit code in num1
+            unitin->get(); //comma
+            *unitin >> num2;
+            unitin->get(); //comma
+            u->sight->push_back(point(num1,num2));
+        }
+        if(num1==-1)
+        {
+            delete u->sight;
+            u->sight=NULL;
+        }
         unitin->get();//end bracket
         unitin->get();//end line
         if(u->index+1>allunits[u->player].size())
@@ -357,7 +406,13 @@ void readUnit()
             map[allunits[u->player][u->index]->y][allunits[u->player][u->index]->x].uniton=false;
             map[allunits[u->player][u->index]->y][allunits[u->player][u->index]->x].unitplayer=-1;
             map[allunits[u->player][u->index]->y][allunits[u->player][u->index]->x].unitindex=-1;
+            if(allunits[u->player][u->index]->sight)
+            {
+                delete allunits[u->player][u->index]->sight;
+                allunits[u->player][u->index]->sight=NULL;
+            }
             delete allunits[u->player][u->index];
+            allunits[u->player][u->index]=NULL;
             //allunits[u->player].erase(allunits[u->player].begin()+u->index);
         }
         else
@@ -375,6 +430,14 @@ void readUnit()
             allunits[u->player][u->index]->hunger+=u->hunger;
             allunits[u->player][u->index]->pregnant+=u->pregnant;
             allunits[u->player][u->index]->sleep+=u->sleep;
+            if(u->sight)
+            {
+                if(allunits[u->player][u->index]->sight)
+                    delete allunits[u->player][u->index]->sight;
+                allunits[u->player][u->index]->sight = new vector<point>;
+                for(unsigned int i=0; i<u->sight->size(); i++)
+                    allunits[u->player][u->index]->sight->push_back(point(((*u->sight)[i]).x, ((*u->sight)[i]).y));
+            }
             if(mx!=0 || my!=0)
             {
                 map[allunits[u->player][u->index]->y][allunits[u->player][u->index]->x].uniton=true;
@@ -417,8 +480,10 @@ void timerProc(int arg)
     RGB water(0,0,255);
     RGB road(0,255,255);
     RGB grass(0,255,0);
+    RGB bush(0,150,0);
     RGB offwhite(230,255,255);
     RGB black(0,0,0);
+    ARGB grey(100,100,100,100);
     
     readUnit();
     for(int i=0; i<map.size(); i++)
@@ -429,10 +494,25 @@ void timerProc(int arg)
                 makeRect(j*3+50, i*3+50,3,3,water);
             else if(map[i][j].road>0)
                 makeRect(j*3+50, i*3+50,3,3,road);
+            else if(map[i][j].bush>0)
+                makeRect(j*3+50, i*3+50,3,3,bush);
             else
                 makeRect(j*3+50, i*3+50,3,3,grass);
             if(map[i][j].uniton)
                 drawEmptyRect(j*3+50, i*3+50,3,3,black);
+        }
+    }
+    for(int i=0; i<allunits.size(); i++)
+    {
+        for(int j=0; j<allunits[i].size(); j++)
+        {
+            if(allunits[i][j] && allunits[i][j]->sight)
+            {
+                for(int k=0; k<allunits[i][j]->sight->size(); k++)
+                {
+                    makeRect((*(allunits[i][j]->sight))[k].x*3+50,(*(allunits[i][j]->sight))[k].y*3+50,3,3,grey);
+                }
+            }
         }
     }
     makeRect(700, 50, 550, 600, offwhite);

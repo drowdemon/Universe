@@ -32,13 +32,13 @@ visionObstacle::visionObstacle(int dx, int dy) : point(dx,dy)
 {
     if((dx>0 && dy>0) || (dx<0 && dy<0)) //q I and q III : q I s2<1; q III s1<s2
     {
-        slope1=((double)dy+0.5) / ((double)dx-0.5); 
-        slope2=((double)dy-0.5) / ((double)dx+0.5);
+        slope1=((double)dy-0.5) / ((double)dx+0.5); 
+        slope2=((double)dy+0.5) / ((double)dx-0.5);
     }
     else if((dx<0 && dy>0) || (dx>0 && dy<0)) //q II and q IV : q II s2<1; q IV s1<s2
     {
-        slope1=((double)dy-0.5) / ((double)dx-0.5);
-        slope2=((double)dy+0.5) / ((double)dx+0.5);
+        slope1=((double)dy+0.5) / ((double)dx+0.5);
+        slope2=((double)dy-0.5) / ((double)dx-0.5);
     }
     else if(dy==0 && dx>0) //on +x axis
     {
@@ -62,7 +62,7 @@ visionObstacle::visionObstacle(int dx, int dy) : point(dx,dy)
     }
 }
 
-unitChangeLog::unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm)
+unitChangeLog::unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s)
 {
     xorig=xo;
     yorig=yo;
@@ -75,19 +75,41 @@ unitChangeLog::unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int h
     hungermod=hunm;
     sleepmod=sm;
     pregnantmod=pm;
+    if(s==NULL)
+        sight=NULL;
+    else
+    {
+        sight = new vector<point>;
+        for(unsigned int i=0; i<s->size(); i++)
+            sight->push_back(point(((*s)[i]).x, ((*s)[i]).y));
+    }
 }
-void unitChangeLog::update(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm)
+void unitChangeLog::update(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s)
 {
-    unitChangeLog log(xo, yo, p, i, xm, ym, hm, em, hunm, sm, pm);
-    allUnitChanges.push_back(log);
+    allUnitChanges.push_back(unitChangeLog(xo, yo, p, i, xm, ym, hm, em, hunm, sm, pm, s));
 }
 void unitChangeLog::communicate()
 {
     for(unsigned int i=0; i<allUnitChanges.size(); i++)
     {
-        *unitChangeFile << "<" << allUnitChanges[i].xorig << "," << allUnitChanges[i].yorig << "," << allUnitChanges[i].xmod << "," << allUnitChanges[i].ymod << "," << allUnitChanges[i].player << "," << allUnitChanges[i].index << "," << allUnitChanges[i].energymod << "," << allUnitChanges[i].hungermod << "," << allUnitChanges[i].sleepmod << "," << allUnitChanges[i].healthmod << "," << allUnitChanges[i].pregnantmod << ">" << endl;
+        *unitChangeFile << "<" << allUnitChanges[i].xorig << "," << allUnitChanges[i].yorig << "," << allUnitChanges[i].xmod << "," << allUnitChanges[i].ymod << "," << allUnitChanges[i].player << "," << allUnitChanges[i].index << "," << allUnitChanges[i].energymod << "," << allUnitChanges[i].hungermod << "," << allUnitChanges[i].sleepmod << "," << allUnitChanges[i].healthmod << "," << allUnitChanges[i].pregnantmod << ">";
+        if(allUnitChanges[i].sight==NULL)
+            *unitChangeFile << "<-1>" << endl;
+        else if(allUnitChanges[i].sight->size()==0)
+            *unitChangeFile << "<-2>" << endl;
+        else
+        {
+            *unitChangeFile << "<";
+            for(unsigned int j=0; j<allUnitChanges[i].sight->size(); j++)
+            {
+                *unitChangeFile << ((*allUnitChanges[i].sight)[j]).x << "," << ((*allUnitChanges[i].sight)[j]).y << ",";
+            }
+            *unitChangeFile << "-3>" << endl;
+        }
     }
     *unitChangeFile << endl; //blank line signifies frame
+    for(unsigned int i=0; i<allUnitChanges.size(); i++)
+        delete allUnitChanges[i].sight;
     allUnitChanges.clear();
 }
 

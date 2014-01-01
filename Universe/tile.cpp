@@ -207,7 +207,7 @@ bool* tile::blocksVision(unit *u)
         return NULL; //cheaters. Thou fail.
     bool *good= new bool;
     *good = (bush>20 || tree>0);
-    if(*good)
+    if(!(*good))
     {
         if(mapseenunit[u->player][y][x].get(u)==1 && uniton==true)
             *good=false;

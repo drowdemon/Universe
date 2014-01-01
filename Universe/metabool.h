@@ -11,6 +11,8 @@
 #include "unit.h"
 #include "hivemind.h"
 
+class point;
+
 class metabool
 {
 private:
@@ -20,6 +22,7 @@ public:
     unsigned char get(unit *u);
 	unsigned char get(hiveMind *h);
     friend void unit::seeunit();
+	friend vector<point> unit::seeunit(bool);
     friend void unit::seehive(int);
     friend void unit::unseehive(int);
     friend void unit::unseeunit();

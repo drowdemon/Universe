@@ -107,6 +107,7 @@ private: // all this stuff can only be changed internally
     //below are 'acting' variables. If the unit is doing some action, and cannot do other actions because of this, this is where it is recorded.
     short reproducing; //0=no, else=time
     bool sleeping; //whether it is currently asleep
+	int movingprog; //has to get to speed for there to be movement
     
     bool moving;  //These are cleared at the end of the frame
     bool throwing;
@@ -126,6 +127,7 @@ private:
     void moveHelper(int mx, int my);
     void infect();
     void seeunit();
+	vector<point> seeunit(bool gui);
     void unseeunit();
     void seehive(int hiveIndex);
     void unseehive(int hiveIndex);
