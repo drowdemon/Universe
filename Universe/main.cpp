@@ -38,6 +38,7 @@ void init()
     
     allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,-3,-1,food()));
     allObjectDesc.push_back(objectDescriptor(50,5,OBJECT_CORPSE,true,true,true,-2,-1,food())); //INCORRECT STATS. DEFINITELY. 
+    allObjectDesc.push_back(objectDescriptor(50,5,OBJECT_GENERICANIMALCORPSE,true,true,true,-2,-1,food())); //INCORRECT STATS. DEFINITELY. 
 }
 
 void waterFlow(int i, int j) //i=y, j=x
@@ -85,7 +86,7 @@ void printMap()
     {
         for(unsigned int j=0; j<map[i].size(); j++)
         {
-            outf << "<" << (int)map[i][j].road << "," << (int)map[i][j].water << "," << (int)map[i][j].waste << "," << (int)map[i][j].animal << "," << (int)map[i][j].bush << "," << (int)map[i][j].tree << "," << (int)map[i][j].height << "," << ((map[i][j].uniton) ? 1 : 0) << ">";
+            outf << "<" << (int)map[i][j].road << "," << (int)map[i][j].water << "," << (int)map[i][j].waste << "," << (int)map[i][j].animalPresent << "," << (int)map[i][j].bush << "," << (int)map[i][j].tree << "," << (int)map[i][j].height << "," << ((map[i][j].uniton) ? 1 : 0) << ">";
         }
         outf << endl;
     }

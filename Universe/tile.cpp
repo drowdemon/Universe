@@ -7,6 +7,7 @@
 #include "hivemind.h"
 #include "allunits.h"
 #include "dataStructures.h"
+#include "animal.h"
 
 tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, /*unsigned char sw,*/ short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {
@@ -17,7 +18,7 @@ tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool u
     height=h;
     waste=wst;
     uniton=uo;
-    animal=a;
+    animalPresent=a;
     //smallWood=sw;
     x=px;
     y=py;
@@ -27,13 +28,13 @@ tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool u
     bush=b;
     tree=t;
 }
-bool tile::walkable(unit *u)
+bool tile::walkable(unit *u) //call with destination as the this tile
 {
     if(curLoops.unitIndex!=u->index || curLoops.unitPlayer!=u->player)
         return false; //illegal
     if(water>2) //not very shallow water
         return false; //nope
-    if(animal!=0) //animal on that tile
+    if(animalPresent!=0) //animal on that tile
         return false; //nope
     if(uniton) //there is already a unit there, assuming all units are 1x1 tiles
         return false;
@@ -62,7 +63,7 @@ bool tile::walkable(hiveMind* h, short fx, short fy)
         return false; //illegal
     if(water>2) //not very shallow water
         return false; //nope
-    if(animal!=0) //animal on that tile
+    if(animalPresent!=0) //animal on that tile
         return false; //nope
     if(uniton) //there is already a unit there, assuming all units are 1x1 tiles
         return false;
@@ -73,6 +74,29 @@ bool tile::walkable(hiveMind* h, short fx, short fy)
    // if(origHeight<height-1) //ditto in the other direction
    //   return false;
     if(abs(fx-x)>1 || abs(fy-y)>1) //if this tile is more than 1 away vertically or horizontally
+        return false; 
+    for(unsigned int i=0; i<allObjects.size(); i++)
+    {
+        if(!allObjectDesc[allObjects[i]->whatIsIt].walkable)
+            return false;
+    }
+    return true;
+}
+bool tile::walkable(animal *a) //call with this pointer as tile to check
+{
+    if(water>2) //not very shallow water
+        return false; //nope
+    if(animalPresent!=0) //animal on that tile
+        return false; //nope
+    if(uniton) //there is a unit there, assuming all units are 1x1 tiles
+        return false;
+    if(tree>0)
+        return false; //cannot walk on trees
+    if(map[a->y][a->x].height>height+1) //you can only tolerate a height difference of 1. Maybe this should be increased if height is to be more gradually changing. Also, you can't climb up things easily, but you can fall.
+        return false;
+    //if(origHeight<height-1) //ditto in the other direction
+    //    return false;
+    if(abs(a->x-x)>1 || abs(a->y-y)>1) //if this tile is more than 1 away vertically or horizontally
         return false; 
     for(unsigned int i=0; i<allObjects.size(); i++)
     {
@@ -205,11 +229,22 @@ bool* tile::blocksVision(unit *u)
 {
     if(u->player!=curLoops.unitPlayer || u->index!=curLoops.unitIndex)
         return NULL; //cheaters. Thou fail.
-    bool *good= new bool;
+    bool *good = new bool;
     *good = (bush>20 || tree>0);
     if(!(*good))
     {
         if(mapseenunit[u->player][y][x].get(u)==1 && uniton==true)
+            *good=false;
+    }
+    return good;
+}
+bool* tile::blocksVision(animal *a)
+{
+    bool *good = new bool;
+    *good = (bush>20 || tree>0);
+    if(!(*good))
+    {
+        if((*a->currSeen)[y][x].get(a) && uniton==true)
             *good=false;
     }
     return good;

@@ -13,6 +13,7 @@
 #include "allminds.h"
 #include "currLoopVar.h"
 #include "object.h"
+#include "animal.h"
 
 using namespace std;
 
@@ -69,5 +70,6 @@ extern ofstream *unitChangeFile;
 extern curLoopVar curLoops;
 extern vector<objectDescriptor> allObjectDesc;
 extern bool tileConstructorAllowed;
+extern vector<animal*> allAnimals;
 
 #endif	/* GLOBALS_H */

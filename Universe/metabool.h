@@ -1,10 +1,3 @@
-/* 
- * File:   metabool.h
- * Author: marc
- *
- * Created on August 9, 2013, 10:21 AM
- */
-
 #ifndef METABOOL_H
 #define	METABOOL_H
 
@@ -12,6 +5,7 @@
 #include "hivemind.h"
 
 class point;
+class animal;
 
 class metabool
 {
@@ -21,11 +15,15 @@ public:
     metabool();
     unsigned char get(unit *u);
 	unsigned char get(hiveMind *h);
+	unsigned char get(animal *a);
     friend void unit::seeunit();
 	friend vector<point> unit::seeunit(bool);
     friend void unit::seehive(int);
     friend void unit::unseehive(int);
     friend void unit::unseeunit();
+	friend class animal;
+	friend class tile;
+	//friend bool* tile::blocksVision(animal*);
 };
 
 #endif	/* METABOOL_H */

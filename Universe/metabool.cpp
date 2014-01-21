@@ -20,3 +20,10 @@ unsigned char metabool::get(hiveMind *h)
         return b;
     return -127; //err
 }
+
+unsigned char metabool::get(animal *a)
+{
+    if(a->index>=0)
+        return b;
+    return -127; //err
+}

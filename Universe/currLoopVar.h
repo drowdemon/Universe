@@ -20,11 +20,13 @@ class curLoopVar
     friend class Throwing;
     friend class commWrapper;
 	friend class metabool;
+	friend class animal;
 private:
     int hivePlayer;
     int hiveIndex;
     int unitPlayer;
     int unitIndex;
+	int animalIndex;
 	static bool created;
 public:
     curLoopVar();

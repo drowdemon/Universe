@@ -721,6 +721,7 @@ void unit::die()
         carrying[i]->index=map[y][x].allObjects.size();
         map[y][x].allObjects.push_back(carrying[i]);
     }
+    
     map[y][x].allObjects.push_back(new object(allObjectDesc[OBJECT_CORPSE],-1,-1,x,y,map[y][x].allObjects.size(),map[y][x].height));
     map[y][x].allObjects.back()->weight=weight;
     
@@ -884,6 +885,7 @@ void unit::move() //make moving an int to force continual
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
         return;
     movingprog++;
+    moving=true;
     if(movingprog==speed)
     {
         movingprog=0;
@@ -939,6 +941,7 @@ void unit::move(short mx, short my)
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
         return;
     movingprog++;
+    moving=true;
     if(movingprog!=speed)
         return;
     movingprog=0;

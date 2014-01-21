@@ -10,5 +10,6 @@ curLoopVar::curLoopVar()
     hiveIndex=0;
     unitPlayer=0;
     unitIndex=0;
+    animalIndex=0;
     curLoopVar::created=true;
 }

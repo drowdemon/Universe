@@ -8,6 +8,7 @@ using std::vector;
 
 #define OBJECT_SMALLWOOD 0
 #define OBJECT_CORPSE 1
+#define OBJECT_GENERICANIMALCORPSE 2
 
 class unit;
 class hiveMind;
@@ -45,6 +46,7 @@ class object
     friend class unit;
     friend class food;
     friend class Throwing;
+	friend class animal;
     friend int main();
     friend void reformat();
     friend bool operator==(vector<object*> v, int i);
