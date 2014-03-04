@@ -13,7 +13,8 @@
 #include "allminds.h"
 #include "currLoopVar.h"
 #include "object.h"
-#include "animal.h"
+#include "Animalia/animal.h"
+#include "Animalia/species.h"
 
 using namespace std;
 
@@ -54,6 +55,7 @@ using namespace std;
 #define CAMEOFORTREE 2   //cameo for a tree being there
 #define CAMEOFORROAD -2 //cameo lost for being on a road of any quality. Note: This does not increase a units line of sight, but merely counteracts cameo that the unit on the road may have. If the unit has none, units looking at it won't be able to see it from further than usual.
 #define SPEAKDIST 10 //how far away a unit can be to talk to another unit (communication wrapper allows info exchange/requests)
+#define ANIMALSIZETOFOODAMOUNT 40
 //function declarations
 int geneMixer(int p1, int p2);
 
@@ -71,5 +73,6 @@ extern curLoopVar curLoops;
 extern vector<objectDescriptor> allObjectDesc;
 extern bool tileConstructorAllowed;
 extern vector<animal*> allAnimals;
+extern vector<species> allSpecies;
 
 #endif	/* GLOBALS_H */

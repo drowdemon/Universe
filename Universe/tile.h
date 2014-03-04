@@ -6,7 +6,7 @@
 #include "hivemind.h"
 #include "dataStructures.h"
 #include "object.h"
-#include "animal.h"
+#include "Animalia/animal.h"
 
 using namespace std;
 
@@ -37,7 +37,9 @@ class tile //default - empty grass
     friend class Throwing;
     friend class object;
     friend void reformat();
-	friend class animal;
+    friend class animal;
+    friend class herbivore;
+    friend class carnivore;
 private: //private so that you can't just learn anything about any part of the map
     //Once we figure out all of the variables this will contain, I recommend we use some bitshifting tricks to compact this as much as possible. The map will take up lots of RAM, and compacting this will let us have more tiles.
     unsigned char road; //0=none, after that its how good the road is. 0-7 inclusive - 4 bits

@@ -1,7 +1,8 @@
 #include <vector>
 #include "animal.h"
-#include "tile.h"
-#include "globals.h"
+#include "../tile.h"
+#include "../globals.h"
+#include "animalEatingAbilities.h"
 
 animal::animal()
 {
@@ -16,15 +17,17 @@ animal::animal()
     moveToY=0;
     moving=false;
     movingprog=0;
+    eatingBehavior = NULL;
 }
 
 
-animal::animal(short p_health, char p_age, bool p_gender, short p_x, short p_y, short p_speed, short p_hunger, short p_index, short p_sleep, short p_weight, short p_lineOfSight, bool extraneous)
+animal::animal(short p_health, char p_age, bool p_gender, short p_x, short p_y, short p_speed, short p_hunger, short p_index, short p_sleep, short p_weight, short p_lineOfSight, short p_animalType, animalEatingAbilities* p_eatingBehavior)
 {
 #define X(type, var) \
     var = p_ ## var ;     
     LISTVARSANIMAL
 #undef X
+    eatingBehavior=p_eatingBehavior;
 }
 void animal::nextFrame()
 {
@@ -101,7 +104,7 @@ vector<vector<short> > *animal::searchFood()
         if(x==moveToX && y==moveToY) //moved //Correct for case where there is an obstacle. Works otherwise because above movement is made quantized.
         {
             searchDist--;
-            if(searchFoodHelperBushes(foodLocs)) //true = found food
+            if(eatingBehavior->eatingBehavior(foodLocs)) //true = found food
             {
                 foodapprox.push_back(point(x,y));
                 return foodLocs;
@@ -120,12 +123,12 @@ vector<vector<short> > *animal::searchFood()
         }
         if(x==foodapprox.back().x && y==foodapprox.back().y) //already there
         {
-            searchFoodHelperBushes(foodLocs);
+            eatingBehavior->eatingBehavior(foodLocs);
         }
     }
     return foodLocs;
 }
-bool animal::searchFoodHelperBushes(vector<vector<short> > * foodLocs)
+/*bool animal::searchFoodHelperBushes(vector<vector<short> > * foodLocs)
 {
     bool ret=false;
     for(unsigned int i=0; i<currSeen->size(); i++)
@@ -141,7 +144,7 @@ bool animal::searchFoodHelperBushes(vector<vector<short> > * foodLocs)
         }
     }
     return ret;
-}
+}*/
 void animal::move()
 {
     if(moving) //no moving twice in one frame.

@@ -10,7 +10,8 @@
 #include "allminds.h"
 #include "currLoopVar.h"
 #include "object.h"
-#include "animal.h"
+#include "Animalia/animal.h"
+#include "Animalia/species.h"
 
 using namespace std;
 
@@ -28,3 +29,4 @@ curLoopVar curLoops;
 vector<objectDescriptor> allObjectDesc;
 bool tileConstructorAllowed=true;
 vector<animal*> allAnimals;
+vector<species> allSpecies;

@@ -14,15 +14,17 @@ private:
 public:
     metabool();
     unsigned char get(unit *u);
-	unsigned char get(hiveMind *h);
-	unsigned char get(animal *a);
+    unsigned char get(hiveMind *h);
+    unsigned char get(animal *a);
     friend void unit::seeunit();
-	friend vector<point> unit::seeunit(bool);
+    friend vector<point> unit::seeunit(bool);
     friend void unit::seehive(int);
     friend void unit::unseehive(int);
     friend void unit::unseeunit();
-	friend class animal;
-	friend class tile;
+    friend class animal;
+    friend class herbivore;
+    friend class carnivore;
+    friend class tile;
 	//friend bool* tile::blocksVision(animal*);
 };
 

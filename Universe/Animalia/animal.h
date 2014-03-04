@@ -2,9 +2,15 @@
 #define	ANIMAL_H
 
 #include <vector>
-#include "dataStructures.h"
-#include "metabool.h"
-#include "currLoopVar.h"
+#include "../dataStructures.h"
+#include "../metabool.h"
+#include "../currLoopVar.h"
+
+#define AMNTANIMALSIZES 3
+
+class animalEatingAbilities;
+class herbivore;
+class carnivore;
 
 using namespace std;
 
@@ -19,12 +25,16 @@ using namespace std;
 	X(short, index) \
 	X(short, sleep) \
 	X(short, weight) \
-	X(short, lineOfSight)
+	X(short, lineOfSight) \
+        X(short, animalType)
 
 class animal
 {
 	friend class tile;
 	friend class metabool;
+        friend class herbivore;
+        friend class carnivore;
+        friend class animalEatingAbilities;
 private:
 	short health;
 	char age;
@@ -37,6 +47,8 @@ private:
 	short sleep;
 	short weight;	
 	short lineOfSight;
+        short animalType; //0 is small herbivore - rabbit, 1 is medium herbivore - deer, 2 is big herbivore - giraffe/elephant/hippo, 3 is small carnivore - fox, cat, 4 is medium carnivore - wolf, bobcat, 5 is large carnivore - lion, tiger
+        animalEatingAbilities *eatingBehavior;
 	
 	short moveToX;
 	short moveToY;
@@ -53,7 +65,7 @@ private:
 #define X(type, val) \
 	type p_ ## val,
 	
-	animal(LISTVARSANIMAL bool extraneous=true);
+	animal(LISTVARSANIMAL animalEatingAbilities *p_eatingBehavior);
 #undef X
 protected:
 #define X(type, val) \
@@ -67,7 +79,7 @@ private:
 	void livingEvents();
 	bool checkLive();
 	vector<vector<short> > *searchFood();
-	bool searchFoodHelperBushes(vector<vector<short> > * foodLocs);
+	//bool searchFoodHelperBushes(vector<vector<short> > * foodLocs);
 	void move();
 	void moveHelper(int mx, int my);
 	void see(); //fills currSeen
