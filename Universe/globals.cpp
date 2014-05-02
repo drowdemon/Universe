@@ -24,7 +24,9 @@ vector<vector<vector<metabool> > > mapseenunit; //[player][y][x]
 vector<vector<vector<metabool> > > mapseenhive; //[player][y][x]
 allminds allMinds;
 vector<unitChangeLog> allUnitChanges;
+vector<animalChangeLog> allAnimalChanges;
 ofstream *unitChangeFile;
+ofstream *animalChangeFile;
 curLoopVar curLoops;
 vector<objectDescriptor> allObjectDesc;
 bool tileConstructorAllowed=true;

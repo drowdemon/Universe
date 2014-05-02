@@ -29,11 +29,14 @@ animal::animal(short p_health, char p_age, bool p_gender, short p_x, short p_y, 
 #undef X
     eatingBehavior=p_eatingBehavior;
 }
-void animal::nextFrame()
+bool animal::nextFrame()
 {
     livingEvents();
     if(!checkLive())
+    {
         die();
+        return false;
+    }
     see();
 }
 void animal::livingEvents()
@@ -41,6 +44,7 @@ void animal::livingEvents()
     hunger--;
     sleep--;
     //make it autosleep on sleep=1
+    animalChangeLog::update(x,y,index,0,0,0,1,1); 
 }
 bool animal::checkLive()
 {
@@ -208,7 +212,6 @@ void animal::moveHelper(int mx, int my)
             health-=(damage=(int)((double)(map[y][x].height-map[y+my][x+mx].height-1)*(double)FALLINGMULTIPLIER));
         
         map[y][x].animalPresent=0;
-        
         x+=mx;
         y+=my;
         

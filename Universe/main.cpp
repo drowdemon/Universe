@@ -35,6 +35,7 @@ void init()
     }
     tileConstructorAllowed=false;
     unitChangeFile = new ofstream("unitChanges");
+    animalChangeFile = new ofstream("animalChanges");
     
     allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,-3,-1,food()));
     allObjectDesc.push_back(objectDescriptor(50,5,OBJECT_CORPSE,true,true,true,-2,-1,food())); //INCORRECT STATS. DEFINITELY. 
@@ -155,6 +156,25 @@ void reformat()
     unitChangeLog::update(-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,NULL);
 }
 
+void reformatAnimals()
+{
+    int currDeleted=0;
+    for(unsigned int i=0; i<allAnimals.size(); i++)
+    {
+        if(!allAnimals[i]) //invalid pointer
+        {
+            allAnimals.erase(allAnimals.begin()+i); //delete it
+            i--;
+            currDeleted++;
+        }
+        else //valid
+        {
+            allAnimals[i]->index-=currDeleted;
+            map[allAnimals[i]->y][allAnimals[i]->x].animalPresent-=currDeleted;
+        }
+    }
+}
+
 int main()
 {
     srand(time(NULL));
@@ -183,6 +203,9 @@ int main()
     while(true) //it never closes. Somewhat inconvenient. But its not bothering to use win32 or glut or mfc, with good reason, so this is the best I could do. 
     {
         frames++;
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //MAP
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         for(unsigned int i=0; i<map.size(); i++)
         {
             for(unsigned int j=0; j<map[i].size(); j++)
@@ -201,6 +224,27 @@ int main()
                 }
             }
         }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //ANIMALS
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        int numAnimalsDead=0;
+        for(unsigned int i=0; i<allAnimals.size(); i++)
+        {
+            if(!allAnimals[i])
+            {
+                numAnimalsDead++;
+                continue;
+            }
+            if(!allAnimals[i]->nextFrame())
+            {
+                numAnimalsDead++;
+            }
+        }
+        if(numAnimalsDead>=NUMANIMALSDEADTOREFORMAT)
+            reformatAnimals();
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //HiveMinds
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         for(unsigned int i=0; i<allMinds.data.size(); i++)
         {
             curLoops.hivePlayer=i;
@@ -210,6 +254,9 @@ int main()
                 allMinds.data[i][j].act();
             }
         }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //Units
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         int numDead=0;
         for(unsigned int i=0; i<allUnits.data.size(); i++)
         {
@@ -233,16 +280,18 @@ int main()
                 if(!allUnits.data[i][j]->nextFrame())
                 {
                     allUnits.data[i][j]->die();
-                    j--;
+                    //j--;
+                    numDead++;
                 }
             }
         }
         if(numDead>=NUMDEADTOREFORMAT)
         {
-            if(rand()%200==0)
+            if(rand()%200==0) //information hiding
                 reformat();
         }
         unitChangeLog::communicate(); //comment for no gui
+        animalChangeLog::communicate(); //comment for no gui
     }
     return 0;
 }

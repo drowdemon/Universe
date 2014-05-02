@@ -11,6 +11,7 @@
 class animalEatingAbilities;
 class herbivore;
 class carnivore;
+class tile;
 
 using namespace std;
 
@@ -26,15 +27,17 @@ using namespace std;
 	X(short, sleep) \
 	X(short, weight) \
 	X(short, lineOfSight) \
-        X(short, animalType)
+    X(short, animalType)
 
 class animal
 {
 	friend class tile;
 	friend class metabool;
-        friend class herbivore;
-        friend class carnivore;
-        friend class animalEatingAbilities;
+    friend class herbivore;
+    friend class carnivore;
+    friend class animalEatingAbilities;
+    friend void reformatAnimals();
+    friend int main();
 private:
 	short health;
 	char age;
@@ -47,8 +50,8 @@ private:
 	short sleep;
 	short weight;	
 	short lineOfSight;
-        short animalType; //0 is small herbivore - rabbit, 1 is medium herbivore - deer, 2 is big herbivore - giraffe/elephant/hippo, 3 is small carnivore - fox, cat, 4 is medium carnivore - wolf, bobcat, 5 is large carnivore - lion, tiger
-        animalEatingAbilities *eatingBehavior;
+    short animalType; //0 is small herbivore - rabbit, 1 is medium herbivore - deer, 2 is big herbivore - giraffe/elephant/hippo, 3 is small carnivore - fox, cat, 4 is medium carnivore - wolf, bobcat, 5 is large carnivore - lion, tiger
+    animalEatingAbilities *eatingBehavior;
 	
 	short moveToX;
 	short moveToY;
@@ -75,7 +78,7 @@ protected:
 	vector<point> *getfoodapprox(animal *a);
 	vector<vector<metabool> > *getcurrSeen(animal *a);
 private:
-	void nextFrame();
+	bool nextFrame();
 	void livingEvents();
 	bool checkLive();
 	vector<vector<short> > *searchFood();

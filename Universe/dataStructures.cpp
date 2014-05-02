@@ -113,6 +113,31 @@ void unitChangeLog::communicate()
     allUnitChanges.clear();
 }
 
+animalChangeLog::animalChangeLog(int xo, int yo, int i, int xm, int ym, int hm, int hunm, int sm)
+{
+    xorig=xo;
+    yorig=yo;
+    index=i;
+    xmod=xm;
+    ymod=ym;
+    healthmod=hm;
+    hungermod=hunm;
+    sleepmod=sm;
+}
+void animalChangeLog::update(int xo, int yo, int i, int xm, int ym, int hm, int hunm, int sm)
+{
+    allAnimalChanges.push_back(animalChangeLog(xo, yo, i, xm, ym, hm, hunm, sm));
+}
+void animalChangeLog::communicate()
+{
+    for(unsigned int i=0; i<allAnimalChanges.size(); i++)
+    {
+        *animalChangeFile << "<" << allAnimalChanges[i].xorig << "," << allAnimalChanges[i].yorig << "," << allAnimalChanges[i].xmod << "," << allAnimalChanges[i].ymod << "," << allAnimalChanges[i].index << "," << allAnimalChanges[i].hungermod << "," << allAnimalChanges[i].sleepmod << "," << allAnimalChanges[i].healthmod << ">" << endl;
+    }
+    *animalChangeFile << endl; //blank line signifies frame
+    allAnimalChanges.clear();
+}
+
 /*pubTile::pubTile(vector<short> d, vector<short> dt, vector<object> ao, unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, *unsigned char sw,/ short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {
     disease=d;

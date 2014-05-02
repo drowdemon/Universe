@@ -7,7 +7,7 @@
 #include "hivemind.h"
 #include "allunits.h"
 #include "dataStructures.h"
-#include "animal.h"
+#include "Animalia/animal.h"
 
 tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, /*unsigned char sw,*/ short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {

@@ -48,10 +48,27 @@ private:
     int hungermod;
     int sleepmod;
     int pregnantmod;
-	vector<point> *sight;
+    vector<point> *sight;
 public:
     unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s);
     static void update(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s); //comment the body of this for no gui.
+    static void communicate();
+};
+
+class animalChangeLog
+{
+private:
+    int xorig; //id
+    int yorig; //id
+    int index;
+    int xmod;
+    int ymod;
+    int healthmod;
+    int hungermod;
+    int sleepmod;
+public:
+    animalChangeLog(int xo, int yo, int i, int xm, int ym, int hm, int hunm, int sm);
+    static void update(int xo, int yo, int i, int xm, int ym, int hm, int hunm, int sm); //comment the body of this for no gui.
     static void communicate();
 };
 

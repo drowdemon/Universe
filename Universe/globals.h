@@ -1,3 +1,4 @@
+// -*- mode: C++ -*-
 #ifndef GLOBALS_H
 #define	GLOBALS_H
 
@@ -43,6 +44,7 @@ using namespace std;
 #define WEIGHTPERSTRENGTH 2 //how much weight you can carry per strength point
 #define SPEEDTODAMAGE 1 //for now, only a thrown objects speed determines its damage. Add more to that.
 #define NUMDEADTOREFORMAT 10000 //control how often allUnits is defragged
+#define NUMANIMALSDEADTOREFORMAT 5000 //control how often allAnimals is defragged
 #define ENERGYSOFTMAX 6000 //arbitrary, as usual. After this, energy is converted to fat
 #define ENERGYFROMFATPOINT 750 //totally arbitrary. After this (below this), fat is converted to energy. Hunger still increases though.
 #define ENERGYFROMFATRATE 64 //again arbitrary. In frames per event. Weight transforms to fat at this rate.
@@ -68,7 +70,9 @@ extern vector<vector<vector<metabool> > > mapseenunit; //[player][y][x]
 extern vector<vector<vector<vector<metabool> > > > mapseenhive; //[player][hive][y][x]
 extern allminds allMinds;
 extern vector<unitChangeLog> allUnitChanges;
+extern vector<animalChangeLog> allAnimalChanges;
 extern ofstream *unitChangeFile;
+extern ofstream *animalChangeFile;
 extern curLoopVar curLoops;
 extern vector<objectDescriptor> allObjectDesc;
 extern bool tileConstructorAllowed;
