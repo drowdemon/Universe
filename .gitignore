@@ -5,3 +5,17 @@ nbproject
 Universe/map
 Universe/unitChanges
 GenerateBoolTransCode/outputCode
+*.o
+configure
+install-sh
+*.status
+*.log
+.deps
+depcomp
+missing
+aclocal.m4
+*.in
+\#*
+.#*
+autom4te.cache
+Universe/Universe
