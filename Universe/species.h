@@ -32,6 +32,7 @@ class species //species 0 is the player
 private:
 	friend class animal;
 	friend class creature;
+	friend void init();
 	
 	short maxHealth;
 	short speed;

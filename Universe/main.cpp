@@ -34,6 +34,8 @@ void init()
     unitChangeFile = new ofstream("unitChanges");
     animalChangeFile = new ofstream("animalChanges");
     
+    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)-1, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, NULL));
+    
     allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,-3,-1,food()));
     allObjectDesc.push_back(objectDescriptor(50,5,OBJECT_CORPSE,true,true,true,-2,-1,food())); //INCORRECT STATS. DEFINITELY. 
     allObjectDesc.push_back(objectDescriptor(50,5,OBJECT_GENERICANIMALCORPSE,true,true,true,-2,-1,food())); //INCORRECT STATS. DEFINITELY. 
@@ -191,7 +193,6 @@ int main()
     map[11][10].unitplayer=0;
     map[11][10].unitindex=0;*/
     
-    allUnits.data[0][0]->moveToX=11;
     map[11][11].bush=100;
     
     allUnits.data[0][0]->carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0,map[allUnits.data[0][0]->y][allUnits.data[0][0]->x].height));
@@ -200,6 +201,15 @@ int main()
     while(true) //it never closes. Somewhat inconvenient. But its not bothering to use win32 or glut or mfc, with good reason, so this is the best I could do. 
     {
         frames++;
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //REMOVE THIS TESTING ONLY
+        if(frames%50==0)
+        {
+        	allUnits.data[0][0]->moveToX=13;
+        	allUnits.data[0][0]->speed=40;
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //MAP
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

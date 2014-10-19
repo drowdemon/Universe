@@ -20,7 +20,7 @@ creature::creature()
 	currSeen->resize(lineOfSight*2+1);
 	for(int i=0; i<lineOfSight*2+1; i++)
 	{
-		currSeen[i].resize(lineOfSight*2+1);
+		(*currSeen)[i].resize(lineOfSight*2+1);
 	}
 }
 
@@ -32,12 +32,11 @@ creature::creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extrane
 #undef W
 #define W(type, var) \
     var = p_ ## var ;     
-    LISTVARSCREATURE
+    LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY
 #undef W
     
-    index=-1;
-	moveToX=0;
-	moveToY=0;
+	moveToX=x;
+	moveToY=y;
 	moving=false;
 	sleeping=false;
 	movingprog=0;
@@ -46,7 +45,7 @@ creature::creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extrane
 	currSeen->resize(lineOfSight*2+1);
 	for(int i=0; i<lineOfSight*2+1; i++)
 	{
-		currSeen[i].resize(lineOfSight*2+1);
+		(*currSeen)[i].resize(lineOfSight*2+1);
 	}
 }
 
@@ -251,8 +250,10 @@ void creature::see()
                         (*currSeen)[lineOfSight+curPoints[h].y][lineOfSight+curPoints[h].x].b=1;  //can see tile and units on it                  
                     ret = speciesIndex==0 ? map[y+curPoints[h].y][x+curPoints[h].x].blocksVision((unit*)this) : map[y+curPoints[h].y][x+curPoints[h].x].blocksVision((animal*)this); //if I saw an obstacle, add it to the list of obstacles
                     if(*ret)
-                        obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
-                    delete ret; //delete the pointer. No memory leaks.
+                    {   
+                    	obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
+                    	delete ret; //delete the pointer. No memory leaks.
+                    }
                 }
             }
         }

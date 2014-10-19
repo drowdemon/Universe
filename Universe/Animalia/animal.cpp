@@ -27,26 +27,13 @@ animal::animal(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSANIMAL a
 		#undef W
 {
 #undef X
-#define X(type, var) \
-    var = p_ ## var ;     
+#define X(type, var) var = p_ ## var ;     
     LISTVARSANIMAL
 #undef X
     eatingBehavior=p_eatingBehavior;
     
-    index=-1;
 	searchDist=0;
 	searchDir=0;
-	moveToX=0;
-	moveToY=0;
-	moving=false;
-	movingprog=0;
-
-	currSeen = new vector<vector<metabool> >();
-	currSeen->resize(lineOfSight*2+1);
-	for(int i=0; i<lineOfSight*2+1; i++)
-	{
-		currSeen[i].resize(lineOfSight*2+1);
-	}
 }
 bool animal::nextFrame()
 {

@@ -118,7 +118,7 @@ void unit::moveHelper(int mx, int my)
         map[y][x].unitindex=index;
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
             seehive(i);
-        vector<point> seensq = seeunit(true);
+        vector<point> seensq = seeunit(true); 
         unitChangeLog::update(x-mx,y-my,player,index,mx,my,-damage,MOVEMENTENERGY,0,0,0,&seensq);
     }
     else
