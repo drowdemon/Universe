@@ -5,6 +5,10 @@
 
 using namespace std;
 
+animalEatingAbilities::~animalEatingAbilities()
+{
+}
+
 herbivore::herbivore(bool eG)
 {
     eatGrass=eG;

@@ -19,3 +19,7 @@ aclocal.m4
 .#*
 autom4te.cache
 Universe/Universe
+.cproject
+.project
+.settings
+Debug

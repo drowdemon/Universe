@@ -11,16 +11,13 @@ using namespace std;
 
 void init()
 {
-    mapseenunit.resize(NUMPLAYERS);
     mapseenhive.resize(NUMPLAYERS);
     map.resize(MAPSIZE); //randomly chosen by me
     for(int i=0; i<NUMPLAYERS; i++)
     {
-        mapseenunit[i].resize(MAPSIZE);
         mapseenhive[i].resize(MAPSIZE);
         for(int j=0; j<MAPSIZE; j++)
         {
-            mapseenunit[i][j].resize(MAPSIZE);
             mapseenhive[i][j].resize(MAPSIZE);
         }
     }
@@ -230,6 +227,7 @@ int main()
         int numAnimalsDead=0;
         for(unsigned int i=0; i<allAnimals.size(); i++)
         {
+        	curLoops.animalIndex=i;
             if(!allAnimals[i])
             {
                 numAnimalsDead++;
@@ -240,6 +238,7 @@ int main()
                 numAnimalsDead++;
             }
         }
+        curLoops.animalIndex=-1;
         if(numAnimalsDead>=NUMANIMALSDEADTOREFORMAT)
             reformatAnimals();
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -254,6 +253,7 @@ int main()
                 allMinds.data[i][j].act();
             }
         }
+        curLoops.hiveIndex=curLoops.hivePlayer=-1;
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //Units
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,6 +285,7 @@ int main()
                 }
             }
         }
+        curLoops.unitIndex=curLoops.unitPlayer=-1;
         if(numDead>=NUMDEADTOREFORMAT)
         {
             if(rand()%200==0) //information hiding

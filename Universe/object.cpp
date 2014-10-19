@@ -207,9 +207,9 @@ void object::move()
 #define Z(type, val) \
     type object::get ## val(unit *u) \
     { \
-        if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer) \
+        if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer && abs(u->y-y) > u->lineOfSight && abs(u->x-x) > u->lineOfSight) \
         { \
-            if((heldByPlayer==u->player && heldByIndex==u->index) || (mapseenunit[u->player][y][x].get(u)>0)) \
+            if((heldByPlayer==u->player && heldByIndex==u->index) || ((*u->currSeen)[u->lineOfSight+y-u->y][u->lineOfSight+x-u->x].get(u)>0)) \
             { \
                 if(height>=map[y][x].height) \
                     return val; \
@@ -223,9 +223,9 @@ void object::move()
 #define Z(type, val) \
     type object::get ## val(unit *u) \
     { \
-        if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer) \
+        if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer && abs(u->y-y) > u->lineOfSight && abs(u->x-x) > u->lineOfSight) \
         { \
-            if((heldByPlayer==u->player && heldByIndex==u->index) || (mapseenunit[u->player][y][x].get(u)>0)) \
+            if((heldByPlayer==u->player && heldByIndex==u->index) || ((*u->currSeen)[u->lineOfSight+y-u->y][u->lineOfSight+x-u->x].get(u)>0)) \
             { \
                 if(height>=map[y][x].height) \
                     return allObjectDesc[whatIsIt].val; \

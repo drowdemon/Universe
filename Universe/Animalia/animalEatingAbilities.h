@@ -12,6 +12,7 @@ class animalEatingAbilities : animal
     friend class carnivore;
 public:
     virtual bool eatingBehavior(vector<vector<short> > * foodLocs) = 0;
+    virtual ~animalEatingAbilities();
 };
 
 class herbivore : animalEatingAbilities

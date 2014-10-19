@@ -5,6 +5,7 @@ class animalBehavior : animal
 {
 public:
     virtual void behavior() = 0;
+    virtual ~animalBehavior();
 };
 
 #endif	/* ANIMALBEHAVIOR_H */

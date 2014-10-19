@@ -229,20 +229,24 @@ bool* tile::blocksVision(unit *u)
 {
     if(u->player!=curLoops.unitPlayer || u->index!=curLoops.unitIndex)
         return NULL; //cheaters. Thou fail.
+    if(abs(u->y-y) > u->lineOfSight || abs(u->x-x) > u->lineOfSight) //to far to see the potential obstacle
+    	return NULL;
     bool *good = new bool;
     *good = (bush>20 || tree>0);
-    if(!(*good))
+    if(*good)
     {
-        if(mapseenunit[u->player][y][x].get(u)==1 && uniton==true)
+        if((*u->currSeen)[u->lineOfSight-y+u->y][u->lineOfSight-x+u->x].get(u)==1 && uniton==true)
             *good=false;
     }
     return good;
 }
 bool* tile::blocksVision(animal *a)
 {
+	if(a->index!=curLoops.animalIndex)
+		return NULL;
     bool *good = new bool;
     *good = (bush>20 || tree>0);
-    if(!(*good))
+    if(*good)
     {
         if((*a->currSeen)[y][x].get(a) && uniton==true)
             *good=false;
@@ -265,7 +269,9 @@ tile::~tile()
     { \
         if(u.player!=curLoops.unitPlayer || u.index!=curLoops.unitIndex) \
             return NULL; \
-        if(mapseenunit[u.player][y][x].get(&u)>0) \
+        if(abs(u.y-y)>u.lineOfSight || abs(u.x-x)>u.lineOfSight) \
+        	return NULL; \
+        if((*u.currSeen)[u.lineOfSight+y-u.y][u.lineOfSight+x-u.x].get(&u)>0) \
         { \
             type *ret = new type; \
             *ret=val; \
@@ -292,7 +298,9 @@ vector<object>* tile::getallObjects(unit& u)
 { 
     if(u.player!=curLoops.unitPlayer || u.index!=curLoops.unitIndex) \
         return NULL; \
-    if(mapseenunit[u.player][y][x].get(&u)>0) 
+	if(abs(u.y-y)>u.lineOfSight || abs(u.x-x)>u.lineOfSight) \
+		return NULL; \
+    if((*u.currSeen)[u.lineOfSight+y-u.y][u.lineOfSight+x-u.x].get(&u)>0) 
     { 
         vector<object> *ret = new vector<object>; 
         for(unsigned int i=0; i<allObjects.size(); i++)
@@ -321,8 +329,10 @@ vector<object>* tile::getallObjects(hiveMind& h)
     { \
         if(u.player!=curLoops.unitPlayer || u.index!=curLoops.unitIndex) \
             return NULL; \
-        type *ret = new type; \
-        if(mapseenunit[u.player][y][x].get(&u)==1) \
+        if(abs(u.y-y)>u.lineOfSight || abs(u.x-x)>u.lineOfSight) \
+			return NULL; \
+		type *ret = new type; \
+        if((*u.currSeen)[u.lineOfSight+y-u.y][u.lineOfSight+x-u.x].get(&u)==1) \
         { \
             *ret=val; \
             return ret; \
