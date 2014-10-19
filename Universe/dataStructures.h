@@ -34,7 +34,7 @@ public:
     pointRad(int px, int py, int pr);
 };
 
-class unitChangeLog
+class creatureChangeLog
 {
 private:
     int xorig; //id
@@ -50,12 +50,12 @@ private:
     int pregnantmod;
     vector<point> *sight;
 public:
-    unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s);
+    creatureChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s);
     static void update(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s); //comment the body of this for no gui.
     static void communicate();
 };
 
-class animalChangeLog
+/*class animalChangeLog
 {
 private:
     int xorig; //id
@@ -70,7 +70,7 @@ public:
     animalChangeLog(int xo, int yo, int i, int xm, int ym, int hm, int hunm, int sm);
     static void update(int xo, int yo, int i, int xm, int ym, int hm, int hunm, int sm); //comment the body of this for no gui.
     static void communicate();
-};
+};*/
 
 class visionObstacle : public point
 {

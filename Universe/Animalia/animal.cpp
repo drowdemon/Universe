@@ -44,7 +44,19 @@ bool animal::nextFrame()
         return false;
     }
     see();
+    resetActions();
     return true;
+}
+void animal::livingEvents(int p_speciesIndex)
+{
+	int deltaE=energy;
+	int deltaH=hunger;
+	int deltaP=pregnant;
+	int deltaS=sleep;
+	int deltaHlth=health;
+	creature::livingEvents(speciesIndex);
+	
+	creatureChangeLog::update(x,y,-1,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,sleep-deltaS,pregnant-deltaP,NULL);
 }
 vector<vector<short> > *animal::searchFood()
 {
@@ -151,7 +163,15 @@ void animal::moveHelper(int mx, int my)
         x+=mx;
         y+=my;
         
+        energy-=allSpecies[speciesIndex].movementEnergy;
+        energy-=weight/50*allSpecies[speciesIndex].movingSelfWeightPenalty;
+        energy-=((rand()%50)<(weight%50)) ? allSpecies[speciesIndex].movingSelfWeightPenalty : 0;
+        
         map[y][x].animalPresent=index+1;
+        
+        vector<point> seensq = seeGUI();
+        
+        creatureChangeLog::update(x-mx,y-my,-1,index,mx,my,-damage,MOVEMENTENERGY,0,0,0,&seensq);
     }
     else
     {
@@ -164,7 +184,36 @@ void animal::die()
     map[y][x].animalPresent=0;
     map[y][x].allObjects.push_back(new object(allObjectDesc[OBJECT_GENERICANIMALCORPSE],-1,-1,x,y,map[y][x].allObjects.size(),map[y][x].height));
     map[y][x].allObjects.back()->weight=weight;
+    
+    int i = index;
+    
     delete allAnimals[index];
+    allAnimals[i] = NULL;
+    vector<point> *t= new vector<point>();
+    creatureChangeLog::update(-99999,-99999,-1,i,-99999,-99999,-99999,-99999,-99999,-99999,-99999,t);
+    delete t;
+}
+void animal::giveBirth()
+{
+	//creatureChangeLog::update(child->x,child->y,-1,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant,NULL);
+}
+void animal::act()
+{
+	
+}
+void animal::reproduce(int withWhom)
+{
+	//remember to add in creatureChangeLog::update() for fetus and both parents.
+}
+void animal::goToSleep()
+{
+	if(sleeping || reproducing>0 || moving || waking)
+		return;
+	if(index!=curLoops.animalIndex)
+		return;
+	if(map[y][x].waste>0) //bad ground for sleeping
+		return;
+	sleeping=true;
 }
 
 #define X(type, val) \
@@ -195,12 +244,4 @@ vector<point> *animal::getfoodapprox(animal* a)
         return ret;
     }
     return NULL; 
-}
-void animal::giveBirth()
-{
-	
-}
-void animal::act()
-{
-	
 }

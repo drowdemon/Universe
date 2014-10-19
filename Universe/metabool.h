@@ -16,7 +16,6 @@ public:
     unsigned char get(unit *u);
     unsigned char get(hiveMind *h);
     unsigned char get(animal *a);
-    friend vector<point> unit::seeunit(bool);
     friend void unit::seehive(int);
     friend void unit::unseehive(int);
     friend void unit::unseeunit();

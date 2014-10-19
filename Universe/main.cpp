@@ -32,9 +32,10 @@ void init()
     }
     tileConstructorAllowed=false;
     unitChangeFile = new ofstream("unitChanges");
-    animalChangeFile = new ofstream("animalChanges");
     
     allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)-1, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, NULL));
+    //an animal identical to a unit
+    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)0, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, NULL));
     
     allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,-3,-1,food()));
     allObjectDesc.push_back(objectDescriptor(50,5,OBJECT_CORPSE,true,true,true,-2,-1,food())); //INCORRECT STATS. DEFINITELY. 
@@ -152,7 +153,7 @@ void reformat()
             }
         }
     }
-    unitChangeLog::update(-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,NULL);
+    creatureChangeLog::update(-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,NULL);
 }
 
 void reformatAnimals()
@@ -181,7 +182,7 @@ int main()
     
     allUnits.data[0].push_back(new unit(0,0,10,false,10,20,10,10,20,5,175,50,2,30,13,8,13,0,100,150,850,200));
     allUnits.data[0][0]->minWeight=60;
-    unitChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0]->health,allUnits.data[0][0]->energy,allUnits.data[0][0]->hunger,allUnits.data[0][0]->sleep,allUnits.data[0][0]->pregnant,NULL);
+    creatureChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0]->health,allUnits.data[0][0]->energy,allUnits.data[0][0]->hunger,allUnits.data[0][0]->sleep,allUnits.data[0][0]->pregnant,NULL);
     //allUnits.data[0][0].moveToX=20;
     map[10][10].uniton=true;
     map[10][10].unitplayer=0;
@@ -197,13 +198,18 @@ int main()
     
     allUnits.data[0][0]->carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0,map[allUnits.data[0][0]->y][allUnits.data[0][0]->x].height));
     
+    
+    allAnimals.push_back(new animal(true, 20, 0, 5, 100, 50, 0, 20, 20, 700, 0, 1000, -1, 1, 1, 5, 60, 50, 13, 30, 8, 0, 0, NULL));
+    creatureChangeLog::update(20,20,-1,0,0,0,allAnimals[0]->health,allAnimals[0]->energy,allAnimals[0]->hunger,allAnimals[0]->sleep,allAnimals[0]->pregnant,NULL);
+    map[20][20].animalPresent=0;
+    
     printMap(); //comment out for no output.
     while(true) //it never closes. Somewhat inconvenient. But its not bothering to use win32 or glut or mfc, with good reason, so this is the best I could do. 
     {
         frames++;
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //REMOVE THIS TESTING ONLY
-        if(frames%50==0)
+        if(frames==50)
         {
         	allUnits.data[0][0]->moveToX=13;
         	allUnits.data[0][0]->speed=40;
@@ -301,8 +307,8 @@ int main()
             if(rand()%200==0) //information hiding
                 reformat();
         }
-        unitChangeLog::communicate(); //comment for no gui
-        animalChangeLog::communicate(); //comment for no gui
+        creatureChangeLog::communicate(); //comment for no gui
+        //animalChangeLog::communicate(); //comment for no gui
     }
     return 0;
 }

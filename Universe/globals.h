@@ -68,8 +68,8 @@ extern unsigned long long frames;
 extern vector<disease> allDiseases;
 extern vector<vector<vector<vector<metabool> > > > mapseenhive; //[player][hive][y][x]
 extern allminds allMinds;
-extern vector<unitChangeLog> allUnitChanges;
-extern vector<animalChangeLog> allAnimalChanges;
+extern vector<creatureChangeLog> allCreatureChanges;
+//extern vector<animalChangeLog> allAnimalChanges;
 extern ofstream *unitChangeFile;
 extern ofstream *animalChangeFile;
 extern curLoopVar curLoops;

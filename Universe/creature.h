@@ -1,6 +1,7 @@
 #ifndef CREATURE_H
 #define	CREATURE_H
 
+#include "dataStructures.h"
 #include <vector>
 
 using namespace std;
@@ -73,6 +74,7 @@ protected:
 	
 	//cleared at end of frame.
 	bool moving;
+	bool waking;
 	
 protected:
 	creature();
@@ -87,8 +89,12 @@ protected:
 	virtual void move();
 	virtual void moveHelper(int mx, int my)=0;
 	virtual void see(); //fills currSeen
+	virtual vector<point> seeGUI();
 	virtual void die()=0;
 	virtual void giveBirth()=0;
+	virtual void goToSleep()=0;
+	virtual void resetActions();
+	virtual void awaken();
 	
 	virtual ~creature();
 };

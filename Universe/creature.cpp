@@ -1,6 +1,8 @@
 #include "creature.h"
 #include "metabool.h"
 #include "globals.h"
+//#include "unit.h"
+//#include "Animalia/animal.h"
  
 creature::creature()
 {
@@ -12,6 +14,7 @@ creature::creature()
 	moveToX=x;
 	moveToY=y;
 	moving=false;
+	waking=false;
 	sleeping=false;
 	movingprog=0;
 	fatBuildProgress=0;
@@ -38,6 +41,7 @@ creature::creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extrane
 	moveToX=x;
 	moveToY=y;
 	moving=false;
+	waking=false;
 	sleeping=false;
 	movingprog=0;
 
@@ -258,4 +262,40 @@ void creature::see()
             }
         }
     }
+}
+vector<point> creature::seeGUI()
+{
+    vector<point> toreturn;
+    see();
+    for(unsigned int i=0; i<currSeen->size(); i++)
+    {
+    	for(unsigned int j=0; j<currSeen->size(); j++)
+    	{
+    		if(speciesIndex==0)
+    		{
+    			if((*currSeen)[i][j].get((unit*)this)>0)
+    				toreturn.push_back(point(x+j-lineOfSight, y+i-lineOfSight));
+    		}
+    		else
+    		{
+    			if((*currSeen)[i][j].get((animal*)this)>0)
+					toreturn.push_back(point(x+j-lineOfSight, y+i-lineOfSight));
+    		}
+    	}
+    }
+    return toreturn;
+}
+void creature::resetActions()
+{
+	waking=false;
+	moving=false;
+}
+void creature::awaken()
+{
+	if(!sleeping)
+	    return;
+    if((speciesIndex==0 && (((unit*)this)->player!=curLoops.unitPlayer || index!=curLoops.unitIndex)) || (speciesIndex!=0 && index!=curLoops.animalIndex))
+        return;
+    sleeping=false;
+    waking=true;
 }

@@ -62,7 +62,7 @@ visionObstacle::visionObstacle(int dx, int dy) : point(dx,dy)
     }
 }
 
-unitChangeLog::unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s)
+creatureChangeLog::creatureChangeLog(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s)
 {
     xorig=xo;
     yorig=yo;
@@ -84,36 +84,36 @@ unitChangeLog::unitChangeLog(int xo, int yo, int p, int i, int xm, int ym, int h
             sight->push_back(point(((*s)[i]).x, ((*s)[i]).y));
     }
 }
-void unitChangeLog::update(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s)
+void creatureChangeLog::update(int xo, int yo, int p, int i, int xm, int ym, int hm, int em, int hunm, int sm, int pm, vector<point> *s)
 {
-    allUnitChanges.push_back(unitChangeLog(xo, yo, p, i, xm, ym, hm, em, hunm, sm, pm, s));
+    allCreatureChanges.push_back(creatureChangeLog(xo, yo, p, i, xm, ym, hm, em, hunm, sm, pm, s));
 }
-void unitChangeLog::communicate()
+void creatureChangeLog::communicate()
 {
-    for(unsigned int i=0; i<allUnitChanges.size(); i++)
+    for(unsigned int i=0; i<allCreatureChanges.size(); i++)
     {
-        *unitChangeFile << "<" << allUnitChanges[i].xorig << "," << allUnitChanges[i].yorig << "," << allUnitChanges[i].xmod << "," << allUnitChanges[i].ymod << "," << allUnitChanges[i].player << "," << allUnitChanges[i].index << "," << allUnitChanges[i].energymod << "," << allUnitChanges[i].hungermod << "," << allUnitChanges[i].sleepmod << "," << allUnitChanges[i].healthmod << "," << allUnitChanges[i].pregnantmod << ">";
-        if(allUnitChanges[i].sight==NULL)
+        *unitChangeFile << "<" << allCreatureChanges[i].xorig << "," << allCreatureChanges[i].yorig << "," << allCreatureChanges[i].xmod << "," << allCreatureChanges[i].ymod << "," << allCreatureChanges[i].player << "," << allCreatureChanges[i].index << "," << allCreatureChanges[i].energymod << "," << allCreatureChanges[i].hungermod << "," << allCreatureChanges[i].sleepmod << "," << allCreatureChanges[i].healthmod << "," << allCreatureChanges[i].pregnantmod << ">";
+        if(allCreatureChanges[i].sight==NULL)
             *unitChangeFile << "<-1>" << endl;
-        else if(allUnitChanges[i].sight->size()==0)
+        else if(allCreatureChanges[i].sight->size()==0)
             *unitChangeFile << "<-2>" << endl;
         else
         {
             *unitChangeFile << "<";
-            for(unsigned int j=0; j<allUnitChanges[i].sight->size(); j++)
+            for(unsigned int j=0; j<allCreatureChanges[i].sight->size(); j++)
             {
-                *unitChangeFile << ((*allUnitChanges[i].sight)[j]).x << "," << ((*allUnitChanges[i].sight)[j]).y << ",";
+                *unitChangeFile << ((*allCreatureChanges[i].sight)[j]).x << "," << ((*allCreatureChanges[i].sight)[j]).y << ",";
             }
             *unitChangeFile << "-3>" << endl;
         }
     }
     *unitChangeFile << endl; //blank line signifies frame
-    for(unsigned int i=0; i<allUnitChanges.size(); i++)
-        delete allUnitChanges[i].sight;
-    allUnitChanges.clear();
+    for(unsigned int i=0; i<allCreatureChanges.size(); i++)
+        delete allCreatureChanges[i].sight;
+    allCreatureChanges.clear();
 }
 
-animalChangeLog::animalChangeLog(int xo, int yo, int i, int xm, int ym, int hm, int hunm, int sm)
+/*animalChangeLog::animalChangeLog(int xo, int yo, int i, int xm, int ym, int hm, int hunm, int sm)
 {
     xorig=xo;
     yorig=yo;
@@ -136,7 +136,7 @@ void animalChangeLog::communicate()
     }
     *animalChangeFile << endl; //blank line signifies frame
     allAnimalChanges.clear();
-}
+}*/
 
 /*pubTile::pubTile(vector<short> d, vector<short> dt, vector<object> ao, unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, *unsigned char sw,/ short px, short py, short up, short ui, unsigned char b, unsigned char t)
 {

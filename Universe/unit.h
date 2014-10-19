@@ -75,6 +75,7 @@ friend void reformat();
 friend class object;
 friend class Throwing;
 friend class commWrapper;
+friend class creature;
 private: // all this stuff can only be changed internally
     //more will certainly be added. Our own creatures will inherit from this, and implement some sort of run function, probably
     int player;
@@ -88,7 +89,6 @@ private: // all this stuff can only be changed internally
     //below variables are not passed to constructor
     vector<diseaseInfo> diseased; //info about all of the diseases this unit has, if any
     short fetusid; //id of child if pregnant
-    short sleep; //how well-rested it is. At some point sleep deprivation starts taking effect
     vector<object*> carrying;
     Throwing throwSkill;
     short *learningSkills; //one for each skill. Stores -1 if no, else stores index of teacher. Currently: only throwing.
@@ -101,7 +101,6 @@ private: // all this stuff can only be changed internally
     bool throwing; //These are cleared at the end of the frame
     bool eating;
     bool liftingOrDropping; //if pickup() or putdown() were called
-    bool waking; //if just called awaken(). It takes some time. 
     bool excreting; //you can't do shit while you're excreting. 
 public:
     commWrapper allCommuniques;
@@ -113,7 +112,6 @@ private:
     void livingEvents(int speciesIndex);
     void moveHelper(int mx, int my);
     void infect();
-	vector<point> seeunit(bool gui);
     void unseeunit();
     void seehive(int hiveIndex);
     void unseehive(int hiveIndex);

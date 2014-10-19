@@ -60,12 +60,15 @@ protected:
     vector<vector<metabool> > *getcurrSeen(animal *a);
 private:
     bool nextFrame();
+    void livingEvents(int p_speciesIndex);
     vector<vector<short> > *searchFood();
     //bool searchFoodHelperBushes(vector<vector<short> > * foodLocs);
     void moveHelper(int mx, int my);
     void die();
     void giveBirth();
     void act();
+    void reproduce(int withWhom);
+    void goToSleep();
 };
 
 #endif	/* ANIMAL_H */

@@ -22,8 +22,8 @@ unsigned long long frames=0;
 vector<disease> allDiseases;
 vector<vector<vector<metabool> > > mapseenhive; //[player][y][x]
 allminds allMinds;
-vector<unitChangeLog> allUnitChanges;
-vector<animalChangeLog> allAnimalChanges;
+vector<creatureChangeLog> allCreatureChanges;
+//vector<animalChangeLog> allAnimalChanges;
 ofstream *unitChangeFile;
 ofstream *animalChangeFile;
 curLoopVar curLoops;

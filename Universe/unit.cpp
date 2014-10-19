@@ -31,7 +31,6 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
     throwing=false;
     eating=false;
     liftingOrDropping=false;
-    waking=false;
     excreteNeed=-1;
     excreteNeedMax=enm;
     excreting=false;
@@ -53,7 +52,8 @@ bool unit::nextFrame()
         return true; //complete successfully
     livingEvents(0);
     if(!checkLive(MAXHUNGER))
-        return false;   
+        return false;
+    emergencySleep();
     for(unsigned int i=0; i<allMinds.data[player].size(); i++)
         seehive(i);
     see();
@@ -86,7 +86,6 @@ bool unit::nextFrame()
     }
     learn(); //learn if you set that you want to and you're near whoever you are learning from and they did something
     unseeunit();
-    emergencySleep();
     resetActions();
     return true;
 }
@@ -118,8 +117,8 @@ void unit::moveHelper(int mx, int my)
         map[y][x].unitindex=index;
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
             seehive(i);
-        vector<point> seensq = seeunit(true); 
-        unitChangeLog::update(x-mx,y-my,player,index,mx,my,-damage,MOVEMENTENERGY,0,0,0,&seensq);
+        vector<point> seensq = seeGUI(); 
+        creatureChangeLog::update(x-mx,y-my,player,index,mx,my,-damage,MOVEMENTENERGY,0,0,0,&seensq);
     }
     else
     {
@@ -287,7 +286,7 @@ void unit::diseaseEffects()
     for(unsigned int i=0; i<diseased.size(); i++)
         energy-=allDiseases[diseased[i]].energyCost;
     if(energy-start!=0)
-        unitChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0,NULL);
+        creatureChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0,NULL);
 }
 void unit::livingEvents(int speciesIndex)
 {
@@ -308,21 +307,7 @@ void unit::livingEvents(int speciesIndex)
         if(excreteNeed>=excreteNeedMax)
             shit();
     }
-    unitChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,sleep-deltaS,pregnant-deltaP,NULL);
-}
-vector<point> unit::seeunit(bool gui)
-{
-    vector<point> toreturn;
-    creature::see();
-    for(unsigned int i=0; i<currSeen->size(); i++)
-    {
-    	for(unsigned int j=0; j<currSeen->size(); j++)
-    	{
-    		if((*currSeen)[i][j].get(this)>0)
-    			toreturn.push_back(point(x+j-lineOfSight, y+i-lineOfSight));
-    	}
-    }
-    return toreturn;
+    creatureChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,sleep-deltaS,pregnant-deltaP,NULL);
 }
 void unit::unseeunit()
 {
@@ -470,7 +455,7 @@ void unit::giveBirth()
     map[child->y][child->x].uniton=true;
     map[child->y][child->x].unitplayer=child->player;
     map[child->y][child->x].unitindex=child->index;
-    unitChangeLog::update(child->x,child->y,child->player,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant,NULL);
+    creatureChangeLog::update(child->x,child->y,child->player,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant,NULL);
 }
 void unit::emergencySleep()
 {
@@ -525,7 +510,7 @@ void unit::die()
     delete allUnits.data[player][index];
     allUnits.data[p][i]=NULL;
     vector<point> *t= new vector<point>();
-    unitChangeLog::update(-99999,-99999,p,i,-99999,-99999,-99999,-99999,-99999,-99999,-99999,t);
+    creatureChangeLog::update(-99999,-99999,p,i,-99999,-99999,-99999,-99999,-99999,-99999,-99999,t);
     delete t;
 }
 void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. Object sharpness maybe. How hard/soft it is. 
@@ -534,11 +519,11 @@ void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. O
 }
 void unit::resetActions() //sleeping is controlled differently, and reproduction is in livingEvents()
 {
-    moving=false;
+	creature::resetActions();
     throwing=false;
     eating=false;
     liftingOrDropping=false;
-    waking=false;
+    excreting=false;
 }
 void unit::resetSkills()
 {
@@ -704,15 +689,15 @@ void unit::reproduce(int withwhom)
                 {
                     pregnant=0;
                     fetusid=allUnits.data[player].size();
-                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
-                    unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
+                    creatureChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
+                    creatureChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
                 }
                 else //partner is female
                 {
                     allUnits.data[player][withwhom]->pregnant=0;
                     allUnits.data[player][withwhom]->fetusid=allUnits.data[player].size();
-                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
-                    unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
+                    creatureChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
+                    creatureChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
                 }
                 allUnits.data[player].push_back(new unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom]->strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom]->speed)/2,(lineOfSight+allUnits.data[player][withwhom]->lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom]->immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom]->healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom]->woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom]->energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom]->metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom]->maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2,0,(rand()%4)+NEWBORNMINWEIGHT,geneMixer(fatToWeight,allUnits.data[player][withwhom]->fatToWeight),geneMixer(fatRetrievalEfficiency,allUnits.data[player][withwhom]->fatRetrievalEfficiency),geneMixer(excreteNeedMax,allUnits.data[player][withwhom]->excreteNeedMax))); //adds the new unit. It doesn't really exist though
                 if(allUnits.data[player][fetusid]->maxMetabolicRate>allUnits.data[player][fetusid]->metabolicRate)
@@ -739,11 +724,9 @@ void unit::goToSleep()
     }
     sleeping=true;
 }
-void unit::awaken()
+void unit::awaken() //makes it public
 {
-    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
-        return;
-    sleeping=false;
+	creature::awaken();
 }
 void unit::pickUp(int what, int ox, int oy)
 {
@@ -773,6 +756,7 @@ void unit::pickUp(int what, int ox, int oy)
             break;
         }
     }
+    liftingOrDropping=true;
 }
 void unit::putDown(int objIndex, int px, int py)
 {
@@ -789,6 +773,7 @@ void unit::putDown(int objIndex, int px, int py)
     carrying[objIndex]->index=map[y][x].allObjects.size();
     map[y][x].allObjects.push_back(carrying[objIndex]);
     carrying.erase(carrying.begin()+objIndex);
+    liftingOrDropping=true;
 }
 void unit::eat(int objIndex)
 {
