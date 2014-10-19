@@ -18,6 +18,7 @@ creature::creature()
 	sleeping=false;
 	movingprog=0;
 	fatBuildProgress=0;
+	reproducing=0;
 
 	currSeen = new vector<vector<metabool> >();
 	currSeen->resize(lineOfSight*2+1);
@@ -44,6 +45,7 @@ creature::creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extrane
 	waking=false;
 	sleeping=false;
 	movingprog=0;
+	reproducing=0;
 
 	currSeen = new vector<vector<metabool> >();
 	currSeen->resize(lineOfSight*2+1);
@@ -256,8 +258,9 @@ void creature::see()
                     if(*ret)
                     {   
                     	obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
-                    	delete ret; //delete the pointer. No memory leaks.
                     }
+                    if(ret)
+                    	delete ret; //delete the pointer. No memory leaks.
                 }
             }
         }
