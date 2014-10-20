@@ -45,7 +45,7 @@ bool carnivore::eatingBehavior(vector<vector<short> >* foodLocs)
                 {
                     if(animalType-AMNTANIMALSIZES>=allAnimals[map[y+i-lineOfSight][x+j-lineOfSight].animalPresent-1]->animalType || (animalType>=allAnimals[map[y+i-lineOfSight][x+j-lineOfSight].animalPresent-1]->animalType && allAnimals[map[y+i-lineOfSight][x+j-lineOfSight].animalPresent-1]->animalType>=AMNTANIMALSIZES)) //small enough that its edible
                     {
-                        (*foodLocs)[i][j]=(((allAnimals[map[y+i-lineOfSight][x+j-lineOfSight].animalPresent-1]-AMNTANIMALSIZES>0) ? (allAnimals[map[y+i-lineOfSight][x+j-lineOfSight].animalPresent-1]->animalType-AMNTANIMALSIZES) : (allAnimals[map[y+i-lineOfSight][x+j-lineOfSight].animalPresent-1]->animalType) )+1)*ANIMALSIZETOFOODAMOUNT; //has food
+                        (*foodLocs)[i][j]=(((allAnimals[map[y+i-lineOfSight][x+j-lineOfSight].animalPresent-1]->animalType-AMNTANIMALSIZES>0) ? (allAnimals[map[y+i-lineOfSight][x+j-lineOfSight].animalPresent-1]->animalType-AMNTANIMALSIZES) : (allAnimals[map[y+i-lineOfSight][x+j-lineOfSight].animalPresent-1]->animalType) )+1)*ANIMALSIZETOFOODAMOUNT; //has food
                         ret=true;
                     }
                 }

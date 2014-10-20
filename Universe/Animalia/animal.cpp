@@ -18,6 +18,7 @@ animal::animal()
     moving=false;
     movingprog=0;
     eatingBehavior = NULL;
+    currSeen=NULL;
 }
 
 
@@ -28,6 +29,14 @@ animal::animal(short p_health, char p_age, bool p_gender, short p_x, short p_y, 
     LISTVARSANIMAL
 #undef X
     eatingBehavior=p_eatingBehavior;
+
+    searchDist=0;
+	searchDir=0;
+	moveToX=0;
+	moveToY=0;
+	moving=false;
+	movingprog=0;
+    currSeen=NULL;
 }
 bool animal::nextFrame()
 {

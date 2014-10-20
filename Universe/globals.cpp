@@ -21,7 +21,7 @@ allunits allUnits;
 unsigned long long frames=0;
 vector<disease> allDiseases;
 vector<vector<vector<metabool> > > mapseenunit; //[player][y][x]
-vector<vector<vector<metabool> > > mapseenhive; //[player][y][x]
+vector<vector<vector<vector<metabool> > > > mapseenhive; //[player][hive][y][x]
 allminds allMinds;
 vector<unitChangeLog> allUnitChanges;
 vector<animalChangeLog> allAnimalChanges;
