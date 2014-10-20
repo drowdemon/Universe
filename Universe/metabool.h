@@ -16,8 +16,6 @@ public:
     unsigned char get(unit *u);
     unsigned char get(hiveMind *h);
     unsigned char get(animal *a);
-    friend void unit::seeunit();
-    friend vector<point> unit::seeunit(bool);
     friend void unit::seehive(int);
     friend void unit::unseehive(int);
     friend void unit::unseeunit();
@@ -25,6 +23,7 @@ public:
     friend class herbivore;
     friend class carnivore;
     friend class tile;
+    friend class creature;
 	//friend bool* tile::blocksVision(animal*);
 };
 

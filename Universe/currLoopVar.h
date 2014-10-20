@@ -21,6 +21,7 @@ class curLoopVar
     friend class commWrapper;
 	friend class metabool;
 	friend class animal;
+	friend class creature;
 private:
     int hivePlayer;
     int hiveIndex;

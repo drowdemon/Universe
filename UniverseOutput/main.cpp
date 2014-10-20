@@ -9,6 +9,7 @@
 using namespace std;
 
 #define PI 3.141592
+#define TILESIZE 4
 
 int mainWindow=0;
 int WIDTH=0;
@@ -202,6 +203,17 @@ void drawEmptyRect(float x, float y, float width, float height, RGB color)
         glVertex3f((float)x*2.0/WIDTH,2.0-(float)(y+height)*2.0/HEIGHT,0);
     glEnd();
 }
+void drawEmptyRect(float x, float y, float width, float height, RGB color, float thickness)
+{
+    glColor3f(color.r/255.0, color.g/255.0, color.b/255.0);
+    glLineWidth(thickness);
+    glBegin(GL_LINE_LOOP);
+        glVertex3f((float)x*2.0/WIDTH,2.0-(float)y*2.0/HEIGHT,0);
+        glVertex3f((float)(x+width)*2.0/WIDTH,2.0-(float)y*2.0/HEIGHT,0);
+        glVertex3f((float)(x+width)*2.0/WIDTH,2.0-(float)(y+height)*2.0/HEIGHT,0);
+        glVertex3f((float)x*2.0/WIDTH,2.0-(float)(y+height)*2.0/HEIGHT,0);
+    glEnd();
+}
 void drawEmptyRect(float x, float y, float width, float height, RGB color, int winwidth, int winheight)
 {
     glColor3f(color.r/255.0, color.g/255.0, color.b/255.0);
@@ -330,6 +342,7 @@ void readUnit()
         *unitin >> my;
         unitin->get();//comma
         *unitin >> u->player;
+        u->player++; //accounting for animals being player 0.
         unitin->get();//comma
         *unitin >> u->index;
         unitin->get();//comma
@@ -363,7 +376,7 @@ void readUnit()
         }
         unitin->get();//end bracket
         unitin->get();//end line
-        if(u->index+1>allunits[u->player].size())
+        if(u->index+1>(int)allunits[u->player].size())
         {
             allunits[u->player].push_back(u);
             map[u->y][u->x].uniton=true;
@@ -395,6 +408,8 @@ void readUnit()
                     }
                 }
             }
+            if(u->sight)
+            	delete u->sight;
         }
         else if(u->x==u->energy && u->x==u->hunger && u->x==u->health && u->x==u->pregnant && u->x==u->sleep && u->x==u->y && u->x==-99999) //death code
         {
@@ -414,6 +429,8 @@ void readUnit()
             delete allunits[u->player][u->index];
             allunits[u->player][u->index]=NULL;
             //allunits[u->player].erase(allunits[u->player].begin()+u->index);
+            if(u->sight)
+            	delete u->sight;
         }
         else
         {
@@ -437,6 +454,7 @@ void readUnit()
                 allunits[u->player][u->index]->sight = new vector<point>;
                 for(unsigned int i=0; i<u->sight->size(); i++)
                     allunits[u->player][u->index]->sight->push_back(point(((*u->sight)[i]).x, ((*u->sight)[i]).y));
+                delete u->sight;
             }
             if(mx!=0 || my!=0)
             {
@@ -486,128 +504,129 @@ void timerProc(int arg)
     ARGB grey(100,100,100,100);
     
     readUnit();
-    for(int i=0; i<map.size(); i++)
+    for(unsigned int i=0; i<map.size(); i++)
     {
-        for(int j=0; j<map[i].size(); j++)
+        for(unsigned int j=0; j<map[i].size(); j++)
         {
             if(map[i][j].water>0)
-                makeRect(j*3+50, i*3+50,3,3,water);
+                makeRect(j*TILESIZE+50, i*TILESIZE+50,TILESIZE,TILESIZE,water);
             else if(map[i][j].road>0)
-                makeRect(j*3+50, i*3+50,3,3,road);
+                makeRect(j*TILESIZE+50, i*TILESIZE+50,TILESIZE,TILESIZE,road);
             else if(map[i][j].bush>0)
-                makeRect(j*3+50, i*3+50,3,3,bush);
+                makeRect(j*TILESIZE+50, i*TILESIZE+50,TILESIZE,TILESIZE,bush);
             else
-                makeRect(j*3+50, i*3+50,3,3,grass);
+                makeRect(j*TILESIZE+50, i*TILESIZE+50,TILESIZE,TILESIZE,grass);
             if(map[i][j].uniton)
-                drawEmptyRect(j*3+50, i*3+50,3,3,black);
+                drawEmptyRect(j*TILESIZE+50, i*TILESIZE+50,TILESIZE,TILESIZE,RGB(255,150+i*20,0),2);
         }
     }
-    for(int i=0; i<allunits.size(); i++)
+    for(unsigned int i=0; i<allunits.size(); i++)
     {
-        for(int j=0; j<allunits[i].size(); j++)
+        for(unsigned int j=0; j<allunits[i].size(); j++)
         {
             if(allunits[i][j] && allunits[i][j]->sight)
             {
-                for(int k=0; k<allunits[i][j]->sight->size(); k++)
+                for(unsigned int k=0; k<allunits[i][j]->sight->size(); k++)
                 {
-                    makeRect((*(allunits[i][j]->sight))[k].x*3+50,(*(allunits[i][j]->sight))[k].y*3+50,3,3,grey);
+                    makeRect((*(allunits[i][j]->sight))[k].x*TILESIZE+50,(*(allunits[i][j]->sight))[k].y*TILESIZE+50,TILESIZE,TILESIZE,grey);
                 }
             }
         }
     }
-    makeRect(700, 50, 550, 600, offwhite);
+    int leftRect = 900;
+    makeRect(leftRect, 50, 550, 600, offwhite);
     int tx,ty;
-    tx=(mousex-50)/3;
-    ty=(mousey-50)/3;
+    tx=(mousex-50)/TILESIZE;
+    ty=(mousey-50)/TILESIZE;
     string text="x: ";
     text+=inttostring(tx);
     text+=", y: ";
     text+=inttostring(ty);
     char *print = new char[text.length()+1];
-    for(int i=0; i<text.length(); i++)
+    for(unsigned int i=0; i<text.length(); i++)
         print[i]=text[i];
     print[text.length()]=0;
-    renderBitmapString(710,80,0,GLUT_BITMAP_HELVETICA_18,print);
+    renderBitmapString(leftRect+10,80,0,GLUT_BITMAP_HELVETICA_18,print);
     delete[] print;
     
     text="height: ";
-    if(ty>=0 && ty<map.size() && tx>=0 && tx<map.size())
+    if(ty>=0 && ty<(int)map.size() && tx>=0 && tx<(int)map.size())
         text+=inttostring(map[ty][tx].height);
     else
         text+="n\\a";
     print = new char[text.length()+1];
-    for(int i=0; i<text.length(); i++)
+    for(unsigned int i=0; i<text.length(); i++)
         print[i]=text[i];
     print[text.length()]=0;
-    renderBitmapString(710,100,0,GLUT_BITMAP_HELVETICA_18,print);
+    renderBitmapString(leftRect+10,100,0,GLUT_BITMAP_HELVETICA_18,print);
     delete[] print;
     
     text="water: ";
-    if(ty>=0 && ty<map.size() && tx>=0 && tx<map.size())
+    if(ty>=0 && ty<(int)map.size() && tx>=0 && tx<(int)map.size())
         text+=inttostring(map[ty][tx].water);
     else
         text+="n\\a";
     print = new char[text.length()+1];
-    for(int i=0; i<text.length(); i++)
+    for(unsigned int i=0; i<text.length(); i++)
         print[i]=text[i];
     print[text.length()]=0;
-    renderBitmapString(710,120,0,GLUT_BITMAP_HELVETICA_18,print);
+    renderBitmapString(leftRect+10,120,0,GLUT_BITMAP_HELVETICA_18,print);
     delete[] print;
     
     text="frames: ";
     text+=inttostring(numFrames);
     print = new char[text.length()+1];
-    for(int i=0; i<text.length(); i++)
+    for(unsigned int i=0; i<text.length(); i++)
         print[i]=text[i];
     print[text.length()]=0;
-    renderBitmapString(710,140,0,GLUT_BITMAP_HELVETICA_18,print);
+    renderBitmapString(leftRect+10,140,0,GLUT_BITMAP_HELVETICA_18,print);
     delete[] print;
     
-    if(ty>=0 && ty<map.size() && tx>=0 && tx<map.size() && map[ty][tx].uniton)
+    if(ty>=0 && ty<(int)map.size() && tx>=0 && tx<(int)map.size() && map[ty][tx].uniton)
     {
         text="energy: ";
         text+=inttostring(allunits[map[ty][tx].unitplayer][map[ty][tx].unitindex]->energy);
         print = new char[text.length()+1];
-        for(int i=0; i<text.length(); i++)
+        for(unsigned int i=0; i<text.length(); i++)
             print[i]=text[i];
         print[text.length()]=0;
-        renderBitmapString(800,100,0,GLUT_BITMAP_HELVETICA_18,print);
+        renderBitmapString(leftRect+140,100,0,GLUT_BITMAP_HELVETICA_18,print);
         delete[] print;
         
         text="health: ";
         text+=inttostring(allunits[map[ty][tx].unitplayer][map[ty][tx].unitindex]->health);
         print = new char[text.length()+1];
-        for(int i=0; i<text.length(); i++)
+        for(unsigned int i=0; i<text.length(); i++)
             print[i]=text[i];
         print[text.length()]=0;
-        renderBitmapString(800,120,0,GLUT_BITMAP_HELVETICA_18,print);
+        renderBitmapString(leftRect+140,120,0,GLUT_BITMAP_HELVETICA_18,print);
         delete[] print;
         
         text="hunger: ";
         text+=inttostring(allunits[map[ty][tx].unitplayer][map[ty][tx].unitindex]->hunger);
         print = new char[text.length()+1];
-        for(int i=0; i<text.length(); i++)
+        for(unsigned int i=0; i<text.length(); i++)
             print[i]=text[i];
         print[text.length()]=0;
-        renderBitmapString(800,140,0,GLUT_BITMAP_HELVETICA_18,print);
+        renderBitmapString(leftRect+140,140,0,GLUT_BITMAP_HELVETICA_18,print);
         delete[] print;
         
         text="sleep: ";
         text+=inttostring(allunits[map[ty][tx].unitplayer][map[ty][tx].unitindex]->sleep);
         print = new char[text.length()+1];
-        for(int i=0; i<text.length(); i++)
+        for(unsigned int i=0; i<text.length(); i++)
             print[i]=text[i];
         print[text.length()]=0;
-        renderBitmapString(800,160,0,GLUT_BITMAP_HELVETICA_18,print);
+        renderBitmapString(leftRect+140,160,0,GLUT_BITMAP_HELVETICA_18,print);
         delete[] print;
         
         text="pregnant: ";
         text+=inttostring(allunits[map[ty][tx].unitplayer][map[ty][tx].unitindex]->pregnant);
         print = new char[text.length()+1];
-        for(int i=0; i<text.length(); i++)
+        for(unsigned int i=0; i<text.length(); i++)
             print[i]=text[i];
         print[text.length()]=0;
-        renderBitmapString(800,180,0,GLUT_BITMAP_HELVETICA_18,print);
+        renderBitmapString(leftRect+140,180,0,GLUT_BITMAP_HELVETICA_18,print);
         delete[] print;
     }
     
@@ -623,7 +642,7 @@ int main(int argc, char **argv)
     {
         map[i].resize(200);
     }
-    allunits.resize(2);
+    allunits.resize(3);
     readMap();
     readUnit();
     

@@ -10,58 +10,34 @@
 
 using namespace std;
 
-unit::unit() : throwSkill(0)
+unit::unit() : creature(), throwSkill(0)
 {
 }
 
-unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP, short wt, short ftw, short fre, short enm) : throwSkill(throwXP)
+unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epf, short mr, short mmr, short sm, short throwXP, short wt, short ftw, short fre, short enm) : creature(g, pspeed, i, los, MAXHEALTH, wt, NEWBORNHUNGER, px, py, NEWBORNSLEEP, a, NEWBORNENERGY, -1, 0, wec, NEWBORNMINWEIGHT, ftw, fre, mmr, epf, mr), throwSkill(throwXP)
 {
     player=p;
-    index=i;
-    sleep=NEWBORNSLEEP;
-    energy=NEWBORNENERGY;
     strength=str;
-    gender=g;
     intelligence=intel;
-    age=a;
-    moveToX=x=px;
-    moveToY=y=py;   
-    speed=pspeed;
-    lineOfSight=los;
     immunity=immun;
-    health=MAXHEALTH;
     healthDiseaseInc=hdi;
-    woundEnergyCost=wec;
-    energyPerFood=epi;
-    metabolicRate=mr;
-    maxMetabolicRate=mmr;
     sexuallyMature=sm;
-    pregnant=-1;
     fetusid=-1;
-    hunger=NEWBORNHUNGER;
     learningSkills=new short[NUMSKILLS]; //update every time there is a new skill
     for(int i=0; i<NUMSKILLS; i++)
         learningSkills[i]=-1;
     
-    sleeping=false;
-    reproducing=0;
-    moving=false;  
+    reproducing=0;  
     throwing=false;
     eating=false;
     liftingOrDropping=false;
-    waking=false;
-    weight=wt;
-    fatBuildProgress=0;
-    fatToWeight=ftw;
-    fatRetrievalEfficiency=fre;
-    minWeight=NEWBORNMINWEIGHT;
     excreteNeed=-1;
     excreteNeedMax=enm;
     excreting=false;
-    movingprog=0;
 }
 unit::~unit()
 {
+	delete[] learningSkills;
     for(unsigned int i=0; i<carrying.size(); i++)
     {
         delete carrying[i];
@@ -74,13 +50,14 @@ bool unit::nextFrame()
     resetSkills();
     if(age==-1) //in womb
         return true; //complete successfully
-    livingEvents();
-    if(!checkLive())
-        return false;   
+    livingEvents(0);
+    if(!checkLive(MAXHUNGER))
+        return false;
+    emergencySleep();
     for(unsigned int i=0; i<allMinds.data[player].size(); i++)
         seehive(i);
-    seeunit();
-    if(!checkLive())
+    see();
+    if(!checkLive(MAXHUNGER))
     {
         unseeunit();
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
@@ -89,7 +66,7 @@ bool unit::nextFrame()
     }
     infect();
     diseaseEffects();
-    if(!checkLive())
+    if(!checkLive(MAXHUNGER))
     {
         unseeunit();
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
@@ -100,7 +77,7 @@ bool unit::nextFrame()
     act(); //AI
     if(movingprog==tempmovingprog) //did not move
         movingprog=0; //no progress on moving
-    if(!checkLive())
+    if(!checkLive(MAXHUNGER))
     {
         unseeunit();    
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
@@ -109,7 +86,6 @@ bool unit::nextFrame()
     }
     learn(); //learn if you set that you want to and you're near whoever you are learning from and they did something
     unseeunit();
-    emergencySleep();
     resetActions();
     return true;
 }
@@ -141,8 +117,8 @@ void unit::moveHelper(int mx, int my)
         map[y][x].unitindex=index;
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
             seehive(i);
-        vector<point> seensq = seeunit(true);
-        unitChangeLog::update(x-mx,y-my,player,index,mx,my,-damage,MOVEMENTENERGY,0,0,0,&seensq);
+        vector<point> seensq = seeGUI(); 
+        creatureChangeLog::update(x-mx,y-my,player,index,mx,my,-damage,MOVEMENTENERGY,0,0,0,&seensq);
     }
     else
     {
@@ -310,76 +286,20 @@ void unit::diseaseEffects()
     for(unsigned int i=0; i<diseased.size(); i++)
         energy-=allDiseases[diseased[i]].energyCost;
     if(energy-start!=0)
-        unitChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0,NULL);
+        creatureChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0,NULL);
 }
-void unit::livingEvents()
+void unit::livingEvents(int speciesIndex)
 {
     int deltaE=energy;
     int deltaH=hunger;
     int deltaP=pregnant;
     int deltaS=sleep;
     int deltaHlth=health;
-    energy-=LIVINGENERGYPERSTRENGTH*strength/5;
-    energy-= ((rand()%5)<(strength%5)) ? LIVINGENERGYPERSTRENGTH : 0;
-    if(sleeping)
-        sleep+=3;
-    else
-        sleep--;
-    energy-=(MAXHEALTH-health)*woundEnergyCost;
-    if(energy<ENERGYFROMFATPOINT)
+    creature::livingEvents(0);
+    if(hunger!=deltaH)
     {
-        if(weight>NEWBORNMINWEIGHT && frames%ENERGYFROMFATRATE==0)
-        {
-            weight--;
-            energy+=fatToWeight*fatRetrievalEfficiency/1000;
-        }
-    }
-    if(energy<ENERGYCRITPOINT)
-    {
-        if(frames%maxMetabolicRate==0)
-        {
-            hunger++;
-            energy+=energyPerFood;
-            if(hunger%EXCRETIONFREQ==0 && hunger!=0)
-                excreteNeed=0;
-        }
-    }
-    else
-    {
-        if(frames%metabolicRate==0)
-        {
-            hunger++;
-            energy+=energyPerFood;
-            if(hunger%EXCRETIONFREQ==0 && hunger!=0)
-                excreteNeed=0;
-        }
-    }
-    if(pregnant>=0)
-    {
-        pregnant++;
-        energy-=PREGNANTENERGYCOST*(2*(pregnant/1000));
-    }
-    if(reproducing>0)
-    {
-        reproducing++;
-        if(pregnant>0)
-            pregnant--; //not yet
-        if(reproducing>REPRODUCTIONTIME)
-            reproducing=0; //done
-    }
-    if(pregnant>=GESTATIONPERIOD) //birth
-    {
-        giveBirth(); //changes health and pregnant
-    }
-    if(energy>ENERGYSOFTMAX)
-    {
-        energy--;
-        fatBuildProgress++;
-        if(fatBuildProgress>=fatToWeight)
-        {
-            fatBuildProgress=0;
-            weight++; 
-        }
+    	if(hunger%EXCRETIONFREQ==0 && hunger!=0)
+    		excreteNeed=0;
     }
     if(excreteNeed>=0)
     {
@@ -387,163 +307,15 @@ void unit::livingEvents()
         if(excreteNeed>=excreteNeedMax)
             shit();
     }
-    unitChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,sleep-deltaS,pregnant-deltaP,NULL);
-}
-bool unit::checkLive()
-{
-    if(health<0) 
-        return false; //death by physical damage. 
-    if(energy<0)
-        return false; //death by energy loss. Unlikely to happen unless you are diseased. This is how diseases kill.
-    if(sleep<0)
-        return false; //death by extreme sleep deprivation
-    if(hunger>=MAXHUNGER) 
-        return false; //death by starvation
-    return true;
-}
-void unit::seeunit()
-{
-    vector<visionObstacle> obstacles; //stores slope to obstacles
-    mapseenunit[player][y][x].b=1; //own square is completely visable
-    for(int i=1; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
-    {
-        for(int j=-i; j<=i; j++)
-        {
-            bool allowed[4]={true,true,true,true};
-            double curSlopes[4]={(double)i/(double)j,(double)(-i)/(double)j,(double)j/(double)i,(double)j/(double)(-i)};
-            point curPoints[4]={point(j,i),point(j,-i),point(i,j),point(-i,j)};
-            for(unsigned int k=0; k<obstacles.size(); k++)
-            {
-                for(int h=0; h<4; h++)
-                {
-                    if(allowed[h]==false)
-                        continue;
-                    if(curSlopes[h]!=1.0/0.0) //slope is normal
-                    {
-                        if(obstacles[k].slope1>obstacles[k].slope2) //Q I or Q II   //Also includes all times when obstacle is on an axis
-                        {
-                            if((curPoints[h].y<0) || (obstacles[k].y==0 || obstacles[k].x==0)) //correct quadrant, or on axis. y flipped because everything is flipped
-                            {
-                                if((obstacles[k].slope2<curSlopes[h] && curSlopes[h]<obstacles[k].slope1 && obstacles[k].x!=0) || ((obstacles[k].slope2>curSlopes[h] || curSlopes[h]>obstacles[k].slope1) && obstacles[k].x==0)) //between two slopes of obstacle: unseen
-                                {
-                                    if((obstacles[k].y==0 && ((curPoints[h].x<0)==(obstacles[k].x<0))) || (obstacles[k].x==0 && ((curPoints[h].y<0)==(obstacles[k].y<0))) || (obstacles[k].x!=0 && obstacles[k].y!=0)) //extra test for the points on an axis //check this
-                                        allowed[h]=false;
-                                }
-                            }
-                        }
-                        else //Q III,Q IV //s2<s1.
-                        {
-                            if(curPoints[h].y>0) //y flipped b/c everything is flipped. y axis goes negative->positive top->down
-                            {
-                                if(obstacles[k].slope1<curSlopes[h] && curSlopes[h]<obstacles[k].slope2)
-                                    allowed[h]=false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if(curPoints[h].x==obstacles[k].x && abs(curPoints[h].y)>abs(obstacles[k].y) && ((curPoints[h].y<0)==(obstacles[h].y<0))) //point is greater than obstacle and has the same sign as the obstacle
-                            allowed[h]=false;
-                    }
-                }
-            }
-            bool *ret;
-            for(int h=0; h<4; h++) //for all 4 points I'm checking
-            {
-                if(allowed[h]) //if its not behind an obstacle
-                {
-                    if((( ((map[y+curPoints[h].y][x+curPoints[h].x].bush>=125) ? 124 : map[y+curPoints[h].y][x+curPoints[h].x].bush) / 25 * CAMEOPER25BUSH) + (((map[y+curPoints[h].y][x+curPoints[h].x].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+curPoints[h].y][x+curPoints[h].x].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
-                        mapseenunit[player][y+curPoints[h].y][x+curPoints[h].x].b=2;  //can see tile but not units on it
-                    else
-                        mapseenunit[player][y+curPoints[h].y][x+curPoints[h].x].b=1;  //can see tile and units on it                  
-                    ret = map[y+curPoints[h].y][x+curPoints[h].x].blocksVision(this); //if I saw an obstacle, add it to the list of obstacles
-                    if(*ret)
-                        obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
-                    delete ret; //delete the pointer. No memory leaks.
-                }
-            }
-        }
-    }
-}
-vector<point> unit::seeunit(bool gui)
-{
-    vector<point> toreturn;
-    vector<visionObstacle> obstacles; //stores slope to obstacles
-    mapseenunit[player][y][x].b=1; //own square is completely visable
-    for(int i=1; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
-    {
-        for(int j=-i; j<=i; j++)
-        {
-            bool allowed[4]={true,true,true,true};
-            double curSlopes[4]={(double)i/(double)j,(double)(-i)/(double)j,(double)j/(double)i,(double)j/(double)(-i)};
-            point curPoints[4]={point(j,i),point(j,-i),point(i,j),point(-i,j)};
-            for(unsigned int k=0; k<obstacles.size(); k++)
-            {
-                for(int h=0; h<4; h++)
-                {
-                    if(allowed[h]==false)
-                        continue;
-                    if(curSlopes[h]!=1.0/0.0) //slope is normal
-                    {
-                        if(obstacles[k].slope1>obstacles[k].slope2) //Q I or Q II   //Also includes all times when obstacle is on an axis
-                        {
-                            if((curPoints[h].y<0) || (obstacles[k].y==0 || obstacles[k].x==0)) //correct quadrant, or on axis. y flipped because everything is flipped
-                            {
-                                if((obstacles[k].slope2<curSlopes[h] && curSlopes[h]<obstacles[k].slope1 && obstacles[k].x!=0) || ((obstacles[k].slope2>curSlopes[h] || curSlopes[h]>obstacles[k].slope1) && obstacles[k].x==0)) //between two slopes of obstacle: unseen
-                                {
-                                    if((obstacles[k].y==0 && ((curPoints[h].x<0)==(obstacles[k].x<0))) || (obstacles[k].x==0 && ((curPoints[h].y<0)==(obstacles[k].y<0))) || (obstacles[k].x!=0 && obstacles[k].y!=0)) //extra test for the points on an axis //check this
-                                        allowed[h]=false;
-                                }
-                            }
-                        }
-                        else //Q III,Q IV //s2<s1.
-                        {
-                            if(curPoints[h].y>0) //y flipped b/c everything is flipped. y axis goes negative->positive top->down
-                            {
-                                if(obstacles[k].slope1<curSlopes[h] && curSlopes[h]<obstacles[k].slope2)
-                                    allowed[h]=false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if(curPoints[h].x==obstacles[k].x && abs(curPoints[h].y)>abs(obstacles[k].y) && ((curPoints[h].y<0)==(obstacles[h].y<0))) //point is greater than obstacle and has the same sign as the obstacle
-                            allowed[h]=false;
-                    }
-                }
-            }
-            bool *ret;
-            for(int h=0; h<4; h++) //for all 4 points I'm checking
-            {
-                if(allowed[h]) //if its not behind an obstacle
-                {
-                    if((( ((map[y+curPoints[h].y][x+curPoints[h].x].bush>=125) ? 124 : map[y+curPoints[h].y][x+curPoints[h].x].bush) / 25 * CAMEOPER25BUSH) + (((map[y+curPoints[h].y][x+curPoints[h].x].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+curPoints[h].y][x+curPoints[h].x].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
-                        mapseenunit[player][y+curPoints[h].y][x+curPoints[h].x].b=2;  //can see tile but not units on it
-                    else
-                        mapseenunit[player][y+curPoints[h].y][x+curPoints[h].x].b=1;  //can see tile and units on it                  
-                    toreturn.push_back(point(x+curPoints[h].x,y+curPoints[h].y));
-                    ret = map[y+curPoints[h].y][x+curPoints[h].x].blocksVision(this); //if I saw an obstacle, add it to the list of obstacles
-                    if(*ret)
-                        obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
-                    delete ret; //delete the pointer. No memory leaks.
-                }
-            }
-        }
-    }
-    return toreturn;
+    creatureChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,sleep-deltaS,pregnant-deltaP,NULL);
 }
 void unit::unseeunit()
 {
-    for(int i=0; i<=lineOfSight; i++) //reveals map, in a square that is growing out from the central point. It does this so that later when I implement walls and stuff its easier to block things, since you'll be seeing in a nicer order.
-    {
-        for(int j=-i; j<=i; j++)
-        {
-            mapseenunit[player][y+i][x+j].b=0;
-            mapseenunit[player][y-i][x+j].b=0;
-            mapseenunit[player][y+j][x+i].b=0;
-            mapseenunit[player][y+j][x-i].b=0;
-        }
-    }
+	for(unsigned int i=0; i<currSeen->size(); i++)
+	{
+		for(unsigned int j=0; j<currSeen->size(); j++)
+			(*currSeen)[i][j].b=0;
+	}
 }
 void unit::seehive(int hiveindex)
 {
@@ -683,7 +455,7 @@ void unit::giveBirth()
     map[child->y][child->x].uniton=true;
     map[child->y][child->x].unitplayer=child->player;
     map[child->y][child->x].unitindex=child->index;
-    unitChangeLog::update(child->x,child->y,child->player,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant,NULL);
+    creatureChangeLog::update(child->x,child->y,child->player,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant,NULL);
 }
 void unit::emergencySleep()
 {
@@ -738,7 +510,7 @@ void unit::die()
     delete allUnits.data[player][index];
     allUnits.data[p][i]=NULL;
     vector<point> *t= new vector<point>();
-    unitChangeLog::update(-99999,-99999,p,i,-99999,-99999,-99999,-99999,-99999,-99999,-99999,t);
+    creatureChangeLog::update(-99999,-99999,p,i,-99999,-99999,-99999,-99999,-99999,-99999,-99999,t);
     delete t;
 }
 void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. Object sharpness maybe. How hard/soft it is. 
@@ -747,11 +519,11 @@ void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. O
 }
 void unit::resetActions() //sleeping is controlled differently, and reproduction is in livingEvents()
 {
-    moving=false;
+	creature::resetActions();
     throwing=false;
     eating=false;
     liftingOrDropping=false;
-    waking=false;
+    excreting=false;
 }
 void unit::resetSkills()
 {
@@ -878,59 +650,9 @@ unit& unit::operator=(const unit &source)
 }
 void unit::move() //make moving an int to force continual
 {
-    if(sleeping || reproducing>0 || moving || throwing || waking || excreting)
-        return;
-    if(moveToX==x && moveToY==y)
-        return;
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
         return;
-    movingprog++;
-    moving=true;
-    if(movingprog==speed)
-    {
-        movingprog=0;
-        if(moveToX>x)
-        {
-            if(moveToY>y)
-            {
-                moveHelper(1,1);
-            }
-            else if(moveToY==y)
-            {
-                moveHelper(1,0);
-            }
-            else if(moveToY<y)
-            {
-                moveHelper(1,-1);
-            }
-        }
-        else if(moveToX==x)
-        {
-            if(moveToY>y)
-            {
-                moveHelper(0,1);
-            }
-            else if(moveToY<y)
-            {
-                moveHelper(0,-1);
-            }
-        }
-        if(moveToX<x)
-        {
-            if(moveToY>y)
-            {
-                moveHelper(-1,1);
-            }
-            else if(moveToY==y)
-            {
-                moveHelper(-1,0);
-            }
-            else if(moveToY<y)
-            {
-                moveHelper(-1,-1);
-            }
-        }
-    }
+    creature::move();
 }
 void unit::move(short mx, short my)
 {
@@ -967,17 +689,17 @@ void unit::reproduce(int withwhom)
                 {
                     pregnant=0;
                     fetusid=allUnits.data[player].size();
-                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
-                    unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
+                    creatureChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
+                    creatureChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
                 }
                 else //partner is female
                 {
                     allUnits.data[player][withwhom]->pregnant=0;
                     allUnits.data[player][withwhom]->fetusid=allUnits.data[player].size();
-                    unitChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
-                    unitChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
+                    creatureChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
+                    creatureChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
                 }
-                allUnits.data[player].push_back(new unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom]->strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom]->speed)/2,(lineOfSight+allUnits.data[player][withwhom]->lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom]->immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom]->healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom]->woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom]->energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom]->metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom]->maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2,0,(rand()%4)+6,geneMixer(fatToWeight,allUnits.data[player][withwhom]->fatToWeight),geneMixer(fatRetrievalEfficiency,allUnits.data[player][withwhom]->fatRetrievalEfficiency),geneMixer(excreteNeedMax,allUnits.data[player][withwhom]->excreteNeedMax))); //adds the new unit. It doesn't really exist though
+                allUnits.data[player].push_back(new unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom]->strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom]->speed)/2,(lineOfSight+allUnits.data[player][withwhom]->lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom]->immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom]->healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom]->woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom]->energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom]->metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom]->maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2,0,(rand()%4)+NEWBORNMINWEIGHT,geneMixer(fatToWeight,allUnits.data[player][withwhom]->fatToWeight),geneMixer(fatRetrievalEfficiency,allUnits.data[player][withwhom]->fatRetrievalEfficiency),geneMixer(excreteNeedMax,allUnits.data[player][withwhom]->excreteNeedMax))); //adds the new unit. It doesn't really exist though
                 if(allUnits.data[player][fetusid]->maxMetabolicRate>allUnits.data[player][fetusid]->metabolicRate)
                     allUnits.data[player][fetusid]->maxMetabolicRate=allUnits.data[player][fetusid]->metabolicRate-3;
                 energy-=REPRODUCTIONENERGYCOST;
@@ -1002,11 +724,9 @@ void unit::goToSleep()
     }
     sleeping=true;
 }
-void unit::awaken()
+void unit::awaken() //makes it public
 {
-    if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
-        return;
-    sleeping=false;
+	creature::awaken();
 }
 void unit::pickUp(int what, int ox, int oy)
 {
@@ -1036,6 +756,7 @@ void unit::pickUp(int what, int ox, int oy)
             break;
         }
     }
+    liftingOrDropping=true;
 }
 void unit::putDown(int objIndex, int px, int py)
 {
@@ -1052,6 +773,7 @@ void unit::putDown(int objIndex, int px, int py)
     carrying[objIndex]->index=map[y][x].allObjects.size();
     map[y][x].allObjects.push_back(carrying[objIndex]);
     carrying.erase(carrying.begin()+objIndex);
+    liftingOrDropping=true;
 }
 void unit::eat(int objIndex)
 {
@@ -1150,9 +872,9 @@ vector<object> unit::getcarrying()
     { \
         if(looking) \
         { \
-            if(curLoops.unitIndex==looking->index && curLoops.unitPlayer==looking->player) \
+            if(curLoops.unitIndex==looking->index && curLoops.unitPlayer==looking->player && abs(looking->x-x) > looking->lineOfSight && abs(looking->y-y) > looking->lineOfSight) \
             { \
-                if(mapseenunit[looking->player][y][x].get(looking)==1) \
+                if((*currSeen)[looking->lineOfSight+looking->y-y][looking->lineOfSight+looking->x-x].get(looking)==1) \
                     return val; \
             } \
         } \

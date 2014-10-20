@@ -11,7 +11,7 @@
 #include "currLoopVar.h"
 #include "object.h"
 #include "Animalia/animal.h"
-#include "Animalia/species.h"
+#include "species.h"
 
 using namespace std;
 
@@ -20,11 +20,10 @@ vector<vector<tile> > map;
 allunits allUnits;
 unsigned long long frames=0;
 vector<disease> allDiseases;
-vector<vector<vector<metabool> > > mapseenunit; //[player][y][x]
 vector<vector<vector<vector<metabool> > > > mapseenhive; //[player][hive][y][x]
 allminds allMinds;
-vector<unitChangeLog> allUnitChanges;
-vector<animalChangeLog> allAnimalChanges;
+vector<creatureChangeLog> allCreatureChanges;
+//vector<animalChangeLog> allAnimalChanges;
 ofstream *unitChangeFile;
 ofstream *animalChangeFile;
 curLoopVar curLoops;
