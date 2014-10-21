@@ -102,8 +102,8 @@ void unit::moveHelper(int mx, int my)
     if(map[y+my][x+mx].walkable(this))
     {   
         int damage=0;
-        if(map[y][x].height-map[y+my][x+mx].height>1) //possibly painful height differential
-            health-=(damage=(int)((double)(map[y][x].height-map[y+my][x+mx].height-1)*(double)FALLINGMULTIPLIER));
+        if(map[y][x].height-map[y+my][x+mx].height > allSpecies[speciesIndex].tolerableHeightDiff) //possibly painful height differential
+            health-=(damage=(int)((double)(map[y][x].height-map[y+my][x+mx].height-allSpecies[speciesIndex].tolerableHeightDiff)*(double)FALLINGMULTIPLIER));
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
             unseehive(i);
         unseeunit();
@@ -797,15 +797,20 @@ void unit::eat(int objIndex)
         return;
     for(unsigned int i=0; i<carrying[objIndex]->infected.size(); i++)
     {
+    	//TODO maybe make this happen with spreadabilityChance probability?
         diseased.push_back(diseaseInfo(carrying[objIndex]->infected[i]));
         strength-=allDiseases[carrying[objIndex]->infected[i]].permStrCost;
         intelligence-=allDiseases[carrying[objIndex]->infected[i]].permIntelCost;
         immunity-=allDiseases[carrying[objIndex]->infected[i]].permImmunCost;
     }
     if(carrying[objIndex]->actuallyEdible>=0)
-        hunger-=carrying[objIndex]->possFood.nutrition;
+        hunger-=carrying[objIndex]->possFood->nutrition;
     if(hunger<0)
         hunger=0; //not entirely accurate, but there is some physical limit to how much you can eat. Here, there is no limit, but eventually it doesn't do anything when you eat.
+    //ate the object, it's gone now.
+    delete carrying[objIndex];
+    carrying[objIndex]=NULL;
+    carrying.erase(carrying.begin()+objIndex);
 }
 void unit::throwObj(int objIndex, short atX, short atY, int strength)
 {

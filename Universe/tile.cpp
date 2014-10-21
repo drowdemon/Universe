@@ -30,8 +30,11 @@ tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool u
 }
 bool tile::walkable(unit *u) //call with destination as the this tile
 {
-    if(curLoops.unitIndex!=u->index || curLoops.unitPlayer!=u->player)
-        return false; //illegal
+    unsigned short *allowed=getanimalPresent(*u);
+    if(!allowed) //checks all types of illegality, i.e. not being yourself, or not being able to see the tile, etc. 
+    	return false;
+    else
+    	delete allowed;
     if(water>2) //not very shallow water
         return false; //nope
     if(animalPresent!=0) //animal on that tile
@@ -55,8 +58,11 @@ bool tile::walkable(unit *u) //call with destination as the this tile
 }
 bool tile::walkable(hiveMind* h, short fx, short fy)
 {
-    if(curLoops.hiveIndex!=h->index || curLoops.hivePlayer!=h->player)
-        return false; //illegal
+	unsigned short *allowed=getanimalPresent(*h);
+    if(!allowed) //checks for some illegality, i.e. not being yourself, or not being allowed to see the tile (even though it may be in range), etc. 
+    	return false;
+    else
+    	delete allowed;
     if(abs(fx - h->centerx)>h->range || abs(fy - h->centery)>h->range)
         return false; //illegal
     if(abs(x - h->centerx)>h->range || abs(y - h->centery)>h->range)
@@ -84,6 +90,8 @@ bool tile::walkable(hiveMind* h, short fx, short fy)
 }
 bool tile::walkable(animal *a) //call with this pointer as tile to check
 {
+	if(curLoops.animalIndex!=a->index) //illegal
+		return false; 
     if(water>2) //not very shallow water
         return false; //nope
     if(animalPresent!=0) //animal on that tile

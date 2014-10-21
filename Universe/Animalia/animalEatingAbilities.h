@@ -11,7 +11,8 @@ class animalEatingAbilities : animal
     friend class herbivore;
     friend class carnivore;
 public:
-    virtual bool eatingBehavior(vector<vector<short> > * foodLocs) = 0;
+    virtual bool eatingBehavior(vector<vector<short> > * foodLocs);
+    virtual bool canEat(vector<vector<short> > * foodLocs, short px, short py) = 0;
     virtual ~animalEatingAbilities();
 };
 
@@ -20,13 +21,13 @@ class herbivore : animalEatingAbilities
 public:
     bool eatGrass;
     herbivore(bool eG);
-    bool eatingBehavior(vector<vector<short> > * foodLocs);
+    bool canEat(vector<vector<short> > * foodLocs, short px, short py);
 };
 
 class carnivore : animalEatingAbilities
 {
 public:
-    bool eatingBehavior(vector<vector<short> > * foodLocs);
+    bool canEat(vector<vector<short> > * foodLocs, short px, short py);
 };
 
 #endif

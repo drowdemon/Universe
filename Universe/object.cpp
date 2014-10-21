@@ -23,7 +23,7 @@ objectDescriptor::objectDescriptor(short w, short wv, short pid, bool walk, bool
     possFood=pf;
 }
 
-object::object(short w, short p, short i, short px, short py, short what, bool aedib, food pf, short ind, short h)
+object::object(short w, short p, short i, short px, short py, short what, bool aedib, food* pf, short ind, short h)
 {
     weight=w;
     heldByPlayer=p;
@@ -53,11 +53,16 @@ object::object(objectDescriptor& od, short p, short i, short px, short py, short
         infected.push_back(od.disease);
         infectionTime.push_back(-1); //forever and ever and ever.
     }
-    possFood=od.possFood;
+    possFood = new food(od.possFood);
     speed=0;
     toX=toY=-1;
     index=ind;
     height=h;
+}
+
+object::~object()
+{
+	delete possFood;
 }
 
 bool object::rot()
@@ -74,7 +79,7 @@ bool object::rot()
     if(!possFood)
         return true;
     vector<int> dis;
-    dis=possFood.rot();
+    dis=possFood->rot();
     if(dis.size()==1 && dis[0]==-1) //destroy this, it biodegraded
         return false; //existence failure
     for(unsigned int i=0; i<dis.size(); i++)
@@ -205,69 +210,69 @@ void object::move()
 }
 
 #define Z(type, val) \
-    type object::get ## val(unit *u) \
+    type * object::get ## val(unit *u) \
     { \
         if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer && abs(u->y-y) > u->lineOfSight && abs(u->x-x) > u->lineOfSight) \
         { \
             if((heldByPlayer==u->player && heldByIndex==u->index) || ((*u->currSeen)[u->lineOfSight+y-u->y][u->lineOfSight+x-u->x].get(u)>0)) \
             { \
                 if(height>=map[y][x].height) \
-                    return val; \
+                	return new type(val); \
             } \
         } \
-        return -9999; \
+        return NULL; \
     } 
     LISTVARSOBJVAR
 #undef Z
 
 #define Z(type, val) \
-    type object::get ## val(unit *u) \
+    type * object::get ## val(unit *u) \
     { \
         if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer && abs(u->y-y) > u->lineOfSight && abs(u->x-x) > u->lineOfSight) \
         { \
             if((heldByPlayer==u->player && heldByIndex==u->index) || ((*u->currSeen)[u->lineOfSight+y-u->y][u->lineOfSight+x-u->x].get(u)>0)) \
             { \
                 if(height>=map[y][x].height) \
-                    return allObjectDesc[whatIsIt].val; \
+                    return new type(allObjectDesc[whatIsIt].val); \
             } \
         } \
-        return -9999; \
+        return NULL; \
     } 
     LISTVARSOBJSTAT
 #undef Z
             
 #define Z(type, val) \
-    type object::get ## val(hiveMind *h, short wx, short wy) \
+    type * object::get ## val(hiveMind *h, short wx, short wy) \
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
         { \
             if(wx==(short)x && wy==(short)y && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][(short)y][(short)x].get(h)>0 && height>=map[(short)y][(short)x].height) \
             { \
-                return val; \
+                return new type(val); \
             } \
         } \
-        return -9999; \
+        return NULL; \
     } 
     LISTVARSOBJVAR
 #undef Z
 
 #define Z(type, val) \
-    type object::get ## val(hiveMind *h, short wx, short wy) \
+    type * object::get ## val(hiveMind *h, short wx, short wy) \
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
         { \
             if(wx==(short)x && wy==(short)y && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][(short)y][(short)x].get(h)>0 && height>=map[(short)y][(short)x].height) \
             { \
-                return allObjectDesc[whatIsIt].val; \
+                return new type(allObjectDesc[whatIsIt].val); \
             } \
         } \
-        return -9999; \
+        return NULL; \
     } 
     LISTVARSOBJSTAT
 #undef Z
             
 #define Z(type, val) \
-    type object::get ## val(hiveMind *h, short unitIndex) \
+    type * object::get ## val(hiveMind *h, short unitIndex) \
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer && h->player==heldByPlayer && unitIndex==heldByIndex) \
         { \
@@ -275,17 +280,17 @@ void object::move()
             { \
                 if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range && height>=map[y][x].height && mapseenhive[h->player][h->index][y][x].get(h)==1) \
                 { \
-                    return val; \
+                    return new type(val); \
                 } \
             } \
         } \
-        return -9999; \
+        return NULL; \
     } 
     LISTVARSOBJVAR
 #undef Z
 
 #define Z(type, val) \
-    type object::get ## val(hiveMind *h, short unitIndex) \
+    type * object::get ## val(hiveMind *h, short unitIndex) \
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer && h->player==heldByPlayer && unitIndex==heldByIndex) \
         { \
@@ -293,15 +298,17 @@ void object::move()
             { \
                 if(abs(allUnits.data[h->player][unitIndex]->y - h->centery)<h->range && abs(allUnits.data[h->player][unitIndex]->x - h->centerx)<h->range && height>=map[y][x].height && mapseenhive[h->player][h->index][y][x].get(h)==1) \
                 { \
-                    return allObjectDesc[whatIsIt].val; \
+                    return new type(allObjectDesc[whatIsIt].val); \
                 } \
             } \
         } \
-        return -9999; \
+        return NULL; \
     } 
     LISTVARSOBJSTAT
 #undef Z
 
+    
+    
 /*short object::getWeight(unit *u)
 {
     if(u->player==curLoops.unitPlayer && u->index==curLoops.unitPlayer)

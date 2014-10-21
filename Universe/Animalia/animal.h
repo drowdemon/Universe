@@ -32,7 +32,6 @@ class animal : private creature //each actual animal is one of these
 private:
     short animalType; //0 is small herbivore - rabbit, 1 is medium herbivore - deer, 2 is big herbivore - giraffe/elephant/hippo, 3 is small carnivore - fox, cat, 4 is medium carnivore - wolf, bobcat, 5 is large carnivore - lion, tiger
     short skittish; //how nervous it is when it sees something unknown
-    animalEatingAbilities *eatingBehavior;
     
     char searchDist;
     char searchDir; 
@@ -45,7 +44,7 @@ private:
     type p_ ## val,
     
 #define W(type, val) X(type, val)
-    animal(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSANIMAL animalEatingAbilities *p_eatingBehavior);
+    animal(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSANIMAL bool extraneous=true);
 #undef X
 #undef W
 protected:

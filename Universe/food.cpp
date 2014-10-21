@@ -6,14 +6,16 @@
 
 using namespace std;
 
-food::food(short twg, short rs, short n, short gtv, short origN)
+food::food(short twg, short rs, unsigned short rr, short n, short gtv, unsigned short origN, bool veg)
 {
     timeWhileGood=twg;
     rotSeverity=rs;
+    rotRate=rr;
     nutrition=n;
     goodTimeVariation=gtv;
-    timeWhileGood+=((rand()%(gtv*2+1))-gtv);
+    timeWhileGood += (rand()%(goodTimeVariation*2+1))-goodTimeVariation;
     origNutrition=origN;
+    vegetarian=veg;
 }
 
 vector<int> food::rot()
@@ -26,9 +28,12 @@ vector<int> food::rot()
     else
     {
         vector<int> ret;
-        rotSeverity++;
-        if(rotSeverity%2==0)
-            nutrition--;
+        if(frames%rotRate==0)
+        {
+        	rotSeverity++;
+        	if(rotSeverity%2==0)
+        		nutrition--;
+        }
         if(rotSeverity==origNutrition*6) //at *2 nutrition==0
         {
             ret.push_back(-1);
@@ -46,9 +51,7 @@ vector<int> food::rot()
     }
 }
 
-bool food::operator!()
+bool food::getVegetarian()
 {
-    if(timeWhileGood==-1 && rotSeverity==-1 && nutrition==-1 && goodTimeVariation==-1 && origNutrition==-1)
-        return true;
-    return false;
+	return vegetarian;
 }

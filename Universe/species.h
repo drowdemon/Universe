@@ -25,6 +25,7 @@
 	X(short, newbornMinWeight) \
 	X(short, movingSelfWeightPenalty) \
 	X(short, lineOfPerfectSight) \
+	X(short, tolerableHeightDiff)
 
 class animalEatingAbilities;
 
@@ -61,6 +62,7 @@ private:
     short newbornMinWeight; //how light a newborncan be, for constructor. After this, the min weight changes (deterministically) based on age, so it's a member variable.
     short movingSelfWeightPenalty; //per 50 weight, with it ceiled or floored according to rand()%(weight%50)
     short lineOfPerfectSight; //up to this point, you can see units perfectly (without cameouflage anyway). After that, you have a chance of seeing them, but you may also just see something, without knowing what it is that you saw. 
+    short tolerableHeightDiff; //the height difference between to tiles that can be walked across
     
     animalEatingAbilities *eatingBehavior;
 #define X(type, var) \

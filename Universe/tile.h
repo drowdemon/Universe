@@ -76,7 +76,7 @@ private:
 	short cameouflageAmnt();
 public:
     virtual ~tile();
-    bool walkable(unit *u); //whether the given unit can walk on the tile. //vehicles will be added later //buildings will be added later
+    bool walkable(unit *u); //Takes into account distance from tile //whether the given unit can walk on the tile. //vehicles will be added later //buildings will be added later
     bool walkable(hiveMind *h, short fx, short fy); //whether the given unit can walk on the tile. //vehicles will be added later //buildings will be added later
     //pubTile* get(unit& u);
     //pubTile* get(hiveMind& h);

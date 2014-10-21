@@ -11,14 +11,13 @@ animal::animal() : creature()
 #undef X
     searchDist=0;
 	searchDir=0;
-    eatingBehavior = NULL;
     currSeen=NULL;
 }
 
 #define X(type, val)				\
     type p_ ## val,    
 #define W(type, val) X(type, val)
-animal::animal(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSANIMAL animalEatingAbilities *p_eatingBehavior) : creature(
+animal::animal(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSANIMAL bool extraneous) : creature(
 
 		#undef W
 		#define W(type, val) p_ ## val,
@@ -31,7 +30,6 @@ animal::animal(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSANIMAL a
 #define X(type, var) var = p_ ## var ;     
     LISTVARSANIMAL
 #undef X
-    eatingBehavior=p_eatingBehavior;
     
 	searchDist=0;
 	searchDir=0;
@@ -111,7 +109,7 @@ vector<vector<short> > *animal::searchFood()
         if(x==moveToX && y==moveToY) //moved //Correct for case where there is an obstacle. Works otherwise because above movement is made quantized.
         {
             searchDist--;
-            if(eatingBehavior->eatingBehavior(foodLocs)) //true = found food
+            if(allSpecies[speciesIndex].eatingBehavior->eatingBehavior(foodLocs)) //true = found food
             {
                 foodapprox.push_back(point(x,y));
                 return foodLocs;
@@ -130,7 +128,7 @@ vector<vector<short> > *animal::searchFood()
         }
         if(x==foodapprox.back().x && y==foodapprox.back().y) //already there
         {
-            eatingBehavior->eatingBehavior(foodLocs);
+            allSpecies[speciesIndex].eatingBehavior->eatingBehavior(foodLocs);
         }
     }
     return foodLocs;
@@ -157,8 +155,8 @@ void animal::moveHelper(int mx, int my)
     if(map[y+my][x+mx].walkable(this))
     {   
         int damage=0;
-        if(map[y][x].height-map[y+my][x+mx].height>1) //possibly painful height differential
-            health-=(damage=(int)((double)(map[y][x].height-map[y+my][x+mx].height-1)*(double)FALLINGMULTIPLIER));
+        if(map[y][x].height-map[y+my][x+mx].height > allSpecies[speciesIndex].tolerableHeightDiff) //possibly painful height differential
+            health-=(damage=(int)((double)(map[y][x].height-map[y+my][x+mx].height-allSpecies[speciesIndex].tolerableHeightDiff)*(double)FALLINGMULTIPLIER));
         
         map[y][x].animalPresent=0;
         x+=mx;
@@ -271,7 +269,7 @@ void animal::goToSleep()
 }
 creature* animal::createFetus(int withwhom)
 {
-	allAnimals.push_back(new animal((bool)(rand()%2), geneMixer(speed, allAnimals[withwhom]->speed), allAnimals.size(), geneMixer(lineOfSight, allAnimals[withwhom]->lineOfSight), allSpecies[speciesIndex].maxHealth, (rand()%4)+allSpecies[speciesIndex].newbornMinWeight, allSpecies[speciesIndex].newbornHunger, -1, -1, allSpecies[speciesIndex].newbornSleep, 0, allSpecies[speciesIndex].newbornEnergy, -1, speciesIndex, geneMixer(woundEnergyCost, allAnimals[withwhom]->woundEnergyCost), allSpecies[speciesIndex].newbornMinWeight, geneMixer(fatToWeight, allAnimals[withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allAnimals[withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allAnimals[withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allAnimals[withwhom]->energyPerFood), geneMixer(metabolicRate, allAnimals[withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allAnimals[withwhom]->coefOfWorseningSight),(sexuallyMature+allAnimals[withwhom]->sexuallyMature)/2, animalType, geneMixer(skittish, allAnimals[withwhom]->skittish), allSpecies[speciesIndex].eatingBehavior)); //adds a new animal
+	allAnimals.push_back(new animal((bool)(rand()%2), geneMixer(speed, allAnimals[withwhom]->speed), allAnimals.size(), geneMixer(lineOfSight, allAnimals[withwhom]->lineOfSight), allSpecies[speciesIndex].maxHealth, (rand()%4)+allSpecies[speciesIndex].newbornMinWeight, allSpecies[speciesIndex].newbornHunger, -1, -1, allSpecies[speciesIndex].newbornSleep, 0, allSpecies[speciesIndex].newbornEnergy, -1, speciesIndex, geneMixer(woundEnergyCost, allAnimals[withwhom]->woundEnergyCost), allSpecies[speciesIndex].newbornMinWeight, geneMixer(fatToWeight, allAnimals[withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allAnimals[withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allAnimals[withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allAnimals[withwhom]->energyPerFood), geneMixer(metabolicRate, allAnimals[withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allAnimals[withwhom]->coefOfWorseningSight),(sexuallyMature+allAnimals[withwhom]->sexuallyMature)/2, animalType, geneMixer(skittish, allAnimals[withwhom]->skittish))); //adds a new animal
     return allAnimals[allAnimals.size()-1];
 }
 

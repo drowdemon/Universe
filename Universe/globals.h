@@ -57,7 +57,9 @@ using namespace std;
 #define CAMEOFORTREE 2   //cameo for a tree being there
 #define CAMEOFORROAD -2 //cameo lost for being on a road of any quality. Note: This does not increase a units line of sight, but merely counteracts cameo that the unit on the road may have. If the unit has none, units looking at it won't be able to see it from further than usual.
 #define SPEAKDIST 15 //how far away a unit can be to talk to another unit (communication wrapper allows info exchange/requests)
-#define ANIMALSIZETOFOODAMOUNT 40
+#define ANIMALSIZETOFOODAMOUNT 40  //animals can be small, medium or large. As animal size increases, the amount of food its corpse would provide increases by this amount
+#define GRASSONTILE 1000 //arbitrary number representing the amount of grass-as-food on a tile which is grassy
+#define TOLERABLEHEIGHTDIFF 5
 //function declarations
 int geneMixer(int p1, int p2);
 

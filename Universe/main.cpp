@@ -33,9 +33,9 @@ void init()
     tileConstructorAllowed=false;
     unitChangeFile = new ofstream("unitChanges");
     
-    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)-1, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, 3, NULL));
+    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)-1, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, 3, TOLERABLEHEIGHTDIFF, NULL));
     //an animal identical to a unit
-    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)0, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, 3, NULL));
+    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)0, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, 3, TOLERABLEHEIGHTDIFF, NULL));
     
     allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,-3,-1,food()));
     allObjectDesc.push_back(objectDescriptor(50,5,OBJECT_CORPSE,true,true,true,-2,-1,food())); //INCORRECT STATS. DEFINITELY. 
@@ -199,7 +199,7 @@ int main()
     allUnits.data[0][0]->carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0,map[allUnits.data[0][0]->y][allUnits.data[0][0]->x].height));
     
     
-    allAnimals.push_back(new animal(true, 20, 0, 5, 100, 50, 0, 20, 20, 700, 0, 1000, -1, 1, 1, 5, 60, 50, 8, 30, 13, 1, 250, 13, 5, NULL));
+    allAnimals.push_back(new animal(true, 20, 0, 5, 100, 50, 0, 20, 20, 700, 0, 1000, -1, 1, 1, 5, 60, 50, 8, 30, 13, 1, 250, 13, 5));
     creatureChangeLog::update(20,20,-1,0,0,0,allAnimals[0]->health,allAnimals[0]->energy,allAnimals[0]->hunger,allAnimals[0]->sleep,allAnimals[0]->pregnant,NULL);
     map[20][20].animalPresent=0;
     

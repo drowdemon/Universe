@@ -24,6 +24,7 @@ public:
     friend class carnivore;
     friend class tile;
     friend class creature;
+    friend class animalEatingAbilities;
 	//friend bool* tile::blocksVision(animal*);
 };
 
