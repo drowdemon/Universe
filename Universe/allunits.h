@@ -20,10 +20,12 @@ class allunits
     friend void unit::die();
     friend void unit::giveBirth();
     friend void unit::learn();
+    friend creature* unit::createFetus(int);
     friend class hiveMind;
     friend class object;
     friend void reformat();
 	friend class commWrapper;
+	friend void creature::reproduce(int, creature*);
 private:
     vector<vector<unit*> > data; //It stores pointers to units to save stack space. 
 public:

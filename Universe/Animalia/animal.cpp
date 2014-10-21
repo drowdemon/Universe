@@ -196,15 +196,68 @@ void animal::die()
 }
 void animal::giveBirth()
 {
-	//creatureChangeLog::update(child->x,child->y,-1,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant,NULL);
+    pregnant=-1;
+    health-=BIRTHHEALTHLOSS;
+    energy-=BIRTHENERGYLOSS;
+    animal* child=allAnimals[fetusid];
+    child->age=0;
+    if(map[y+1][x].walkable(this))
+    {
+        child->moveToX=child->x=x;
+        child->moveToY=child->y=y+1;
+    }
+    else if(map[y-1][x].walkable(this))
+    {
+        child->moveToX=child->x=x;
+        child->moveToY=child->y=y-1;
+    }
+    else if(map[y][x+1].walkable(this))
+    {
+        child->moveToX=child->x=x+1;
+        child->moveToY=child->y=y;
+    }
+    else if(map[y][x-1].walkable(this))
+    {
+        child->moveToX=child->x=x-1;
+        child->moveToY=child->y=y;
+    }
+    else if(map[y-1][x-1].walkable(this))
+    {
+        child->moveToX=child->x=x-1;
+        child->moveToY=child->y=y-1;
+    }
+    else if(map[y-1][x+1].walkable(this))
+    {
+        child->moveToX=child->x=x+1;
+        child->moveToY=child->y=y-1;
+    }
+    else if(map[y+1][x+1].walkable(this))
+    {
+        child->moveToX=child->x=x+1;
+        child->moveToY=child->y=y+1;
+    }
+    else if(map[y+1][x-1].walkable(this))
+    {
+        child->moveToX=child->x=x-1;
+        child->moveToY=child->y=y+1;
+    }
+    map[child->y][child->x].animalPresent=child->index+1;
+    creatureChangeLog::update(child->x,child->y,-1,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant,NULL);
 }
 void animal::act()
 {
 	
 }
-void animal::reproduce(int withWhom)
+void animal::reproduce(int withwhom)
 {
-	//remember to add in creatureChangeLog::update() for fetus and both parents.
+    if(sleeping || reproducing>0 || moving || waking)
+        return;
+    if(index!=curLoops.animalIndex)
+        return;
+    if(!allAnimals[withwhom]) //mate is a null pointer
+        return;
+    creature* awith = allAnimals[withwhom];
+    creature::reproduce(withwhom, awith);
 }
 void animal::goToSleep()
 {
@@ -215,6 +268,11 @@ void animal::goToSleep()
 	if(map[y][x].waste>0) //bad ground for sleeping
 		return;
 	sleeping=true;
+}
+creature* animal::createFetus(int withwhom)
+{
+	allAnimals.push_back(new animal((bool)(rand()%2), geneMixer(speed, allAnimals[withwhom]->speed), allAnimals.size(), geneMixer(lineOfSight, allAnimals[withwhom]->lineOfSight), allSpecies[speciesIndex].maxHealth, (rand()%4)+allSpecies[speciesIndex].newbornMinWeight, allSpecies[speciesIndex].newbornHunger, -1, -1, allSpecies[speciesIndex].newbornSleep, 0, allSpecies[speciesIndex].newbornEnergy, -1, speciesIndex, geneMixer(woundEnergyCost, allAnimals[withwhom]->woundEnergyCost), allSpecies[speciesIndex].newbornMinWeight, geneMixer(fatToWeight, allAnimals[withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allAnimals[withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allAnimals[withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allAnimals[withwhom]->energyPerFood), geneMixer(metabolicRate, allAnimals[withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allAnimals[withwhom]->coefOfWorseningSight),(sexuallyMature+allAnimals[withwhom]->sexuallyMature)/2, animalType, geneMixer(skittish, allAnimals[withwhom]->skittish), allSpecies[speciesIndex].eatingBehavior)); //adds a new animal
+    return allAnimals[allAnimals.size()-1];
 }
 
 #define X(type, val) \

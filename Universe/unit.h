@@ -20,9 +20,7 @@ class tile;
 	U(short, intelligence) \
 	U(short, healthDiseaseInc) \
 	U(short, immunity) \
-	U(short, sexuallyMature) \
 	U(short, excreteNeedMax) \
-	U(short, fetusid) \
 	
 #define LISTVARSUNITSKILLSCONSTRUCTOR \
 	V(short, throwSkill) \
@@ -85,12 +83,10 @@ private: // all this stuff can only be changed internally
     short intelligence; //effects various tasks. //genetic 
     short immunity; //changes with age. small->large->small. Out of 10,000 //genetic
     short healthDiseaseInc; //how much the chances of disease increase per health lost. //genetic
-    short sexuallyMature; //at what age reproduction is possible. Can vary slightly. //genetic
     short excreteNeedMax; //If you get to this point, you WILL excrete. Wherever you are. //genetic
 
     //below variables are not passed to constructor
     vector<diseaseInfo> diseased; //info about all of the diseases this unit has, if any
-    short fetusid; //id of child if pregnant
     vector<object*> carrying;
     Throwing throwSkill;
     short *learningSkills; //one for each skill. Stores -1 if no, else stores index of teacher. Currently: only throwing.
@@ -132,6 +128,7 @@ private:
     void resetSkills();
     void learn();
     void shit();
+    creature* createFetus(int withwhom);
 public:
     virtual ~unit();
     unit& operator=(const unit &source);

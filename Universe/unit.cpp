@@ -30,7 +30,6 @@ unit::unit(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSUNITCONSTRUC
 #define U(type, val) val = p_ ## val;
 	LISTVARSUNITCONSTRUCTOR
 #undef U 
-	fetusid=-1;
     learningSkills=new short[NUMSKILLS]; //update every time there is a new skill
     for(int i=0; i<NUMSKILLS; i++)
         learningSkills[i]=-1;
@@ -56,9 +55,10 @@ unit::~unit()
 }
 bool unit::nextFrame()
 {
-    resetSkills();
     if(age==-1) //in womb
         return true; //complete successfully
+    resetActions();
+    resetSkills();
     livingEvents(0);
     if(!checkLive(MAXHUNGER))
         return false;
@@ -95,7 +95,6 @@ bool unit::nextFrame()
     }
     learn(); //learn if you set that you want to and you're near whoever you are learning from and they did something
     unseeunit();
-    resetActions();
     return true;
 }
 void unit::moveHelper(int mx, int my)
@@ -614,6 +613,11 @@ void unit::shit() //excrete is public. shit is private.
     excreteNeed=-1;
     excreting=true;
 }
+creature* unit::createFetus(int withwhom)
+{
+	allUnits.data[player].push_back(new unit((bool)(rand()%2), geneMixer(speed, allUnits.data[player][withwhom]->speed), allUnits.data[player].size(), geneMixer(lineOfSight, allUnits.data[player][withwhom]->lineOfSight), allSpecies[0].maxHealth, (rand()%4)+allSpecies[0].newbornMinWeight, allSpecies[0].newbornHunger, -1, -1, allSpecies[0].newbornSleep, 0, allSpecies[0].newbornEnergy, -1, 0, geneMixer(woundEnergyCost, allUnits.data[player][withwhom]->woundEnergyCost), allSpecies[0].newbornMinWeight, geneMixer(fatToWeight, allUnits.data[player][withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allUnits.data[player][withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allUnits.data[player][withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allUnits.data[player][withwhom]->energyPerFood), geneMixer(metabolicRate, allUnits.data[player][withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allUnits.data[player][withwhom]->coefOfWorseningSight),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2, player, geneMixer(strength, allUnits.data[player][withwhom]->strength), geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence), geneMixer(healthDiseaseInc, allUnits.data[player][withwhom]->healthDiseaseInc), geneMixer(immunity,allUnits.data[player][withwhom]->immunity),geneMixer(excreteNeedMax, allUnits.data[player][withwhom]->excreteNeedMax), 0)); //adds the new unit. It doesn't really exist though
+    return allUnits.data[player][allUnits.data[player].size()-1]; 
+}
 //Lot of empty statements:D------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 //public functions below --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -714,40 +718,8 @@ void unit::reproduce(int withwhom)
         return;
     if(!allUnits.data[player][withwhom]) //mate is a null pointer
         return;
-    unit* uwith=allUnits.get(this,withwhom,player);
-    if(abs(x-uwith->x)<=1 && abs(y-uwith->y)<=1) //close enough
-    {
-        if(age>=sexuallyMature && uwith->age>uwith->sexuallyMature) //old enough
-        {
-            if(gender!=uwith->gender) //different genders
-            {
-                if(!gender) //female
-                {
-                    pregnant=0;
-                    fetusid=allUnits.data[player].size();
-                    creatureChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
-                    creatureChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
-                }
-                else //partner is female
-                {
-                    allUnits.data[player][withwhom]->pregnant=0;
-                    allUnits.data[player][withwhom]->fetusid=allUnits.data[player].size();
-                    creatureChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
-                    creatureChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
-                }
-                allUnits.data[player].push_back(new unit((bool)(rand()%2), geneMixer(speed, allUnits.data[player][withwhom]->speed), allUnits.data[player].size(), geneMixer(lineOfSight, allUnits.data[player][withwhom]->lineOfSight), allSpecies[0].maxHealth, (rand()%4)+allSpecies[0].newbornMinWeight, allSpecies[0].newbornHunger, -1, -1, allSpecies[0].newbornSleep, 0, allSpecies[0].newbornEnergy, -1, 0, geneMixer(woundEnergyCost, allUnits.data[player][withwhom]->woundEnergyCost), allSpecies[0].newbornMinWeight, geneMixer(fatToWeight, allUnits.data[player][withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allUnits.data[player][withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allUnits.data[player][withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allUnits.data[player][withwhom]->energyPerFood), geneMixer(metabolicRate, allUnits.data[player][withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allUnits.data[player][withwhom]->coefOfWorseningSight), player, geneMixer(strength, allUnits.data[player][withwhom]->strength), geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence), geneMixer(healthDiseaseInc, allUnits.data[player][withwhom]->healthDiseaseInc), geneMixer(immunity,allUnits.data[player][withwhom]->immunity),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2,geneMixer(excreteNeedMax, allUnits.data[player][withwhom]->excreteNeedMax), -1, 0)); //adds the new unit. It doesn't really exist though
-                if(allUnits.data[player][fetusid]->maxMetabolicRate>allUnits.data[player][fetusid]->metabolicRate) //max metabolic rate must be less than metabolic rate. Otherwise it's stupid
-                {
-                	allUnits.data[player][fetusid]->maxMetabolicRate=allUnits.data[player][fetusid]->metabolicRate-3;
-                	if(allUnits.data[player][fetusid]->maxMetabolicRate < 1) //and it can't be < 1
-                		allUnits.data[player][fetusid]->maxMetabolicRate=1;
-                }
-                energy-=REPRODUCTIONENERGYCOST; //if you die, you die. Your problem.
-                allUnits.data[player][withwhom]->energy-=REPRODUCTIONENERGYCOST;
-            }
-        }
-    }
-    delete uwith;
+    creature* uwith = allUnits.data[player][withwhom];
+    creature::reproduce(withwhom, uwith);
 }
 void unit::goToSleep()
 {

@@ -69,6 +69,7 @@ private:
     void act();
     void reproduce(int withWhom);
     void goToSleep();
+    creature* createFetus(int withwhom);
 };
 
 #endif	/* ANIMAL_H */

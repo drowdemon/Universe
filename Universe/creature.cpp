@@ -13,6 +13,7 @@ creature::creature()
     index=-1;
 	moveToX=x;
 	moveToY=y;
+	fetusid=-1;
 	moving=false;
 	waking=false;
 	sleeping=false;
@@ -41,6 +42,7 @@ creature::creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extrane
     
 	moveToX=x;
 	moveToY=y;
+	fetusid=-1;
 	moving=false;
 	waking=false;
 	sleeping=false;
@@ -310,4 +312,57 @@ void creature::awaken()
         return;
     sleeping=false;
     waking=true;
+}
+void creature::reproduce(int withwhom, creature *cwith)
+{
+	if(abs(x-cwith->x)<=1 && abs(y-cwith->y)<=1) //close enough
+    {
+        if(age>=sexuallyMature && cwith->age>cwith->sexuallyMature) //old enough
+        {
+            if(gender!=cwith->gender) //different genders
+            {
+                if(!gender) //female
+                {
+                    pregnant=0;
+                    short player=-1;
+                    if(speciesIndex==0)
+                    {
+                    	player=((unit*)(this))->player;
+                    	fetusid=allUnits.data[player].size();
+                    }
+                    else
+                    {
+                    	fetusid=allAnimals.size();
+                    }
+                    creatureChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
+                    creatureChangeLog::update(cwith->x,cwith->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
+                }
+                else //partner is female
+                {
+                    cwith->pregnant=0;
+                    short player=-1;
+                    if(speciesIndex==0)
+                    {
+                    	player=((unit*)(cwith))->player;
+                    	fetusid=allUnits.data[player].size();
+                    }
+                    else
+                    {
+                    	fetusid=allAnimals.size();
+                    }
+                    creatureChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
+                    creatureChangeLog::update(cwith->x,cwith->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
+                }
+                creature* fetus = createFetus(withwhom);
+                if(fetus->maxMetabolicRate > fetus->metabolicRate) //max metabolic rate must be less than metabolic rate. Otherwise it's stupid
+                {
+                	fetus->maxMetabolicRate = fetus->metabolicRate-3;
+                	if(fetus->maxMetabolicRate < 1) //and it can't be < 1
+                		fetus->maxMetabolicRate=1;
+                }
+                energy-=REPRODUCTIONENERGYCOST; //if you die, you die. Your problem.
+                cwith->energy-=REPRODUCTIONENERGYCOST;
+            }
+        }
+    }
 }

@@ -30,7 +30,8 @@ using namespace std;
 	W(short, maxMetabolicRate) \
 	W(short, energyPerFood) \
 	W(short, metabolicRate) \
-	W(short, coefOfWorseningSight)
+	W(short, coefOfWorseningSight) \
+	W(short, sexuallyMature) \
 
 class metabool;
 
@@ -51,6 +52,7 @@ protected:
 	short metabolicRate; //smaller is faster //how quickly hunger rises and energy is consumed. //genetic
 	short speciesIndex; 
 	short coefOfWorseningSight; //There's some probability of seeing something after the line of perfect sight. That varies with distance quadratically. P = (lineOfSight-dist)^2*coef. P is out of 10000 rather than 1.  //if  lineOfSight-lineOfPerfectSight = 5, this should be around 40. When that difference is 2, maybe around 250. coef*maxValueOfQuadratic should be roughly 1000, so that the percent is roughly 10%
+	short sexuallyMature; //at what age reproduction is possible. Can vary slightly. //genetic
 	
 	//vary within animal (from here on out)
 	short health; //starts at max. If wounded, decreased.
@@ -67,6 +69,7 @@ protected:
 	//not in #define, from here on out.
 	short moveToX;
 	short moveToY;
+	short fetusid; //id of child if pregnant, else -1
 	vector<vector<metabool> > *currSeen;
 	
 	//acting variables. Doing action, cannot do anything else. //below are 'acting' variables. If the unit is doing some action, and cannot do other actions because of this, this is where it is recorded.
@@ -97,6 +100,8 @@ protected:
 	virtual void goToSleep()=0;
 	virtual void resetActions();
 	virtual void awaken();
+	virtual void reproduce(int withwhom, creature* cwith);
+	virtual creature* createFetus(int withwhom)=0;
 	
 	virtual ~creature();
 };

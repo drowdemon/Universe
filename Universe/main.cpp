@@ -180,7 +180,7 @@ int main()
     srand(time(NULL));
     init();
     
-    allUnits.data[0].push_back(new unit(false, 20, 0, 5, allSpecies[0].maxHealth, 100, allSpecies[0].newbornHunger, 10, 10, allSpecies[0].newbornSleep, 20, allSpecies[0].newbornEnergy, -1, 0, 2, allSpecies[0].newbornMinWeight, 150, 850, 8, 30, 13, 250, 0, 10, 10, 50, 175, 13, 200, -1 , 0));
+    allUnits.data[0].push_back(new unit(false, 20, 0, 5, allSpecies[0].maxHealth, 100, allSpecies[0].newbornHunger, 10, 10, allSpecies[0].newbornSleep, 20, allSpecies[0].newbornEnergy, -1, 0, 2, allSpecies[0].newbornMinWeight, 150, 850, 8, 30, 13, 250, 13, 0, 10, 10, 50, 175, 200, 0));
     allUnits.data[0][0]->minWeight=60;
     creatureChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0]->health,allUnits.data[0][0]->energy,allUnits.data[0][0]->hunger,allUnits.data[0][0]->sleep,allUnits.data[0][0]->pregnant,NULL);
     //allUnits.data[0][0].moveToX=20;
@@ -199,7 +199,7 @@ int main()
     allUnits.data[0][0]->carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0,map[allUnits.data[0][0]->y][allUnits.data[0][0]->x].height));
     
     
-    allAnimals.push_back(new animal(true, 20, 0, 5, 100, 50, 0, 20, 20, 700, 0, 1000, -1, 1, 1, 5, 60, 50, 13, 30, 8, 250, 0, 0, NULL));
+    allAnimals.push_back(new animal(true, 20, 0, 5, 100, 50, 0, 20, 20, 700, 0, 1000, -1, 1, 1, 5, 60, 50, 8, 30, 13, 1, 250, 13, 5, NULL));
     creatureChangeLog::update(20,20,-1,0,0,0,allAnimals[0]->health,allAnimals[0]->energy,allAnimals[0]->hunger,allAnimals[0]->sleep,allAnimals[0]->pregnant,NULL);
     map[20][20].animalPresent=0;
     
