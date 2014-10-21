@@ -13,16 +13,24 @@ using namespace std;
 unit::unit() : creature(), throwSkill(0)
 {
 }
-
-unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epf, short mr, short mmr, short sm, short throwXP, short wt, short ftw, short fre, short enm) : creature(g, pspeed, i, los, MAXHEALTH, wt, NEWBORNHUNGER, px, py, NEWBORNSLEEP, a, NEWBORNENERGY, -1, 0, wec, NEWBORNMINWEIGHT, ftw, fre, mmr, epf, mr), throwSkill(throwXP)
+#define W(type, val) type p_ ## val,
+#define U(type, val) W(type, val)
+#define V(type, val) W(type, val)
+unit::unit(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSUNITCONSTRUCTOR LISTVARSUNITSKILLSCONSTRUCTOR bool extraneous) : creature(
+		#undef W
+		#define W(type, val) p_ ## val,
+		LISTVARSCREATURE 
+		LISTVARSCREATURECONSTRUCTORONLY
+		false 
+		), throwSkill(p_throwSkill)
 {
-    player=p;
-    strength=str;
-    intelligence=intel;
-    immunity=immun;
-    healthDiseaseInc=hdi;
-    sexuallyMature=sm;
-    fetusid=-1;
+#undef W
+#undef U
+#undef V
+#define U(type, val) val = p_ ## val;
+	LISTVARSUNITCONSTRUCTOR
+#undef U 
+	fetusid=-1;
     learningSkills=new short[NUMSKILLS]; //update every time there is a new skill
     for(int i=0; i<NUMSKILLS; i++)
         learningSkills[i]=-1;
@@ -32,9 +40,9 @@ unit::unit(int p, int i, short str, bool g, short intel, char a, short px, short
     eating=false;
     liftingOrDropping=false;
     excreteNeed=-1;
-    excreteNeedMax=enm;
     excreting=false;
 }
+
 unit::~unit()
 {
 	delete[] learningSkills;
@@ -44,6 +52,7 @@ unit::~unit()
         carrying[i]=NULL;
     }
     carrying.clear();
+    delete currSeen;
 }
 bool unit::nextFrame()
 {
@@ -370,13 +379,24 @@ void unit::seehive(int hiveindex)
                 {
                     if(allowed[h]) //if its not behind an obstacle
                     {
-                        if((( ((map[y+curPoints[h].y][x+curPoints[h].x].bush>=125) ? 124 : map[y+curPoints[h].y][x+curPoints[h].x].bush) / 25 * CAMEOPER25BUSH) + (((map[y+curPoints[h].y][x+curPoints[h].x].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+curPoints[h].y][x+curPoints[h].x].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
+                    	int distance = (i>abs(j) ? i : abs(j)) - map[y+curPoints[h].y][x+curPoints[h].x].cameouflageAmnt();
+                        if(distance > lineOfSight) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
                             mapseenhive[player][hiveindex][y+curPoints[h].y][x+curPoints[h].x].b=2;  //can see tile but not units on it
+                        else if(distance > allSpecies[speciesIndex].lineOfPerfectSight)
+                        {
+                        	int prob = (lineOfSight-distance)*(lineOfSight-distance)*coefOfWorseningSight;
+                        	if((rand()%10000) < prob)
+                        		mapseenhive[player][hiveindex][y+curPoints[h].y][x+curPoints[h].x].b=1;  //can see tile and units on it     
+                        	else
+                        		mapseenhive[player][hiveindex][y+curPoints[h].y][x+curPoints[h].x].b=3;  //can see the tile, and know that there is *something* on it. Acts like it being 2, but gives you a little more info.     
+                        }
                         else
-                            mapseenhive[player][hiveindex][y+curPoints[h].y][x+curPoints[h].x].b=1;  //can see tile and units on it                  
-                        if((ret = map[y+curPoints[h].y][x+curPoints[h].x].blocksVision(this))) //if I saw an obstacle, add it to the list of obstacles
+                            mapseenhive[player][hiveindex][y+curPoints[h].y][x+curPoints[h].x].b=1;  //can see tile and units on it
+                        ret = map[y+curPoints[h].y][x+curPoints[h].x].blocksVision(this);
+                        if(ret && *ret) //if I saw an obstacle, add it to the list of obstacles
                             obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
-                        delete ret; //delete the pointer. No memory leaks.
+                        if(ret)
+                        	delete ret; //delete the pointer. No memory leaks.
                     }
                 }
             }
@@ -618,13 +638,17 @@ unit& unit::operator=(const unit &source)
     immunity=source.immunity;
     health=source.health;
     healthDiseaseInc=source.healthDiseaseInc;
-    woundEnergyCost=source.woundEnergyCost;
+    woundEnergyCost=source.woundEnergyCost;    
+    maxMetabolicRate=source.maxMetabolicRate;
     energyPerFood=source.energyPerFood;
     metabolicRate=source.metabolicRate;
-    maxMetabolicRate=source.maxMetabolicRate;
+    speciesIndex=source.speciesIndex;
+    coefOfWorseningSight=source.coefOfWorseningSight;
     sexuallyMature=source.sexuallyMature;
     pregnant=source.pregnant;
     fetusid=source.fetusid;
+    for(unsigned int i=0; i<source.carrying.size(); i++)
+    	carrying.push_back(new object(*(source.carrying[i])));
     hunger=source.hunger;
     learningSkills=new short[NUMSKILLS]; //update every time there is a new skill
     for(int i=0; i<NUMSKILLS; i++)
@@ -637,15 +661,27 @@ unit& unit::operator=(const unit &source)
     eating=source.eating;
     liftingOrDropping=source.liftingOrDropping;
     waking=source.waking;
+    excreting=source.excreting;
+    movingprog=source.movingprog;
+    
     weight=source.weight;
     fatBuildProgress=source.fatBuildProgress;
     fatToWeight=source.fatToWeight;
     fatRetrievalEfficiency=source.fatRetrievalEfficiency;
-    minWeight=NEWBORNMINWEIGHT;
-    excreteNeed=-1;
+    minWeight=source.minWeight;
+    excreteNeed=source.excreteNeed;
     excreteNeedMax=source.excreteNeedMax;
-    excreting=false;
-    movingprog=0;
+    for(unsigned int i=0; i<source.diseased.size(); i++)
+    	diseased.push_back(source.diseased[i]);
+    currSeen = new vector<vector<metabool> >;
+    currSeen->resize(source.currSeen->size());
+    for(unsigned int i=0; i<source.currSeen->size(); i++)
+    {
+    	for(unsigned int j=0; j<source.currSeen->size(); j++)
+    	{
+    		(*currSeen)[i].push_back((*source.currSeen)[i][j]);
+    	}
+    }
     return *this;
 }
 void unit::move() //make moving an int to force continual
@@ -699,10 +735,14 @@ void unit::reproduce(int withwhom)
                     creatureChangeLog::update(x,y,player,index,0,0,0,-REPRODUCTIONENERGYCOST,0,0,0,NULL);
                     creatureChangeLog::update(allUnits.data[player][withwhom]->x,allUnits.data[player][withwhom]->y,player,withwhom,0,0,0,-REPRODUCTIONENERGYCOST,0,0,1,NULL);
                 }
-                allUnits.data[player].push_back(new unit(player, allUnits.data.size(),geneMixer(strength,allUnits.data[player][withwhom]->strength),(bool)(rand()%2),geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence),-1,-1,-1,(speed+allUnits.data[player][withwhom]->speed)/2,(lineOfSight+allUnits.data[player][withwhom]->lineOfSight)/2,geneMixer(immunity,allUnits.data[player][withwhom]->immunity),geneMixer(healthDiseaseInc,allUnits.data[player][withwhom]->healthDiseaseInc),geneMixer(woundEnergyCost,allUnits.data[player][withwhom]->woundEnergyCost),geneMixer(energyPerFood,allUnits.data[player][withwhom]->energyPerFood),geneMixer(metabolicRate,allUnits.data[player][withwhom]->metabolicRate),geneMixer(maxMetabolicRate,allUnits.data[player][withwhom]->maxMetabolicRate),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2,0,(rand()%4)+NEWBORNMINWEIGHT,geneMixer(fatToWeight,allUnits.data[player][withwhom]->fatToWeight),geneMixer(fatRetrievalEfficiency,allUnits.data[player][withwhom]->fatRetrievalEfficiency),geneMixer(excreteNeedMax,allUnits.data[player][withwhom]->excreteNeedMax))); //adds the new unit. It doesn't really exist though
-                if(allUnits.data[player][fetusid]->maxMetabolicRate>allUnits.data[player][fetusid]->metabolicRate)
-                    allUnits.data[player][fetusid]->maxMetabolicRate=allUnits.data[player][fetusid]->metabolicRate-3;
-                energy-=REPRODUCTIONENERGYCOST;
+                allUnits.data[player].push_back(new unit((bool)(rand()%2), geneMixer(speed, allUnits.data[player][withwhom]->speed), allUnits.data[player].size(), geneMixer(lineOfSight, allUnits.data[player][withwhom]->lineOfSight), allSpecies[0].maxHealth, (rand()%4)+allSpecies[0].newbornMinWeight, allSpecies[0].newbornHunger, -1, -1, allSpecies[0].newbornSleep, 0, allSpecies[0].newbornEnergy, -1, 0, geneMixer(woundEnergyCost, allUnits.data[player][withwhom]->woundEnergyCost), allSpecies[0].newbornMinWeight, geneMixer(fatToWeight, allUnits.data[player][withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allUnits.data[player][withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allUnits.data[player][withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allUnits.data[player][withwhom]->energyPerFood), geneMixer(metabolicRate, allUnits.data[player][withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allUnits.data[player][withwhom]->coefOfWorseningSight), player, geneMixer(strength, allUnits.data[player][withwhom]->strength), geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence), geneMixer(healthDiseaseInc, allUnits.data[player][withwhom]->healthDiseaseInc), geneMixer(immunity,allUnits.data[player][withwhom]->immunity),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2,geneMixer(excreteNeedMax, allUnits.data[player][withwhom]->excreteNeedMax), -1, 0)); //adds the new unit. It doesn't really exist though
+                if(allUnits.data[player][fetusid]->maxMetabolicRate>allUnits.data[player][fetusid]->metabolicRate) //max metabolic rate must be less than metabolic rate. Otherwise it's stupid
+                {
+                	allUnits.data[player][fetusid]->maxMetabolicRate=allUnits.data[player][fetusid]->metabolicRate-3;
+                	if(allUnits.data[player][fetusid]->maxMetabolicRate < 1) //and it can't be < 1
+                		allUnits.data[player][fetusid]->maxMetabolicRate=1;
+                }
+                energy-=REPRODUCTIONENERGYCOST; //if you die, you die. Your problem.
                 allUnits.data[player][withwhom]->energy-=REPRODUCTIONENERGYCOST;
             }
         }

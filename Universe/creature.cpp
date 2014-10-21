@@ -250,12 +250,21 @@ void creature::see()
             {
                 if(allowed[h]) //if its not behind an obstacle
                 {
-                    if((( ((map[y+curPoints[h].y][x+curPoints[h].x].bush>=125) ? 124 : map[y+curPoints[h].y][x+curPoints[h].x].bush) / 25 * CAMEOPER25BUSH) + (((map[y+curPoints[h].y][x+curPoints[h].x].tree>0)?1:0) * CAMEOFORTREE) + (((map[y+curPoints[h].y][x+curPoints[h].x].road>0)?1:0) * CAMEOFORROAD)) > (lineOfSight-((i>abs(j))?i:abs(j)))) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
+                	int distance = (i>abs(j) ? i : abs(j)) - map[y+curPoints[h].y][x+curPoints[h].x].cameouflageAmnt();
+                    if(distance > lineOfSight) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
                         (*currSeen)[lineOfSight+curPoints[h].y][lineOfSight+curPoints[h].x].b=2;  //can see tile but not units on it
+                    else if(distance > allSpecies[speciesIndex].lineOfPerfectSight) //It might be possible to see it, but it might just be interpretted as 'something is there, who the hell knows what'
+                    {
+                    	int prob = (lineOfSight-distance)*(lineOfSight-distance)*coefOfWorseningSight;
+                    	if((rand()%10000) < prob)
+                    		(*currSeen)[lineOfSight+curPoints[h].y][lineOfSight+curPoints[h].x].b=1;  //can see tile and units on it
+                    	else
+                    		(*currSeen)[lineOfSight+curPoints[h].y][lineOfSight+curPoints[h].x].b=3;  //can see the tile, and know that there is *something* on it. Acts like it being 2, but gives you a little more info.
+                    }
                     else
                         (*currSeen)[lineOfSight+curPoints[h].y][lineOfSight+curPoints[h].x].b=1;  //can see tile and units on it                  
                     ret = speciesIndex==0 ? map[y+curPoints[h].y][x+curPoints[h].x].blocksVision((unit*)this) : map[y+curPoints[h].y][x+curPoints[h].x].blocksVision((animal*)this); //if I saw an obstacle, add it to the list of obstacles
-                    if(*ret)
+                    if(ret && *ret)
                     {   
                     	obstacles.push_back(visionObstacle(curPoints[h].x,curPoints[h].y));
                     }

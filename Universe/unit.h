@@ -14,16 +14,18 @@ class tile;
 
 #define NUMSKILLS 1
 
-#define LISTVARSNOTSHAREDUNITCREATURE \
+#define LISTVARSUNITCONSTRUCTOR \
 	U(int, player) \
 	U(short, strength) \
 	U(short, intelligence) \
+	U(short, healthDiseaseInc) \
+	U(short, immunity) \
 	U(short, sexuallyMature) \
-	U(short, moveToX) \
-	U(short, moveToY) \
+	U(short, excreteNeedMax) \
 	U(short, fetusid) \
-	U(short, excreteNeed) \
-	U(bool, sleeping) \
+	
+#define LISTVARSUNITSKILLSCONSTRUCTOR \
+	V(short, throwSkill) \
 
 #define LISTVARSUNIT \
     Y(int, player) \
@@ -107,7 +109,13 @@ public:
 
 private:
 	unit(); //use only if about to rewrite this. Should never exist on map. Nothing is initialized.
-    unit(int p, int i, short str, bool g, short intel, char a, short px, short py, short pspeed, short los, short immun, short hdi, short wec, short epi, short mr, short mmr, short sm, short throwXP, short wt, short ftw, short fre, short enm);
+#define W(type, val) type p_  ## val, 
+#define U(type, val) W(type, val)
+#define V(type, val) W(type, val)
+	unit(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSUNITCONSTRUCTOR LISTVARSUNITSKILLSCONSTRUCTOR bool extraneous=true);
+#undef W
+#undef U
+#undef V
     void diseaseEffects();
     void livingEvents(int speciesIndex);
     void moveHelper(int mx, int my);

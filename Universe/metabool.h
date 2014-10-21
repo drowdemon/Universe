@@ -10,7 +10,7 @@ class animal;
 class metabool
 {
 private:
-    unsigned char b; //0=false, 1=true, 2=true for landscape but not units
+    unsigned char b; //0=false, 1=true, 2=true for landscape but not units, 3 = You saw that there is something there but you don't know what it is
 public:
     metabool();
     unsigned char get(unit *u);

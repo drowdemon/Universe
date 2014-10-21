@@ -30,6 +30,7 @@ using namespace std;
 	W(short, maxMetabolicRate) \
 	W(short, energyPerFood) \
 	W(short, metabolicRate) \
+	W(short, coefOfWorseningSight)
 
 class metabool;
 
@@ -47,8 +48,9 @@ protected:
 	short fatRetrievalEfficiency; //how well can energy be retrieved from fat, as a fraction of fatToWeight. Out of 1000, i.e. 900 is 90% efficiency. genetic.
 	short maxMetabolicRate; //if there is little or no energy, metabolism rises to this rate. At this point, even if the body has food, it cannot gain any more energy than it is currently gaining. This makes it impossible to avoid death by eating a lot. //genetic
 	short energyPerFood; //how much energy is obtained per increase of hunger by one. //genetic
-	short metabolicRate; //how quickly hunger rises and energy is consumed. //genetic
+	short metabolicRate; //smaller is faster //how quickly hunger rises and energy is consumed. //genetic
 	short speciesIndex; 
+	short coefOfWorseningSight; //There's some probability of seeing something after the line of perfect sight. That varies with distance quadratically. P = (lineOfSight-dist)^2*coef. P is out of 10000 rather than 1.  //if  lineOfSight-lineOfPerfectSight = 5, this should be around 40. When that difference is 2, maybe around 250. coef*maxValueOfQuadratic should be roughly 1000, so that the percent is roughly 10%
 	
 	//vary within animal (from here on out)
 	short health; //starts at max. If wounded, decreased.

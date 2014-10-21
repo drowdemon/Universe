@@ -229,14 +229,21 @@ bool* tile::blocksVision(unit *u)
 {
     if(u->player!=curLoops.unitPlayer || u->index!=curLoops.unitIndex)
         return NULL; //cheaters. Thou fail.
-    if(abs(u->y-y) > u->lineOfSight || abs(u->x-x) > u->lineOfSight) //to far to see the potential obstacle
+    if(abs(u->y-y) > u->lineOfSight || abs(u->x-x) > u->lineOfSight) //too far to see the potential obstacle
     	return NULL;
     bool *good = new bool;
     *good = (bush>20 || tree>0);
     if(*good)
     {
-        if((*u->currSeen)[u->lineOfSight-y+u->y][u->lineOfSight-x+u->x].get(u)==1 && uniton==true)
-            *good=false;
+    	unsigned char sightVal = (*u->currSeen)[u->lineOfSight-y+u->y][u->lineOfSight-x+u->x].get(u);
+        if(sightVal==1)
+        {
+        	if(uniton || (animalPresent>0 && allAnimals[animalPresent-1]->animalType!=0 && allAnimals[animalPresent-1]->animalType!=3))
+        		*good=false;
+        }
+        else if(sightVal==3)
+        	*good=false;
+            
     }
     return good;
 }
@@ -244,12 +251,20 @@ bool* tile::blocksVision(animal *a)
 {
 	if(a->index!=curLoops.animalIndex)
 		return NULL;
+	if(abs(a->y-y) > a->lineOfSight || abs(a->x-x) > a->lineOfSight) //too far to see the potential obstacle
+    	return NULL;
     bool *good = new bool;
     *good = (bush>20 || tree>0);
     if(*good)
     {
-        if((*a->currSeen)[y][x].get(a) && uniton==true)
-            *good=false;
+        unsigned char sightVal = (*a->currSeen)[a->lineOfSight-y+a->y][a->lineOfSight-x+a->x].get(a);
+        if(sightVal==1)
+        {
+        	if(uniton || (animalPresent>0 && allAnimals[animalPresent-1]->animalType!=0 && allAnimals[animalPresent-1]->animalType!=3))
+        		*good=false;
+        }
+        else if(sightVal==3)
+        	*good=false;
     }
     return good;
 }
@@ -261,6 +276,13 @@ tile::~tile()
         allObjects[i]=NULL;
     }
     allObjects.clear();
+}
+short tile::cameouflageAmnt()
+{
+	int ret = ((bush>=125) ? 124 : bush) / 25 * CAMEOPER25BUSH;
+	ret+=((tree>0)?1:0) * CAMEOFORTREE;
+	ret+=((road>0)?1:0) * CAMEOFORROAD;
+	return ret;
 }
 
 //getters
@@ -359,7 +381,7 @@ vector<object>* tile::getallObjects(hiveMind& h)
             *ret=-1; \
         return ret; \
     }
-    LISTVARSTILEUNIT
+    LISTVARSTILECREATURE
 #undef X
 
 /*pubTile* tile::get(unit& u)

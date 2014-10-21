@@ -241,7 +241,7 @@ void object::move()
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
         { \
-            if(wy==y && wx==x && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][y][x].get(h)>0 && height>=map[y][x].height) \
+            if(wx==(short)x && wy==(short)y && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][(short)y][(short)x].get(h)>0 && height>=map[(short)y][(short)x].height) \
             { \
                 return val; \
             } \
@@ -256,7 +256,7 @@ void object::move()
     { \
         if(h->player==curLoops.hivePlayer && h->index==curLoops.hivePlayer) \
         { \
-            if(wx==x && wy==y && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][y][x].get(h)>0 && height>=map[y][x].height) \
+            if(wx==(short)x && wy==(short)y && abs(wy-h->centery)<h->range && abs(wx-h->centerx)<h->range && mapseenhive[h->player][h->index][(short)y][(short)x].get(h)>0 && height>=map[(short)y][(short)x].height) \
             { \
                 return allObjectDesc[whatIsIt].val; \
             } \

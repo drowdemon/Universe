@@ -15,16 +15,16 @@ using namespace std;
     X(unsigned short, water) \
     X(short, height) \
     X(unsigned char, waste) \
-    X(unsigned short, animalPresent) \
     X(unsigned char, bush) \
     X(unsigned char, tree) \
     X(short, x) \
     X(short, y) \
 
-#define LISTVARSTILEUNIT \
+#define LISTVARSTILECREATURE \
     X(bool, uniton) \
     X(short, unitplayer) \
-    X(short, unitindex)
+    X(short, unitindex) \
+    X(unsigned short, animalPresent) \
     
 class tile //default - empty grass
 {   
@@ -73,6 +73,7 @@ private:
 	bool* blocksVision(unit *u);
 	bool* blocksVision(animal *a);
 	bool walkable(animal *a); // for animals. Same as below.
+	short cameouflageAmnt();
 public:
     virtual ~tile();
     bool walkable(unit *u); //whether the given unit can walk on the tile. //vehicles will be added later //buildings will be added later
@@ -85,7 +86,7 @@ public:
     type * get ## val(unit& u); \
     type * get ## val(hiveMind& h);
     LISTVARSTILE
-    LISTVARSTILEUNIT
+    LISTVARSTILECREATURE
 #undef X
 };
 
