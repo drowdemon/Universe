@@ -15,7 +15,7 @@ class allunits
 {
     friend int main();
     friend class tile;
-    friend void unit::infect();
+    friend class creature;
     friend void unit::reproduce(int);
     friend void unit::die();
     friend void unit::giveBirth();

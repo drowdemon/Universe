@@ -49,9 +49,9 @@ bool herbivore::canEat(vector<vector<short> > * foodLocs, short px, short py)
 		}
 	}
 
-	if(eatGrass && curTile->road==0 && curTile->tree==0 && curTile->bush==0) //no road or bushes or trees, and can eat grass
+	if(eatGrass && curTile->grass>0) //there's grass and can eat grass
 	{
-		(*foodLocs)[py][px] += GRASSONTILE; //random number to represent food on grass tile. It just never ends. For now. Maybe later add grass->mud. Definitely need dirt tile for farming
+		(*foodLocs)[py][px] += curTile->grass; 
 	}
 	return ((*foodLocs)[py][px]>0);
 }

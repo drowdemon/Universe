@@ -56,7 +56,8 @@ private: //private so that you can't just learn anything about any part of the m
     short unitindex;
     bool wasteMoved; //1 bit. Only for water tiles. If the waste in the water has moved, don't move it again this time around.
     unsigned char bush; //7 bits. 0=none. 1=yes, no food. 2-127 - amount of food on the bush + 1. Can use last bit for something else.
-    unsigned char tree; //7 bits. 0=none. 1-127 - amount of wood ungathered from tree. As you cut wood from it, decreases to 0. If nonzero, not a walkable tile. If 127, tree must be cut down before gathering wood.        
+    unsigned char tree; //7 bits. 0=none. 1-127 - amount of wood ungathered from tree. As you cut wood from it, decreases to 0. If nonzero, not a walkable tile. If 127, tree must be cut down before gathering wood.
+    char grass; //8 bits. -1 = rock, 0 = dirt, 1-127 = amnt grass 
 public:
     short x;
     short y;
@@ -66,7 +67,7 @@ private:
     vector<short> diseaseTime; //how long a disease has been on this tile. 
     vector<object*> allObjects; //all of the objects on this tile
 public:
-    tile(unsigned char r=0, unsigned short w=0, short h=0, unsigned char wst=0, bool uo=false, unsigned short a=0, /*unsigned char sw=0,*/ short px=0, short py=0, short up=-1, short ui=-1, unsigned char b=0, unsigned  char t=0);
+    tile(unsigned char r=0, unsigned short w=0, short h=0, unsigned char wst=0, bool uo=false, unsigned short a=0, /*unsigned char sw=0,*/ short px=0, short py=0, short up=-1, short ui=-1, unsigned char b=0, unsigned  char t=0, char g=0);
 private:
     void moveWater(int tx, int ty);
     void spreadDisease();

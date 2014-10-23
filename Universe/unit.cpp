@@ -57,7 +57,6 @@ bool unit::nextFrame()
 {
     if(age==-1) //in womb
         return true; //complete successfully
-    resetActions();
     resetSkills();
     livingEvents(0);
     if(!checkLive(MAXHUNGER))
@@ -74,14 +73,6 @@ bool unit::nextFrame()
         return false;
     }
     infect();
-    diseaseEffects();
-    if(!checkLive(MAXHUNGER))
-    {
-        unseeunit();
-        for(unsigned int i=0; i<allMinds.data[player].size(); i++)
-                unseehive(i);
-        return false;
-    }
     int tempmovingprog=movingprog;
     act(); //AI
     if(movingprog==tempmovingprog) //did not move
@@ -95,6 +86,7 @@ bool unit::nextFrame()
     }
     learn(); //learn if you set that you want to and you're near whoever you are learning from and they did something
     unseeunit();
+    resetActions();
     return true;
 }
 void unit::moveHelper(int mx, int my)
@@ -133,168 +125,6 @@ void unit::moveHelper(int mx, int my)
         moveToX=x;
         moveToY=y;
     }
-}
-void unit::infect()
-{
-    if(frames%INFECTRATE==0)
-    {
-        int immunityloss=0;
-        for(unsigned int i=0; i<diseased.size(); i++)
-            immunityloss+=allDiseases[diseased[i]].immunCost;
-        for(unsigned int i=0; i<allDiseases.size(); i++) //try to auto-infect
-        {
-            if(allDiseases[i].first!=2) //can catch this disease at random
-            {
-                if(rand()%10000<allDiseases[i].firstChance-((immunity-immunityloss>0)?(immunity-immunityloss):0)+((MAXHEALTH-health)*healthDiseaseInc)) //got sick
-                {
-                    if(allDiseases[i].first==1)
-                    {
-                        allDiseases[i].first++;
-                        diseased.push_back(diseaseInfo(i));
-                        strength-=allDiseases[i].permStrCost;
-                        intelligence-=allDiseases[i].permIntelCost;
-                        immunity-=allDiseases[i].permImmunCost;
-                    }
-                }
-            }
-        }
-        for(unsigned int h=0; h<diseased.size(); h++) //attempt to infect others
-        {
-            diseased[h].time++;
-            if(diseased[h].time%allDiseases[diseased[h]].multiplierRate==0)
-            {
-                if(diseased[h].multiplier<allDiseases[diseased[h]].multiplierMax && !diseased[h].flipDir)
-                    diseased[h].multiplier++;
-                else if(diseased[h].multiplier==allDiseases[diseased[h]].multiplierMax)
-                    diseased[h].flipDir=true;
-                else if(diseased[h].flipDir)
-                    diseased[h].multiplier--;
-                if(diseased[h].multiplier==0)
-                {
-                    diseased.erase(diseased.begin()+h); //cured
-                    h--;
-                }
-            }
-            if(rand()%10000<allDiseases[diseased[h]].curability+((immunity-immunityloss>0)?(immunity-immunityloss):0)-((MAXHEALTH-health)*healthDiseaseInc))
-            {
-                diseased.erase(diseased.begin()+h); //cured
-                h--;
-            }  
-            if(diseased[h].time>allDiseases[diseased[h]].timeForSpreadability)
-            {
-                for(int i = (y>allDiseases[diseased[h]].spreadabilityArea) ? (y-allDiseases[diseased[h]].spreadabilityArea) : 0; i < (MAPSIZE-y<allDiseases[diseased[h]].spreadabilityArea) ? (y+allDiseases[diseased[h]].spreadabilityArea) : MAPSIZE; i++)
-                {
-                    for(int j = (x>allDiseases[diseased[h]].spreadabilityArea) ? (x-allDiseases[diseased[h]].spreadabilityArea) : 0; j < (MAPSIZE-x<allDiseases[diseased[h]].spreadabilityArea) ? (x+allDiseases[diseased[h]].spreadabilityArea) : MAPSIZE; j++)
-                    {
-                        if(map[i][j].water>0 && (allDiseases[diseased[h]].transmit&WATER_TRANSMIT)>0) //near water and can transmit through water
-                        {
-                            if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance)
-                            {
-                                bool good=true;
-                                for(unsigned int d=0; d<map[i][j].disease.size(); d++)
-                                {
-                                    if(map[i][j].disease[d]==diseased[h])
-                                    {
-                                        map[i][j].diseaseTime[d]=0;
-                                        good=false;
-                                        break;
-                                    }
-                                }
-                                if(good)
-                                {
-                                    map[i][j].disease.push_back(diseased[h]);
-                                    map[i][j].diseaseTime.push_back(0);
-                                }
-                            }
-                        }
-                        if(map[i][j].waste>0 && (allDiseases[diseased[h]].transmit&WASTE_TRANSMIT)>0) // near waste and can transmit
-                        {
-                            if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance)
-                            {
-                                bool good=true;
-                                for(unsigned int d=0; d<map[i][j].disease.size(); d++)
-                                {
-                                    if(map[i][j].disease[d]==diseased[h])
-                                    {
-                                        map[i][j].diseaseTime[d]=0;
-                                        good=false;
-                                        break;
-                                    }
-                                }
-                                if(good)
-                                {
-                                    map[i][j].disease.push_back(diseased[h]);
-                                    map[i][j].diseaseTime.push_back(0);
-                                }
-                            }
-                        }
-                        for(unsigned int k=0; k<map[i][j].allObjects.size(); k++)
-                        {
-                            if(map[i][j].allObjects[k]->actuallyEdible!=-3 && (allDiseases[diseased[h]].transmit&FOOD_TRANSMIT)>0)
-                            {
-                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance)
-                                {
-                                    bool good=true;
-                                    for(unsigned int d=0; d<map[i][j].allObjects[k]->infected.size(); d++)
-                                    {
-                                        if(map[i][j].allObjects[k]->infected[d]==diseased[h])
-                                        {
-                                            map[i][j].allObjects[k]->infectionTime[d]=0;
-                                            good=false;
-                                            break;
-                                        }
-                                    }
-                                    if(good)
-                                    {
-                                        map[i][j].allObjects[k]->infected.push_back(diseased[h]);
-                                        map[i][j].allObjects[k]->infectionTime.push_back(0);
-                                    }
-                                }
-                            }
-                        }
-                        if(map[i][j].uniton && (allDiseases[diseased[h]].transmit&CONTACT_TRANSMIT)>0)
-                        {
-                            if(map[i][j].x!=x || map[i][j].y!=y) //different unit
-                            {
-                                int tempimmunloss=0;
-                                for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
-                                    tempimmunloss+=allDiseases[allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d]].immunCost;
-                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-tempimmunloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-tempimmunloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->healthDiseaseInc))
-                                {
-                                    bool good=true;
-                                    for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
-                                    {
-                                        if(diseased[h]==allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d]) //you actually managed to get sick with the same disease TWICE! Good for you!
-                                        {
-                                            good=false;
-                                            allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d].multiplier++; //makes the disease more fearsome. Or at least more advanced in development
-                                            allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d].flipDir=false; //If you were getting better, screw that! Now you're getting sicker again!
-                                            break;
-                                        }
-                                    }
-                                    if(good)
-                                    {
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.push_back(diseased[h].disease);
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->strength-=allDiseases[diseased[h]].permStrCost;
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->intelligence-=allDiseases[diseased[h]].permIntelCost;
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-=allDiseases[diseased[h]].permImmunCost;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-void unit::diseaseEffects()
-{
-    int start=energy;
-    for(unsigned int i=0; i<diseased.size(); i++)
-        energy-=allDiseases[diseased[i]].energyCost;
-    if(energy-start!=0)
-        creatureChangeLog::update(x,y,player,index,0,0,0,(energy-start),0,0,0,NULL);
 }
 void unit::livingEvents(int speciesIndex)
 {
@@ -550,7 +380,7 @@ void unit::resetSkills()
 }
 void unit::learn()
 {
-    if(sleeping || reproducing>0 || throwing || liftingOrDropping || waking || excreting) //eating and moving are ok
+    if(sleeping || reproducing>0 || throwing || liftingOrDropping || waking || excreting || seeingIntently==1) //eating and moving are ok
         return; 
     for(int i=0; i<NUMSKILLS; i++)
     {
@@ -615,7 +445,7 @@ void unit::shit() //excrete is public. shit is private.
 }
 creature* unit::createFetus(int withwhom)
 {
-	allUnits.data[player].push_back(new unit((bool)(rand()%2), geneMixer(speed, allUnits.data[player][withwhom]->speed), allUnits.data[player].size(), geneMixer(lineOfSight, allUnits.data[player][withwhom]->lineOfSight), allSpecies[0].maxHealth, (rand()%4)+allSpecies[0].newbornMinWeight, allSpecies[0].newbornHunger, -1, -1, allSpecies[0].newbornSleep, 0, allSpecies[0].newbornEnergy, -1, 0, geneMixer(woundEnergyCost, allUnits.data[player][withwhom]->woundEnergyCost), allSpecies[0].newbornMinWeight, geneMixer(fatToWeight, allUnits.data[player][withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allUnits.data[player][withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allUnits.data[player][withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allUnits.data[player][withwhom]->energyPerFood), geneMixer(metabolicRate, allUnits.data[player][withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allUnits.data[player][withwhom]->coefOfWorseningSight),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2, player, geneMixer(strength, allUnits.data[player][withwhom]->strength), geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence), geneMixer(healthDiseaseInc, allUnits.data[player][withwhom]->healthDiseaseInc), geneMixer(immunity,allUnits.data[player][withwhom]->immunity),geneMixer(excreteNeedMax, allUnits.data[player][withwhom]->excreteNeedMax), 0)); //adds the new unit. It doesn't really exist though
+	allUnits.data[player].push_back(new unit((bool)(rand()%2), geneMixer(speed, allUnits.data[player][withwhom]->speed), allUnits.data[player].size(), geneMixer(lineOfSight, allUnits.data[player][withwhom]->lineOfSight), allSpecies[0].maxHealth, (rand()%4)+allSpecies[0].newbornMinWeight, allSpecies[0].newbornHunger, -1, -1, allSpecies[0].newbornSleep, 0, allSpecies[0].newbornEnergy, -1, 0, geneMixer(woundEnergyCost, allUnits.data[player][withwhom]->woundEnergyCost), allSpecies[0].newbornMinWeight, geneMixer(fatToWeight, allUnits.data[player][withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allUnits.data[player][withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allUnits.data[player][withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allUnits.data[player][withwhom]->energyPerFood), geneMixer(metabolicRate, allUnits.data[player][withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allUnits.data[player][withwhom]->coefOfWorseningSight),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2, geneMixer(immunity,allUnits.data[player][withwhom]->immunity), geneMixer(healthDiseaseInc, allUnits.data[player][withwhom]->healthDiseaseInc), player, geneMixer(strength, allUnits.data[player][withwhom]->strength), geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence), geneMixer(excreteNeedMax, allUnits.data[player][withwhom]->excreteNeedMax), 0)); //adds the new unit. It doesn't really exist though
     return allUnits.data[player][allUnits.data[player].size()-1]; 
 }
 //Lot of empty statements:D------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -692,11 +522,13 @@ void unit::move() //make moving an int to force continual
 {
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
         return;
+    if(sleeping || reproducing>0 || moving || waking || excreting || liftingOrDropping) //eating and throwing are allowed (though not both at once). SeeingIntently taken care of in creature::move 
+        return;
     creature::move();
 }
 void unit::move(short mx, short my)
 {
-    if(sleeping || reproducing>0 || moving || throwing || waking || excreting)
+    if(sleeping || reproducing>0 || moving  || waking || excreting || liftingOrDropping) //eating and throwing are allowed (though not both at once)
         return;
     if(mx==0 && my==0)
         return;
@@ -712,7 +544,7 @@ void unit::move(short mx, short my)
 }
 void unit::reproduce(int withwhom)
 {
-    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking || excreting)
+    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking || excreting || seeingIntently==1) //nothing else allowed. Serious business.
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -723,7 +555,7 @@ void unit::reproduce(int withwhom)
 }
 void unit::goToSleep()
 {
-    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking || excreting)
+    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking || excreting || seeingIntently==1) //nothing else allowed
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -742,7 +574,7 @@ void unit::awaken() //makes it public
 }
 void unit::pickUp(int what, int ox, int oy)
 {
-    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting)
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting || moving || seeingIntently==1) //nothing else is allowed
         return;
     if(abs(ox-x)>1 || abs(oy-y)>1) //too far
         return;
@@ -772,7 +604,7 @@ void unit::pickUp(int what, int ox, int oy)
 }
 void unit::putDown(int objIndex, int px, int py)
 {
-    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking || excreting)
+    if(sleeping || reproducing>0 || moving || throwing || eating || liftingOrDropping || waking || excreting || seeingIntently==1) //nothing else is allowed
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -789,7 +621,7 @@ void unit::putDown(int objIndex, int px, int py)
 }
 void unit::eat(int objIndex)
 {
-    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting)
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting || seeingIntently==1) //moving is allowed
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -814,7 +646,7 @@ void unit::eat(int objIndex)
 }
 void unit::throwObj(int objIndex, short atX, short atY, int strength)
 {
-    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting)
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting || seeingIntently==1) //moving is allowed
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
@@ -826,6 +658,8 @@ void unit::learnSkillFrom(int learnwhat, short fromwhom)
 {
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
+    if(learnwhat>=NUMSKILLS) //fuck off
+    	return; 
     learningSkills[learnwhat]=fromwhom;
 }
 void unit::stopLearnSkillFrom(int learnwhat)
@@ -836,15 +670,23 @@ void unit::stopLearnSkillFrom(int learnwhat)
 }
 void unit::excrete()
 {
-    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting || moving)
+    if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting || moving || seeingIntently==1) //nothing else is allowed
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
     if(excreteNeed>-1) //You are not allowed to produce waste whenever you want. Why? It seems like you wouldn't want to anyway, but this way you cannot go to someone else's city and wage biological warfare by constantly shiting on it.
         shit();
 }
-//getters 
+void unit::seeIntently(short dirSee)
+{
+	if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting || seeingIntently==1) //moving is taken care of in creature 
+		return;
+	if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
+		return;
+	creature::seeIntently(dirSee);
+}
 
+//getters 
 vector<object> unit::getcarrying()
 {
     vector<object> ret;

@@ -9,7 +9,7 @@
 #include "dataStructures.h"
 #include "Animalia/animal.h"
 
-tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, /*unsigned char sw,*/ short px, short py, short up, short ui, unsigned char b, unsigned char t)
+tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool uo, unsigned short a, /*unsigned char sw,*/ short px, short py, short up, short ui, unsigned char b, unsigned char t, char g)
 {
     if(!tileConstructorAllowed)
         return;
@@ -27,6 +27,7 @@ tile::tile(unsigned char r, unsigned short w, short h, unsigned char wst, bool u
     wasteMoved=false;
     bush=b;
     tree=t;
+    grass=g;
 }
 bool tile::walkable(unit *u) //call with destination as the this tile
 {
@@ -228,6 +229,34 @@ void tile::spreadDisease()
                             }
                         }
                     }
+                    else if(map[i][j].animalPresent>0)
+					{
+						if(map[i][j].x!=x || map[i][j].y!=y) //different unit
+						{
+							int tempimmunloss=0;
+							for(unsigned int d=0; d<allAnimals[map[i][j].animalPresent-1]->diseased.size(); d++)
+								tempimmunloss+=allDiseases[allAnimals[map[i][j].animalPresent-1]->diseased[d]].immunCost;
+							if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allAnimals[map[i][j].animalPresent-1]->immunity-tempimmunloss>0)?(allAnimals[map[i][j].animalPresent-1]->immunity-tempimmunloss):0)+((MAXHEALTH-allAnimals[map[i][j].animalPresent-1]->health)*allAnimals[map[i][j].animalPresent-1]->healthDiseaseInc))
+							{
+								bool good=true;
+								for(unsigned int d=0; d<allAnimals[map[i][j].animalPresent-1]->diseased.size(); d++)
+								{
+									if(disease[h]==allAnimals[map[i][j].animalPresent-1]->diseased[d]) //you actually managed to get sick with the same disease TWICE! Good for you!
+									{
+										good=false;
+										allAnimals[map[i][j].animalPresent-1]->diseased[d].multiplier++; //makes the disease more fearsome. Or at least more advanced in development
+										allAnimals[map[i][j].animalPresent-1]->diseased[d].flipDir=false; //If you were getting better, screw that! Now you're getting sicker again!
+										break;
+									}
+								}
+								if(good)
+								{
+									allAnimals[map[i][j].animalPresent-1]->diseased.push_back(disease[h]);
+									allAnimals[map[i][j].animalPresent-1]->immunity-=allDiseases[disease[h]].permImmunCost;
+								}
+							}
+						}
+					}
                 }
             }
         }

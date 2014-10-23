@@ -54,6 +54,7 @@ class object
 	friend class animalEatingAbilities;
 	friend class herbivore;
 	friend class carnivore;
+	friend class creature;
     friend int main();
     friend void reformat();
     friend bool operator==(vector<object*> v, int i);

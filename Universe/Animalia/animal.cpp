@@ -43,6 +43,18 @@ bool animal::nextFrame()
         return false;
     }
     see();
+    infect();
+    
+    int tempmovingprog=movingprog;
+    act(); //AI
+    if(movingprog==tempmovingprog) //did not move
+        movingprog=0; //no progress on moving, reset
+    
+    if(!checkLive(allSpecies[speciesIndex].maxHunger))
+    {
+        die();
+        return false;
+    }
     resetActions();
     return true;
 }
@@ -178,6 +190,14 @@ void animal::moveHelper(int mx, int my)
         moveToY=y;
     }
 }
+void animal::move()
+{
+	if(index!=curLoops.animalIndex)
+        return;
+    if(sleeping || reproducing>0 || moving || waking) //eating is allowed. SeeingIntently is taken care of in creature. 
+        return;
+    creature::move();
+}
 void animal::die()
 {
     map[y][x].animalPresent=0;
@@ -248,7 +268,7 @@ void animal::act()
 }
 void animal::reproduce(int withwhom)
 {
-    if(sleeping || reproducing>0 || moving || waking)
+    if(sleeping || reproducing>0 || moving || waking || seeingIntently==1) //can't do anything else.
         return;
     if(index!=curLoops.animalIndex)
         return;
@@ -259,7 +279,7 @@ void animal::reproduce(int withwhom)
 }
 void animal::goToSleep()
 {
-	if(sleeping || reproducing>0 || moving || waking)
+	if(sleeping || reproducing>0 || moving || waking || seeingIntently==1)
 		return;
 	if(index!=curLoops.animalIndex)
 		return;
@@ -267,9 +287,17 @@ void animal::goToSleep()
 		return;
 	sleeping=true;
 }
+void animal::seeIntently(short dirSee)
+{
+	if(sleeping || reproducing>0 || waking || seeingIntently==1) //moving taken care of in creature
+		return;
+	if(index!=curLoops.animalIndex)
+		return;
+	creature::seeIntently(dirSee);
+}
 creature* animal::createFetus(int withwhom)
 {
-	allAnimals.push_back(new animal((bool)(rand()%2), geneMixer(speed, allAnimals[withwhom]->speed), allAnimals.size(), geneMixer(lineOfSight, allAnimals[withwhom]->lineOfSight), allSpecies[speciesIndex].maxHealth, (rand()%4)+allSpecies[speciesIndex].newbornMinWeight, allSpecies[speciesIndex].newbornHunger, -1, -1, allSpecies[speciesIndex].newbornSleep, 0, allSpecies[speciesIndex].newbornEnergy, -1, speciesIndex, geneMixer(woundEnergyCost, allAnimals[withwhom]->woundEnergyCost), allSpecies[speciesIndex].newbornMinWeight, geneMixer(fatToWeight, allAnimals[withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allAnimals[withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allAnimals[withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allAnimals[withwhom]->energyPerFood), geneMixer(metabolicRate, allAnimals[withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allAnimals[withwhom]->coefOfWorseningSight),(sexuallyMature+allAnimals[withwhom]->sexuallyMature)/2, animalType, geneMixer(skittish, allAnimals[withwhom]->skittish))); //adds a new animal
+	allAnimals.push_back(new animal((bool)(rand()%2), geneMixer(speed, allAnimals[withwhom]->speed), allAnimals.size(), geneMixer(lineOfSight, allAnimals[withwhom]->lineOfSight), allSpecies[speciesIndex].maxHealth, (rand()%4)+allSpecies[speciesIndex].newbornMinWeight, allSpecies[speciesIndex].newbornHunger, -1, -1, allSpecies[speciesIndex].newbornSleep, 0, allSpecies[speciesIndex].newbornEnergy, -1, speciesIndex, geneMixer(woundEnergyCost, allAnimals[withwhom]->woundEnergyCost), allSpecies[speciesIndex].newbornMinWeight, geneMixer(fatToWeight, allAnimals[withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allAnimals[withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allAnimals[withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allAnimals[withwhom]->energyPerFood), geneMixer(metabolicRate, allAnimals[withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allAnimals[withwhom]->coefOfWorseningSight),(sexuallyMature+allAnimals[withwhom]->sexuallyMature)/2, geneMixer(immunity, allAnimals[withwhom]->immunity), geneMixer(healthDiseaseInc, allAnimals[withwhom]->healthDiseaseInc), animalType, geneMixer(skittish, allAnimals[withwhom]->skittish))); //adds a new animal
     return allAnimals[allAnimals.size()-1];
 }
 

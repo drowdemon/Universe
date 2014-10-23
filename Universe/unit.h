@@ -18,8 +18,6 @@ class tile;
 	U(int, player) \
 	U(short, strength) \
 	U(short, intelligence) \
-	U(short, healthDiseaseInc) \
-	U(short, immunity) \
 	U(short, excreteNeedMax) \
 	
 #define LISTVARSUNITSKILLSCONSTRUCTOR \
@@ -80,18 +78,13 @@ private: // all this stuff can only be changed internally
     //more will certainly be added. Our own creatures will inherit from this, and implement some sort of run function, probably
     int player;
     short strength; //affects how much it can carry, how well it can fight, etc. //genetic
-    short intelligence; //effects various tasks. //genetic 
-    short immunity; //changes with age. small->large->small. Out of 10,000 //genetic
-    short healthDiseaseInc; //how much the chances of disease increase per health lost. //genetic
+    short intelligence; //effects various tasks. //genetic
     short excreteNeedMax; //If you get to this point, you WILL excrete. Wherever you are. //genetic
 
     //below variables are not passed to constructor
-    vector<diseaseInfo> diseased; //info about all of the diseases this unit has, if any
     vector<object*> carrying;
     Throwing throwSkill;
     short *learningSkills; //one for each skill. Stores -1 if no, else stores index of teacher. Currently: only throwing.
-    short fatBuildProgress; //how far you are on the way to adding weight. 
-    short minWeight; 
     short excreteNeed; //how much it needs to excrete. -1 is no need. Else rises to excreteNeedMax. At that point it does, wherever you happen to be.
     
     //below are 'acting' variables. If the unit is doing some action, and cannot do other actions because of this, this is where it is recorded.
@@ -112,10 +105,8 @@ private:
 #undef W
 #undef U
 #undef V
-    void diseaseEffects();
     void livingEvents(int speciesIndex);
     void moveHelper(int mx, int my);
-    void infect();
     void unseeunit();
     void seehive(int hiveIndex);
     void unseehive(int hiveIndex);
@@ -144,6 +135,7 @@ public:
     void learnSkillFrom(int learnwhat, short fromwhom); //Currently the only skill is throwing, but there will be more, which is what the first parameter is for
     void stopLearnSkillFrom(int learnwhat);
     void excrete();
+    void seeIntently(short dirSee);
     virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI. In this class, it should be empty
     //getters
     vector<object> getcarrying();

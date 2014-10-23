@@ -4,14 +4,15 @@
 #define WATER_TRANSMIT 1
 #define FOOD_TRANSMIT 2
 #define WASTE_TRANSMIT 4
-#define CONTACT_TRANSMIT 8
-#define ANIMAL_TRANSMIT 16
+#define CONTACT_TRANSMIT 8     //contact transmit is animal-animal or unit-unit
+#define ANIMAL_TRANSMIT 16     //animal transmit is animal-unit/unit-animal
 #define ROTTEN_FOOD_TRANSMIT 32
 
 class disease
 {
     friend class tile;
     friend class unit;
+    friend class creature;
     friend class food;
     friend class object;
 private:

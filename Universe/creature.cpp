@@ -14,12 +14,15 @@ creature::creature()
 	moveToX=x;
 	moveToY=y;
 	fetusid=-1;
-	moving=false;
-	waking=false;
+	fatBuildProgress=0;
+	seeDir=0;
+	
 	sleeping=false;
 	movingprog=0;
-	fatBuildProgress=0;
 	reproducing=0;
+	seeingIntently=0;
+	moving=false;
+	waking=false;
 
 	currSeen = new vector<vector<metabool> >();
 	currSeen->resize(lineOfSight*2+1);
@@ -48,6 +51,7 @@ creature::creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extrane
 	sleeping=false;
 	movingprog=0;
 	reproducing=0;
+	seeingIntently=0;
 
 	currSeen = new vector<vector<metabool> >();
 	currSeen->resize(lineOfSight*2+1);
@@ -67,6 +71,8 @@ void creature::move()
         return; //did you think you won't get caught?
     if(moveToX==x && moveToY==y)
         return; //why did you want to do that. Lazy bum.
+    if(seeingIntently==1 && !sameDirSeeMove(seeDir, moveToX-x, moveToY-y)) //trying to look in a different direction, can't move. If looking in the same direction, can move 
+    	return;    
     movingprog++;
     moving=true;
     if(movingprog==speed)
@@ -136,6 +142,7 @@ void creature::livingEvents(int speciesIndex)
     else
         sleep--;
     energy-=(allSpecies[speciesIndex].maxHealth-health)*woundEnergyCost;
+    diseaseEffects(); //just energy costs
     if(energy<allSpecies[speciesIndex].energyFromFatPoint)
     {
         if(weight>minWeight && frames%allSpecies[speciesIndex].energyFromFatRate==0)
@@ -252,10 +259,14 @@ void creature::see()
             {
                 if(allowed[h]) //if its not behind an obstacle
                 {
+                	int loPs = allSpecies[speciesIndex].lineOfPerfectSight;
+                	if(seeingIntently==1 && sameDirSeeMove(seeDir, curPoints[h].x, curPoints[h].y)) //makes seeIntently do something
+                		loPs=lineOfSight; //effectively makes the second condition never hit. Which means that if it's visible, you can see it, none of this probability nonsense, which is the point
+                	
                 	int distance = (i>abs(j) ? i : abs(j)) - map[y+curPoints[h].y][x+curPoints[h].x].cameouflageAmnt();
                     if(distance > lineOfSight) //if the sum of the various cameo affects makes whatever unit is on that square invisible, make sure that happens
                         (*currSeen)[lineOfSight+curPoints[h].y][lineOfSight+curPoints[h].x].b=2;  //can see tile but not units on it
-                    else if(distance > allSpecies[speciesIndex].lineOfPerfectSight) //It might be possible to see it, but it might just be interpretted as 'something is there, who the hell knows what'
+                    else if(distance > loPs) //It might be possible to see it, but it might just be interpretted as 'something is there, who the hell knows what'
                     {
                     	int prob = (lineOfSight-distance)*(lineOfSight-distance)*coefOfWorseningSight;
                     	if((rand()%10000) < prob)
@@ -303,10 +314,12 @@ void creature::resetActions()
 {
 	waking=false;
 	moving=false;
+	if(seeingIntently>0)
+		seeingIntently--;
 }
 void creature::awaken()
 {
-	if(!sleeping)
+	if(!sleeping) //can't possibly have been doing anything else anyway, no need to check for multitasking.
 	    return;
     if((speciesIndex==0 && (((unit*)this)->player!=curLoops.unitPlayer || index!=curLoops.unitIndex)) || (speciesIndex!=0 && index!=curLoops.animalIndex))
         return;
@@ -365,4 +378,214 @@ void creature::reproduce(int withwhom, creature *cwith)
             }
         }
     }
+}
+bool creature::sameDirSeeMove(short dirSee, short dx, short dy)
+{
+	if((dirSee==1 && dy<0) || (dirSee==2 && dy>0)) //up/down
+		return true;
+	if((dirSee==3 && dx<0) || (dirSee==4 && dx>0)) //left/right
+		return true;
+	return false;
+}
+void creature::seeIntently(short dirSee)
+{
+	if(dirSee<=0 || 4<dirSee) //invalid direction
+		return;
+	if(moving && !sameDirSeeMove(seeDir, moveToX-x, moveToY-y))  //trying to move in a different direction, can't look. If moving in the same direction, can look
+		return;
+	seeingIntently=2;
+	seeDir=dirSee;
+}
+void creature::infect()
+{
+    if(frames%INFECTRATE==0)
+    {
+        int immunityloss=0;
+        for(unsigned int i=0; i<diseased.size(); i++)
+            immunityloss+=allDiseases[diseased[i]].immunCost;
+        for(unsigned int i=0; i<allDiseases.size(); i++) //try to auto-infect
+        {
+            if(allDiseases[i].first!=2) //can catch this disease at random
+            {
+                if(rand()%10000<allDiseases[i].firstChance-((immunity-immunityloss>0)?(immunity-immunityloss):0)+((MAXHEALTH-health)*healthDiseaseInc)) //got sick
+                {
+                    if(allDiseases[i].first==1)
+                    {
+                        allDiseases[i].first++;
+                        diseased.push_back(diseaseInfo(i));
+                        if(speciesIndex==0)
+                        {
+                        	((unit*)this)->strength-=allDiseases[i].permStrCost;
+                        	((unit*)this)->intelligence-=allDiseases[i].permIntelCost;
+                        }
+                        immunity-=allDiseases[i].permImmunCost;
+                    }
+                }
+            }
+        }
+        for(unsigned int h=0; h<diseased.size(); h++) //attempt to infect others
+        {
+            diseased[h].time++;
+            if(diseased[h].time%allDiseases[diseased[h]].multiplierRate==0)
+            {
+                if(diseased[h].multiplier<allDiseases[diseased[h]].multiplierMax && !diseased[h].flipDir)
+                    diseased[h].multiplier++;
+                else if(diseased[h].multiplier==allDiseases[diseased[h]].multiplierMax)
+                    diseased[h].flipDir=true;
+                else if(diseased[h].flipDir)
+                    diseased[h].multiplier--;
+                if(diseased[h].multiplier==0)
+                {
+                    diseased.erase(diseased.begin()+h); //cured
+                    h--;
+                }
+            }
+            if(rand()%10000<allDiseases[diseased[h]].curability+((immunity-immunityloss>0)?(immunity-immunityloss):0)-((MAXHEALTH-health)*healthDiseaseInc))
+            {
+                diseased.erase(diseased.begin()+h); //cured
+                h--;
+            }  
+            if(diseased[h].time>allDiseases[diseased[h]].timeForSpreadability)
+            {
+                for(int i = (y>allDiseases[diseased[h]].spreadabilityArea) ? (y-allDiseases[diseased[h]].spreadabilityArea) : 0; i < (MAPSIZE-y<allDiseases[diseased[h]].spreadabilityArea) ? (y+allDiseases[diseased[h]].spreadabilityArea) : MAPSIZE; i++)
+                {
+                    for(int j = (x>allDiseases[diseased[h]].spreadabilityArea) ? (x-allDiseases[diseased[h]].spreadabilityArea) : 0; j < (MAPSIZE-x<allDiseases[diseased[h]].spreadabilityArea) ? (x+allDiseases[diseased[h]].spreadabilityArea) : MAPSIZE; j++)
+                    {
+                        if(map[i][j].water>0 && (allDiseases[diseased[h]].transmit&WATER_TRANSMIT)>0) //near water and can transmit through water
+                        {
+                            if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance)
+                            {
+                                bool good=true;
+                                for(unsigned int d=0; d<map[i][j].disease.size(); d++)
+                                {
+                                    if(map[i][j].disease[d]==diseased[h])
+                                    {
+                                        map[i][j].diseaseTime[d]=0;
+                                        good=false;
+                                        break;
+                                    }
+                                }
+                                if(good)
+                                {
+                                    map[i][j].disease.push_back(diseased[h]);
+                                    map[i][j].diseaseTime.push_back(0);
+                                }
+                            }
+                        }
+                        if(map[i][j].waste>0 && (allDiseases[diseased[h]].transmit&WASTE_TRANSMIT)>0) // near waste and can transmit
+                        {
+                            if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance)
+                            {
+                                bool good=true;
+                                for(unsigned int d=0; d<map[i][j].disease.size(); d++)
+                                {
+                                    if(map[i][j].disease[d]==diseased[h])
+                                    {
+                                        map[i][j].diseaseTime[d]=0;
+                                        good=false;
+                                        break;
+                                    }
+                                }
+                                if(good)
+                                {
+                                    map[i][j].disease.push_back(diseased[h]);
+                                    map[i][j].diseaseTime.push_back(0);
+                                }
+                            }
+                        }
+                        for(unsigned int k=0; k<map[i][j].allObjects.size(); k++)
+                        {
+                            if(map[i][j].allObjects[k]->actuallyEdible!=-3 && (allDiseases[diseased[h]].transmit&FOOD_TRANSMIT)>0)
+                            {
+                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance)
+                                {
+                                    bool good=true;
+                                    for(unsigned int d=0; d<map[i][j].allObjects[k]->infected.size(); d++)
+                                    {
+                                        if(map[i][j].allObjects[k]->infected[d]==diseased[h])
+                                        {
+                                            map[i][j].allObjects[k]->infectionTime[d]=0;
+                                            good=false;
+                                            break;
+                                        }
+                                    }
+                                    if(good)
+                                    {
+                                        map[i][j].allObjects[k]->infected.push_back(diseased[h]);
+                                        map[i][j].allObjects[k]->infectionTime.push_back(0);
+                                    }
+                                }
+                            }
+                        }
+                        if(map[i][j].uniton && ((speciesIndex==0 && (allDiseases[diseased[h]].transmit&CONTACT_TRANSMIT)>0) || (speciesIndex!=0 && (allDiseases[diseased[h]].transmit&ANIMAL_TRANSMIT)>0))) //theres a unit and ((transmitable unit-unit and I'm a unit) or (transmitable unit-animal and I'm an animal))
+                        {
+                            if(map[i][j].x!=x || map[i][j].y!=y) //different unit
+                            {
+                                int tempimmunloss=0;
+                                for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
+                                    tempimmunloss+=allDiseases[allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d]].immunCost;
+                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-tempimmunloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-tempimmunloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->healthDiseaseInc))
+                                {
+                                    bool good=true;
+                                    for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
+                                    {
+                                        if(diseased[h]==allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d]) //you actually managed to get sick with the same disease TWICE! Good for you!
+                                        {
+                                            good=false;
+                                            allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d].multiplier++; //makes the disease more fearsome. Or at least more advanced in development
+                                            allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d].flipDir=false; //If you were getting better, screw that! Now you're getting sicker again!
+                                            break;
+                                        }
+                                    }
+                                    if(good)
+                                    {
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.push_back(diseased[h].disease);
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->strength-=allDiseases[diseased[h]].permStrCost;
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->intelligence-=allDiseases[diseased[h]].permIntelCost;
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-=allDiseases[diseased[h]].permImmunCost;
+                                    }
+                                }
+                            }
+                        }
+                        else if(map[i][j].animalPresent>0 && ((speciesIndex==0 && (allDiseases[diseased[h]].transmit&ANIMAL_TRANSMIT)>0) || (speciesIndex!=0 && (allDiseases[diseased[h]].transmit&CONTACT_TRANSMIT)>0)))
+                        {
+                            if(map[i][j].x!=x || map[i][j].y!=y) //different unit
+                            {
+                                int tempimmunloss=0;
+                                for(unsigned int d=0; d<allAnimals[map[i][j].animalPresent-1]->diseased.size(); d++)
+                                    tempimmunloss+=allDiseases[allAnimals[map[i][j].animalPresent-1]->diseased[d]].immunCost;
+                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allAnimals[map[i][j].animalPresent-1]->immunity-tempimmunloss>0)?(allAnimals[map[i][j].animalPresent-1]->immunity-tempimmunloss):0)+((MAXHEALTH-allAnimals[map[i][j].animalPresent-1]->health)*allAnimals[map[i][j].animalPresent-1]->healthDiseaseInc))
+                                {
+                                    bool good=true;
+                                    for(unsigned int d=0; d<allAnimals[map[i][j].animalPresent-1]->diseased.size(); d++)
+                                    {
+                                        if(diseased[h]==allAnimals[map[i][j].animalPresent-1]->diseased[d]) //you actually managed to get sick with the same disease TWICE! Good for you!
+                                        {
+                                            good=false;
+                                            allAnimals[map[i][j].animalPresent-1]->diseased[d].multiplier++; //makes the disease more fearsome. Or at least more advanced in development
+                                            allAnimals[map[i][j].animalPresent-1]->diseased[d].flipDir=false; //If you were getting better, screw that! Now you're getting sicker again!
+                                            break;
+                                        }
+                                    }
+                                    if(good)
+                                    {
+                                        allAnimals[map[i][j].animalPresent-1]->diseased.push_back(diseased[h].disease);
+                                        allAnimals[map[i][j].animalPresent-1]->immunity-=allDiseases[diseased[h]].permImmunCost;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+void creature::diseaseEffects()
+{
+    int start=energy;
+    for(unsigned int i=0; i<diseased.size(); i++)
+        energy-=allDiseases[diseased[i]].energyCost;
+    if(energy-start!=0)
+        creatureChangeLog::update(x,y, speciesIndex==0 ? ((unit*)this)->player : -1 ,index,0,0,0,(energy-start),0,0,0,NULL);
 }

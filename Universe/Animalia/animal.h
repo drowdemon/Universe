@@ -27,6 +27,7 @@ class animal : private creature //each actual animal is one of these
     friend class herbivore;
     friend class carnivore;
     friend class animalEatingAbilities;
+    friend class creature;
     friend void reformatAnimals();
     friend int main();
 private:
@@ -63,11 +64,13 @@ private:
     vector<vector<short> > *searchFood();
     //bool searchFoodHelperBushes(vector<vector<short> > * foodLocs);
     void moveHelper(int mx, int my);
+    void move(); //for some checking on whether this is allowed
     void die();
     void giveBirth();
     void act();
     void reproduce(int withWhom);
     void goToSleep();
+    void seeIntently(short dirSee);
     creature* createFetus(int withwhom);
 };
 
