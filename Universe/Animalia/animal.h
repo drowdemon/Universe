@@ -72,6 +72,8 @@ private:
     void goToSleep();
     void seeIntently(short dirSee);
     creature* createFetus(int withwhom);
+    void pickUp(int what, int ox, int oy); //animals can only pick up one object at a time
+    void putDown(int objIndex, int px, int py);
 };
 
 #endif	/* ANIMAL_H */

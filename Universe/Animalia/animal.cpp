@@ -175,6 +175,13 @@ void animal::moveHelper(int mx, int my)
         y+=my;
         
         energy-=allSpecies[speciesIndex].movementEnergy;
+        
+        int sumcarried=0;
+        for(unsigned int i=0; i<carrying.size(); i++)
+            sumcarried+=carrying[i]->weight;
+        energy-=sumcarried/50*allSpecies[speciesIndex].movingLiftedWeightPenalty;
+        energy-=((rand()%50)<(sumcarried%50)) ? allSpecies[speciesIndex].movingLiftedWeightPenalty : 0;
+        
         energy-=weight/50*allSpecies[speciesIndex].movingSelfWeightPenalty;
         energy-=((rand()%50)<(weight%50)) ? allSpecies[speciesIndex].movingSelfWeightPenalty : 0;
         
@@ -194,15 +201,34 @@ void animal::move()
 {
 	if(index!=curLoops.animalIndex)
         return;
-    if(sleeping || reproducing>0 || moving || waking) //eating is allowed. SeeingIntently is taken care of in creature. 
+    if(sleeping || reproducing>0 || moving || waking || liftingOrDropping) //eating is allowed. SeeingIntently is taken care of in creature. 
         return;
     creature::move();
 }
 void animal::die()
 {
     map[y][x].animalPresent=0;
+    
+    for(unsigned int i=0; i<carrying.size(); i++) //drop everything
+    {
+        carrying[i]->x=x;
+        carrying[i]->y=y;
+        carrying[i]->heldByIndex=-1;
+        carrying[i]->heldByPlayer=-1;
+        carrying[i]->index=map[y][x].allObjects.size();
+        map[y][x].allObjects.push_back(carrying[i]);
+        carrying[i]=NULL; //the pointer belongs to the map now. This way it won't be deleted when we delete the unit.
+    }
+    
     map[y][x].allObjects.push_back(new object(allObjectDesc[OBJECT_GENERICANIMALCORPSE],-1,-1,x,y,map[y][x].allObjects.size(),map[y][x].height));
     map[y][x].allObjects.back()->weight=weight;
+    
+    if(fetusid!=-1) //if carrying a child in womb
+    {
+        int fi=fetusid;
+        delete allAnimals[fetusid]; //kill it too. Map modifications are not required since the fetus is not technically on the map.
+        allAnimals[fi]=NULL;
+    }
     
     int i = index;
     
@@ -268,7 +294,7 @@ void animal::act()
 }
 void animal::reproduce(int withwhom)
 {
-    if(sleeping || reproducing>0 || moving || waking || seeingIntently==1) //can't do anything else.
+    if(sleeping || reproducing>0 || moving || waking || seeingIntently==1 || liftingOrDropping) //can't do anything else.
         return;
     if(index!=curLoops.animalIndex)
         return;
@@ -279,7 +305,7 @@ void animal::reproduce(int withwhom)
 }
 void animal::goToSleep()
 {
-	if(sleeping || reproducing>0 || moving || waking || seeingIntently==1)
+	if(sleeping || reproducing>0 || moving || waking || seeingIntently==1 || liftingOrDropping)
 		return;
 	if(index!=curLoops.animalIndex)
 		return;
@@ -289,7 +315,7 @@ void animal::goToSleep()
 }
 void animal::seeIntently(short dirSee)
 {
-	if(sleeping || reproducing>0 || waking || seeingIntently==1) //moving taken care of in creature
+	if(sleeping || reproducing>0 || waking || seeingIntently==1 || liftingOrDropping) //moving taken care of in creature
 		return;
 	if(index!=curLoops.animalIndex)
 		return;
@@ -297,7 +323,7 @@ void animal::seeIntently(short dirSee)
 }
 creature* animal::createFetus(int withwhom)
 {
-	allAnimals.push_back(new animal((bool)(rand()%2), geneMixer(speed, allAnimals[withwhom]->speed), allAnimals.size(), geneMixer(lineOfSight, allAnimals[withwhom]->lineOfSight), allSpecies[speciesIndex].maxHealth, (rand()%4)+allSpecies[speciesIndex].newbornMinWeight, allSpecies[speciesIndex].newbornHunger, -1, -1, allSpecies[speciesIndex].newbornSleep, 0, allSpecies[speciesIndex].newbornEnergy, -1, speciesIndex, geneMixer(woundEnergyCost, allAnimals[withwhom]->woundEnergyCost), allSpecies[speciesIndex].newbornMinWeight, geneMixer(fatToWeight, allAnimals[withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allAnimals[withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allAnimals[withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allAnimals[withwhom]->energyPerFood), geneMixer(metabolicRate, allAnimals[withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allAnimals[withwhom]->coefOfWorseningSight),(sexuallyMature+allAnimals[withwhom]->sexuallyMature)/2, geneMixer(immunity, allAnimals[withwhom]->immunity), geneMixer(healthDiseaseInc, allAnimals[withwhom]->healthDiseaseInc), animalType, geneMixer(skittish, allAnimals[withwhom]->skittish))); //adds a new animal
+	allAnimals.push_back(new animal((bool)(rand()%2), geneMixer(speed, allAnimals[withwhom]->speed), geneMixer(strength, allAnimals[withwhom]->strength), allAnimals.size(), geneMixer(lineOfSight, allAnimals[withwhom]->lineOfSight), allSpecies[speciesIndex].maxHealth, (rand()%4)+allSpecies[speciesIndex].newbornMinWeight, allSpecies[speciesIndex].newbornHunger, -1, -1, allSpecies[speciesIndex].newbornSleep, 0, allSpecies[speciesIndex].newbornEnergy, -1, speciesIndex, geneMixer(woundEnergyCost, allAnimals[withwhom]->woundEnergyCost), allSpecies[speciesIndex].newbornMinWeight, geneMixer(fatToWeight, allAnimals[withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allAnimals[withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allAnimals[withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allAnimals[withwhom]->energyPerFood), geneMixer(metabolicRate, allAnimals[withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allAnimals[withwhom]->coefOfWorseningSight),(sexuallyMature+allAnimals[withwhom]->sexuallyMature)/2, geneMixer(immunity, allAnimals[withwhom]->immunity), geneMixer(healthDiseaseInc, allAnimals[withwhom]->healthDiseaseInc), animalType, geneMixer(skittish, allAnimals[withwhom]->skittish))); //adds a new animal
     return allAnimals[allAnimals.size()-1];
 }
 
@@ -329,4 +355,22 @@ vector<point> *animal::getfoodapprox(animal* a)
         return ret;
     }
     return NULL; 
+}
+void animal::pickUp(int what, int ox, int oy)
+{
+	if(sleeping || reproducing>0 || liftingOrDropping || waking || moving || seeingIntently==1) //nothing else is allowed
+        return;
+    if(index!=curLoops.animalIndex)
+        return;
+    if(carrying.size()>1) //can only pick up one object.
+    	return;
+    creature::pickUp(what, ox, oy);
+}
+void animal::putDown(int objIndex, int px, int py)
+{
+	if(sleeping || reproducing>0 || moving || liftingOrDropping || waking || seeingIntently==1) //nothing else is allowed
+        return;
+    if(index!=curLoops.animalIndex)
+        return;
+    creature::putDown(objIndex, px, py);
 }

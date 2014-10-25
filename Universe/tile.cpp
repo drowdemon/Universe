@@ -253,6 +253,7 @@ void tile::spreadDisease()
 								{
 									allAnimals[map[i][j].animalPresent-1]->diseased.push_back(disease[h]);
 									allAnimals[map[i][j].animalPresent-1]->immunity-=allDiseases[disease[h]].permImmunCost;
+									allAnimals[map[i][j].animalPresent-1]->strength-=allDiseases[disease[h]].strengthCost;
 								}
 							}
 						}

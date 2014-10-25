@@ -23,6 +23,7 @@ creature::creature()
 	seeingIntently=0;
 	moving=false;
 	waking=false;
+	liftingOrDropping=false;
 
 	currSeen = new vector<vector<metabool> >();
 	currSeen->resize(lineOfSight*2+1);
@@ -46,9 +47,11 @@ creature::creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extrane
 	moveToX=x;
 	moveToY=y;
 	fetusid=-1;
+	fatBuildProgress=0;
 	moving=false;
 	waking=false;
 	sleeping=false;
+	liftingOrDropping=false;
 	movingprog=0;
 	reproducing=0;
 	seeingIntently=0;
@@ -63,6 +66,16 @@ creature::creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extrane
 
 creature::~creature()
 {
+	for(unsigned int i=0; i<carrying.size(); i++)
+    {
+    	if(carrying[i])
+        {
+    		delete carrying[i];
+    		carrying[i]=NULL;
+        }
+    }
+    carrying.clear();
+    delete currSeen;
 }
 
 void creature::move()
@@ -415,10 +428,10 @@ void creature::infect()
                         diseased.push_back(diseaseInfo(i));
                         if(speciesIndex==0)
                         {
-                        	((unit*)this)->strength-=allDiseases[i].permStrCost;
                         	((unit*)this)->intelligence-=allDiseases[i].permIntelCost;
                         }
                         immunity-=allDiseases[i].permImmunCost;
+                        strength-=allDiseases[i].permStrCost;
                     }
                 }
             }
@@ -571,6 +584,7 @@ void creature::infect()
                                     {
                                         allAnimals[map[i][j].animalPresent-1]->diseased.push_back(diseased[h].disease);
                                         allAnimals[map[i][j].animalPresent-1]->immunity-=allDiseases[diseased[h]].permImmunCost;
+                                        allAnimals[map[i][j].animalPresent-1]->strength-=allDiseases[diseased[h]].permStrCost;
                                     }
                                 }
                             }
@@ -588,4 +602,49 @@ void creature::diseaseEffects()
         energy-=allDiseases[diseased[i]].energyCost;
     if(energy-start!=0)
         creatureChangeLog::update(x,y, speciesIndex==0 ? ((unit*)this)->player : -1 ,index,0,0,0,(energy-start),0,0,0,NULL);
+}
+void creature::hitWithFlyingObject(int objIndex) //add more factors to the damage. Object sharpness maybe. How hard/soft it is. 
+{
+    health-=map[y][x].allObjects[objIndex]->speed*SPEEDTODAMAGE; 
+}
+void creature::pickUp(int what, int ox, int oy)
+{
+	if(abs(ox-x)>1 || abs(oy-y)>1) //too far
+        return;
+    int carriedWeight=0;
+    for(unsigned int i=0; i<carrying.size(); i++)
+        carriedWeight+=carrying[i]->weight;
+    for(unsigned int i=0; i<map[oy][ox].allObjects.size(); i++)
+    {
+        if(map[oy][ox].allObjects[i]->whatIsIt==what)
+        {
+            if(carriedWeight+map[oy][ox].allObjects[i]->weight<=strength*WEIGHTPERSTRENGTH) //good
+            {
+                carrying.push_back(map[oy][ox].allObjects[i]);
+                carrying[carrying.size()-1]->x=-1;
+                carrying[carrying.size()-1]->y=-1;
+                
+                carrying[carrying.size()-1]->heldByPlayer = speciesIndex==0 ? ((unit*)this)->player : -1;
+                
+                carrying[carrying.size()-1]->heldByIndex=index;
+                carrying[carrying.size()-1]->index=carrying.size()-1;
+                map[oy][ox].allObjects.erase(map[oy][ox].allObjects.begin()+i);
+            }
+            break;
+        }
+    }
+    liftingOrDropping=true;
+}
+void creature::putDown(int objIndex, int px, int py)
+{
+	if(abs(x-px)>1 || abs(y-py)>1)
+        return; //not allowed
+    carrying[objIndex]->x=px;
+    carrying[objIndex]->y=py;
+    carrying[objIndex]->heldByIndex=-1;
+    carrying[objIndex]->heldByPlayer=-1;
+    carrying[objIndex]->index=map[y][x].allObjects.size();
+    map[y][x].allObjects.push_back(carrying[objIndex]);
+    carrying.erase(carrying.begin()+objIndex);
+    liftingOrDropping=true;
 }

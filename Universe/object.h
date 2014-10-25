@@ -57,6 +57,7 @@ class object
 	friend class creature;
     friend int main();
     friend void reformat();
+    friend void reformatAnimals();
     friend bool operator==(vector<object*> v, int i);
     friend bool operator==(int i, vector<object*> v);
     friend bool operator!=(vector<object*> v, int i);

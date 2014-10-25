@@ -16,7 +16,6 @@ class tile;
 
 #define LISTVARSUNITCONSTRUCTOR \
 	U(int, player) \
-	U(short, strength) \
 	U(short, intelligence) \
 	U(short, excreteNeedMax) \
 	
@@ -77,12 +76,10 @@ friend class creature;
 private: // all this stuff can only be changed internally
     //more will certainly be added. Our own creatures will inherit from this, and implement some sort of run function, probably
     int player;
-    short strength; //affects how much it can carry, how well it can fight, etc. //genetic
     short intelligence; //effects various tasks. //genetic
     short excreteNeedMax; //If you get to this point, you WILL excrete. Wherever you are. //genetic
 
     //below variables are not passed to constructor
-    vector<object*> carrying;
     Throwing throwSkill;
     short *learningSkills; //one for each skill. Stores -1 if no, else stores index of teacher. Currently: only throwing.
     short excreteNeed; //how much it needs to excrete. -1 is no need. Else rises to excreteNeedMax. At that point it does, wherever you happen to be.
@@ -91,7 +88,6 @@ private: // all this stuff can only be changed internally
     
     bool throwing; //These are cleared at the end of the frame
     bool eating;
-    bool liftingOrDropping; //if pickup() or putdown() were called
     bool excreting; //you can't do shit while you're excreting. 
 public:
     commWrapper allCommuniques;
@@ -114,7 +110,6 @@ private:
     void giveBirth();
     void emergencySleep();
     void die();
-    void hitWithFlyingObject(int objIndex); //Add to this function
     void resetActions();
     void resetSkills();
     void learn();

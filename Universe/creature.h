@@ -9,6 +9,7 @@ using namespace std;
 #define LISTVARSCREATURE      \
     W(bool, gender)	          \
     W(short, speed)	          \
+    W(short, strength)        \
     W(int, index)	          \
     W(short, lineOfSight)     \
     W(short, health)	      \
@@ -43,6 +44,7 @@ protected:
 	//vary from animal to animal, but constant within animal 
 	bool gender; //I assume 2 genders. true=male  //genetic
 	short speed; //how often movement occurs. Can't be 1:1 with ticks, since vehicles have to be faster
+	short strength; //affects how much it can carry, how well it can fight, etc. //genetic
 	int index; //in whatever list of units/animals/creatures there will be
 	short lineOfSight; //how far it can see. Elevation increases? Buildings/obstacles block sight
 	short woundEnergyCost; //how much energy losing health consumes, per health lost. // genetic
@@ -85,7 +87,9 @@ protected:
 	//cleared at end of frame.
 	bool moving;
 	bool waking;
+	bool liftingOrDropping; //if pickup() or putdown() were called
 	
+	vector<object*> carrying;
 	vector<vector<metabool> > *currSeen;
 	vector<diseaseInfo> diseased; //info about all of the diseases this unit has, if any
 protected:
@@ -114,6 +118,9 @@ protected:
 	virtual bool sameDirSeeMove(short dirSee, short dx, short dy); //dy is checkingY-positionY. i.e. y+dy = where I'm checking. Same with x. 
 	virtual void infect();
 	virtual void diseaseEffects();
+	virtual void hitWithFlyingObject(int objIndex); //Add to this function
+	virtual void pickUp(int what, int ox, int oy);
+	virtual void putDown(int objIndex, int px, int py);
 	
 	virtual ~creature();
 };

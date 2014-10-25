@@ -33,9 +33,9 @@ void init()
     tileConstructorAllowed=false;
     unitChangeFile = new ofstream("unitChanges");
     
-    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)-1, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, 3, TOLERABLEHEIGHTDIFF, NULL));
+    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)-1, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, (short)MOVINGLIFTEDWEIGHTPENALTY, 3, TOLERABLEHEIGHTDIFF, NULL));
     //an animal identical to a unit
-    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)0, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, 3, TOLERABLEHEIGHTDIFF, NULL));
+    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)0, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, (short)MOVINGLIFTEDWEIGHTPENALTY, 3, TOLERABLEHEIGHTDIFF, NULL));
     
     allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,-3,-1,food()));
     allObjectDesc.push_back(objectDescriptor(50,5,OBJECT_CORPSE,true,true,true,-2,-1,food())); //INCORRECT STATS. DEFINITELY. 
@@ -139,26 +139,28 @@ void reformat()
                 allUnits.data[i][j]->allCommuniques.index-=currDeleted;
             }
         }
-        for(unsigned int i=0; i<allUnits.data.size(); i++)
-        {
-            for(unsigned int j=0; j<allUnits.data[i].size(); j++)
-            {
-                if(allUnits.data[i][j]->fetusid!=-1)
-                    allUnits.data[i][j]->fetusid=indexMappings[i][allUnits.data[i][j]->fetusid];
-                for(unsigned int k=0; k<NUMSKILLS; k++)
-                {
-                    if(allUnits.data[i][j]->learningSkills[k]!=-1)
-                        allUnits.data[i][j]->learningSkills[k]=indexMappings[i][allUnits.data[i][j]->learningSkills[k]];
-                }
-            }
-        }
     }
+    for(unsigned int i=0; i<allUnits.data.size(); i++)
+	{
+		for(unsigned int j=0; j<allUnits.data[i].size(); j++)
+		{
+			if(allUnits.data[i][j]->fetusid!=-1)
+				allUnits.data[i][j]->fetusid=indexMappings[i][allUnits.data[i][j]->fetusid];
+			for(unsigned int k=0; k<NUMSKILLS; k++)
+			{
+				if(allUnits.data[i][j]->learningSkills[k]!=-1)
+					allUnits.data[i][j]->learningSkills[k]=indexMappings[i][allUnits.data[i][j]->learningSkills[k]];
+			}
+		}
+	}
     creatureChangeLog::update(-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,NULL);
 }
 
 void reformatAnimals()
 {
     int currDeleted=0;
+    vector<int> indexMappings;
+    indexMappings.resize(allAnimals.size());
     for(unsigned int i=0; i<allAnimals.size(); i++)
     {
         if(!allAnimals[i]) //invalid pointer
@@ -171,8 +173,16 @@ void reformatAnimals()
         {
             allAnimals[i]->index-=currDeleted;
             map[allAnimals[i]->y][allAnimals[i]->x].animalPresent-=currDeleted;
+            indexMappings[i]=allAnimals[i]->index;
+			for(unsigned int k=0; k<allAnimals[i]->carrying.size(); k++)
+				allAnimals[i]->carrying[k]->heldByIndex-=currDeleted;
         }
     }
+    for(unsigned int i=0; i<allAnimals.size(); i++)
+	{
+		if(allAnimals[i]->fetusid!=-1)
+			allAnimals[i]->fetusid=indexMappings[allAnimals[i]->fetusid];
+	}
 }
 
 int main()
@@ -180,7 +190,7 @@ int main()
     srand(time(NULL));
     init();
     
-    allUnits.data[0].push_back(new unit(false, 20, 0, 5, allSpecies[0].maxHealth, 100, allSpecies[0].newbornHunger, 10, 10, allSpecies[0].newbornSleep, 20, allSpecies[0].newbornEnergy, -1, 0, 2, allSpecies[0].newbornMinWeight, 150, 850, 8, 30, 13, 250, 13, 175, 200, 0, 10, 10, 50, 0));
+    allUnits.data[0].push_back(new unit(false, 20, 10, 0, 5, allSpecies[0].maxHealth, 100, allSpecies[0].newbornHunger, 10, 10, allSpecies[0].newbornSleep, 20, allSpecies[0].newbornEnergy, -1, 0, 2, allSpecies[0].newbornMinWeight, 150, 850, 8, 30, 13, 250, 13, 175, 200, 0, 10, 50, 0));
     allUnits.data[0][0]->minWeight=60;
     creatureChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0]->health,allUnits.data[0][0]->energy,allUnits.data[0][0]->hunger,allUnits.data[0][0]->sleep,allUnits.data[0][0]->pregnant,NULL);
     //allUnits.data[0][0].moveToX=20;
@@ -198,7 +208,7 @@ int main()
     
     allUnits.data[0][0]->carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0,map[allUnits.data[0][0]->y][allUnits.data[0][0]->x].height));
         
-    allAnimals.push_back(new animal(true, 20, 0, 5, 100, 50, 0, 20, 20, 700, 0, 1000, -1, 1, 1, 5, 60, 50, 8, 30, 13, 250, 13, 175, 200, 0, 5));
+    allAnimals.push_back(new animal(true, 20, 10, 0, 5, 100, 50, 0, 20, 20, 700, 0, 1000, -1, 1, 1, 5, 60, 50, 8, 30, 13, 250, 13, 175, 200, 0, 5));
     creatureChangeLog::update(20,20,-1,0,0,0,allAnimals[0]->health,allAnimals[0]->energy,allAnimals[0]->hunger,allAnimals[0]->sleep,allAnimals[0]->pregnant,NULL);
     map[20][20].animalPresent=0;
     
@@ -248,6 +258,14 @@ int main()
                 numAnimalsDead++;
                 continue;
             }
+            for(unsigned int k=0; k<allAnimals[i]->carrying.size(); k++)
+			{
+				if(!allAnimals[i]->carrying[k]->rot())
+				{
+					allAnimals[i]->carrying.erase(allAnimals[i]->carrying.begin()+k);
+					k--;
+				}
+			}
             if(!allAnimals[i]->nextFrame())
             {
                 numAnimalsDead++;

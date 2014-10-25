@@ -34,10 +34,8 @@ unit::unit(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSUNITCONSTRUC
     for(int i=0; i<NUMSKILLS; i++)
         learningSkills[i]=-1;
     
-    reproducing=0;  
     throwing=false;
     eating=false;
-    liftingOrDropping=false;
     excreteNeed=-1;
     excreting=false;
 }
@@ -45,13 +43,6 @@ unit::unit(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSUNITCONSTRUC
 unit::~unit()
 {
 	delete[] learningSkills;
-    for(unsigned int i=0; i<carrying.size(); i++)
-    {
-        delete carrying[i];
-        carrying[i]=NULL;
-    }
-    carrying.clear();
-    delete currSeen;
 }
 bool unit::nextFrame()
 {
@@ -341,6 +332,7 @@ void unit::die()
         carrying[i]->heldByPlayer=-1;
         carrying[i]->index=map[y][x].allObjects.size();
         map[y][x].allObjects.push_back(carrying[i]);
+        carrying[i]=NULL; //the pointer belongs to the map now. This way it won't be deleted when we delete the unit.
     }
     
     map[y][x].allObjects.push_back(new object(allObjectDesc[OBJECT_CORPSE],-1,-1,x,y,map[y][x].allObjects.size(),map[y][x].height));
@@ -361,10 +353,6 @@ void unit::die()
     vector<point> *t= new vector<point>();
     creatureChangeLog::update(-99999,-99999,p,i,-99999,-99999,-99999,-99999,-99999,-99999,-99999,t);
     delete t;
-}
-void unit::hitWithFlyingObject(int objIndex) //add more factors to the damage. Object sharpness maybe. How hard/soft it is. 
-{
-    health-=map[y][x].allObjects[objIndex]->speed*SPEEDTODAMAGE; 
 }
 void unit::resetActions() //sleeping is controlled differently, and reproduction is in livingEvents()
 {
@@ -445,7 +433,7 @@ void unit::shit() //excrete is public. shit is private.
 }
 creature* unit::createFetus(int withwhom)
 {
-	allUnits.data[player].push_back(new unit((bool)(rand()%2), geneMixer(speed, allUnits.data[player][withwhom]->speed), allUnits.data[player].size(), geneMixer(lineOfSight, allUnits.data[player][withwhom]->lineOfSight), allSpecies[0].maxHealth, (rand()%4)+allSpecies[0].newbornMinWeight, allSpecies[0].newbornHunger, -1, -1, allSpecies[0].newbornSleep, 0, allSpecies[0].newbornEnergy, -1, 0, geneMixer(woundEnergyCost, allUnits.data[player][withwhom]->woundEnergyCost), allSpecies[0].newbornMinWeight, geneMixer(fatToWeight, allUnits.data[player][withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allUnits.data[player][withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allUnits.data[player][withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allUnits.data[player][withwhom]->energyPerFood), geneMixer(metabolicRate, allUnits.data[player][withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allUnits.data[player][withwhom]->coefOfWorseningSight),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2, geneMixer(immunity,allUnits.data[player][withwhom]->immunity), geneMixer(healthDiseaseInc, allUnits.data[player][withwhom]->healthDiseaseInc), player, geneMixer(strength, allUnits.data[player][withwhom]->strength), geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence), geneMixer(excreteNeedMax, allUnits.data[player][withwhom]->excreteNeedMax), 0)); //adds the new unit. It doesn't really exist though
+	allUnits.data[player].push_back(new unit((bool)(rand()%2), geneMixer(speed, allUnits.data[player][withwhom]->speed), geneMixer(strength, allUnits.data[player][withwhom]->strength), allUnits.data[player].size(), geneMixer(lineOfSight, allUnits.data[player][withwhom]->lineOfSight), allSpecies[0].maxHealth, (rand()%4)+allSpecies[0].newbornMinWeight, allSpecies[0].newbornHunger, -1, -1, allSpecies[0].newbornSleep, 0, allSpecies[0].newbornEnergy, -1, 0, geneMixer(woundEnergyCost, allUnits.data[player][withwhom]->woundEnergyCost), allSpecies[0].newbornMinWeight, geneMixer(fatToWeight, allUnits.data[player][withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allUnits.data[player][withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allUnits.data[player][withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allUnits.data[player][withwhom]->energyPerFood), geneMixer(metabolicRate, allUnits.data[player][withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allUnits.data[player][withwhom]->coefOfWorseningSight),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2, geneMixer(immunity,allUnits.data[player][withwhom]->immunity), geneMixer(healthDiseaseInc, allUnits.data[player][withwhom]->healthDiseaseInc), player, geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence), geneMixer(excreteNeedMax, allUnits.data[player][withwhom]->excreteNeedMax), 0)); //adds the new unit. It doesn't really exist though
     return allUnits.data[player][allUnits.data[player].size()-1]; 
 }
 //Lot of empty statements:D------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -576,31 +564,9 @@ void unit::pickUp(int what, int ox, int oy)
 {
     if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting || moving || seeingIntently==1) //nothing else is allowed
         return;
-    if(abs(ox-x)>1 || abs(oy-y)>1) //too far
-        return;
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
         return;
-    int carriedWeight=0;
-    for(unsigned int i=0; i<carrying.size(); i++)
-        carriedWeight+=carrying[i]->weight;
-    for(unsigned int i=0; i<map[oy][ox].allObjects.size(); i++)
-    {
-        if(map[oy][ox].allObjects[i]->whatIsIt==what)
-        {
-            if(carriedWeight+map[oy][ox].allObjects[i]->weight<=strength*WEIGHTPERSTRENGTH) //good
-            {
-                carrying.push_back(map[oy][ox].allObjects[i]);
-                carrying[carrying.size()-1]->x=-1;
-                carrying[carrying.size()-1]->y=-1;
-                carrying[carrying.size()-1]->heldByPlayer=player;
-                carrying[carrying.size()-1]->heldByIndex=index;
-                carrying[carrying.size()-1]->index=carrying.size()-1;
-                map[oy][ox].allObjects.erase(map[oy][ox].allObjects.begin()+i);
-            }
-            break;
-        }
-    }
-    liftingOrDropping=true;
+    creature::pickUp(what, ox, oy);
 }
 void unit::putDown(int objIndex, int px, int py)
 {
@@ -608,16 +574,7 @@ void unit::putDown(int objIndex, int px, int py)
         return;
     if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
         return;
-    if(abs(x-px)>1 || abs(y-py)>1)
-        return; //not allowed
-    carrying[objIndex]->x=px;
-    carrying[objIndex]->y=py;
-    carrying[objIndex]->heldByIndex=-1;
-    carrying[objIndex]->heldByPlayer=-1;
-    carrying[objIndex]->index=map[y][x].allObjects.size();
-    map[y][x].allObjects.push_back(carrying[objIndex]);
-    carrying.erase(carrying.begin()+objIndex);
-    liftingOrDropping=true;
+    creature::putDown(objIndex, px, py);
 }
 void unit::eat(int objIndex)
 {
