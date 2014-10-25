@@ -39,6 +39,22 @@ unit::unit(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSUNITCONSTRUC
     excreteNeed=-1;
     excreting=false;
 }
+unit::unit(const unit &source) : creature(source), throwSkill(source.throwSkill)
+{
+    player=source.player;
+    intelligence=source.intelligence;
+    excreteNeedMax=source.excreteNeedMax;
+    
+    learningSkills = new short[NUMSKILLS]; //update every time there is a new skill
+    for(int i=0; i<NUMSKILLS; i++)
+        learningSkills[i]=source.learningSkills[i];
+    
+    excreteNeed=source.excreteNeed;
+    
+    throwing=source.throwing;
+    eating=source.eating;
+    excreting=source.excreting;
+}
 
 unit::~unit()
 {
@@ -441,71 +457,6 @@ creature* unit::createFetus(int withwhom)
 //public functions below --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-unit& unit::operator=(const unit &source)
-{
-    player=source.player;
-    index=source.index;
-    sleep=source.sleep;
-    energy=source.energy;
-    strength=source.strength;
-    gender=source.gender;
-    intelligence=source.intelligence;
-    age=source.age;
-    moveToX=source.moveToX;
-    x=source.x;
-    moveToY=source.moveToY;
-    y=source.y;   
-    speed=source.speed;
-    lineOfSight=source.lineOfSight;
-    immunity=source.immunity;
-    health=source.health;
-    healthDiseaseInc=source.healthDiseaseInc;
-    woundEnergyCost=source.woundEnergyCost;    
-    maxMetabolicRate=source.maxMetabolicRate;
-    energyPerFood=source.energyPerFood;
-    metabolicRate=source.metabolicRate;
-    speciesIndex=source.speciesIndex;
-    coefOfWorseningSight=source.coefOfWorseningSight;
-    sexuallyMature=source.sexuallyMature;
-    pregnant=source.pregnant;
-    fetusid=source.fetusid;
-    for(unsigned int i=0; i<source.carrying.size(); i++)
-    	carrying.push_back(new object(*(source.carrying[i])));
-    hunger=source.hunger;
-    learningSkills=new short[NUMSKILLS]; //update every time there is a new skill
-    for(int i=0; i<NUMSKILLS; i++)
-        learningSkills[i]=source.learningSkills[i];
-    
-    sleeping=source.sleeping;
-    reproducing=source.reproducing;
-    moving=source.moving;  
-    throwing=source.throwing;
-    eating=source.eating;
-    liftingOrDropping=source.liftingOrDropping;
-    waking=source.waking;
-    excreting=source.excreting;
-    movingprog=source.movingprog;
-    
-    weight=source.weight;
-    fatBuildProgress=source.fatBuildProgress;
-    fatToWeight=source.fatToWeight;
-    fatRetrievalEfficiency=source.fatRetrievalEfficiency;
-    minWeight=source.minWeight;
-    excreteNeed=source.excreteNeed;
-    excreteNeedMax=source.excreteNeedMax;
-    for(unsigned int i=0; i<source.diseased.size(); i++)
-    	diseased.push_back(source.diseased[i]);
-    currSeen = new vector<vector<metabool> >;
-    currSeen->resize(source.currSeen->size());
-    for(unsigned int i=0; i<source.currSeen->size(); i++)
-    {
-    	for(unsigned int j=0; j<source.currSeen->size(); j++)
-    	{
-    		(*currSeen)[i].push_back((*source.currSeen)[i][j]);
-    	}
-    }
-    return *this;
-}
 void unit::move() //make moving an int to force continual
 {
     if(index!=curLoops.unitIndex || player!=curLoops.unitPlayer)
@@ -644,13 +595,13 @@ void unit::seeIntently(short dirSee)
 }
 
 //getters 
-vector<object> unit::getcarrying()
+vector<object*> unit::getcarrying()
 {
-    vector<object> ret;
+    vector<object*> ret;
     if(curLoops.unitPlayer==player && curLoops.unitIndex==index) 
     { 
         for(unsigned int i=0; i<carrying.size(); i++)
-            ret.push_back(*(carrying[i]));
+            ret.push_back(new object(*(carrying[i])));
         return ret;
     } 
     return ret; 

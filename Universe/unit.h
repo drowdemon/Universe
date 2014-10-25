@@ -73,6 +73,7 @@ friend class object;
 friend class Throwing;
 friend class commWrapper;
 friend class creature;
+friend communicationProtocol::communicationProtocol(unit *);
 private: // all this stuff can only be changed internally
     //more will certainly be added. Our own creatures will inherit from this, and implement some sort of run function, probably
     int player;
@@ -101,6 +102,7 @@ private:
 #undef W
 #undef U
 #undef V
+	unit(const unit &source);
     void livingEvents(int speciesIndex);
     void moveHelper(int mx, int my);
     void unseeunit();
@@ -117,7 +119,6 @@ private:
     creature* createFetus(int withwhom);
 public:
     virtual ~unit();
-    unit& operator=(const unit &source);
     void move(); //no obstacle avoidance: each creature will implement that on its own. This just moves in the direction of a target. Very simple.
     void move(short mx, short my); //no obstacle avoidance: each creature will implement that on its own. This just moves to the given square, if that's legal
     void reproduce(int withwhom);
@@ -133,7 +134,7 @@ public:
     void seeIntently(short dirSee);
     virtual void act(); //each person will make a class that inherits from unit. act will be overridden with AI. In this class, it should be empty
     //getters
-    vector<object> getcarrying();
+    vector<object*> getcarrying();
 #define Y(type, val) \
     type get ## val() ;
     LISTVARSUNIT

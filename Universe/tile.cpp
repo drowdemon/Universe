@@ -354,7 +354,7 @@ short tile::cameouflageAmnt()
     LISTVARSTILE
 #undef X
 
-vector<object>* tile::getallObjects(unit& u) 
+vector<object*>* tile::getallObjects(unit& u) 
 { 
     if(u.player!=curLoops.unitPlayer || u.index!=curLoops.unitIndex) \
         return NULL; \
@@ -362,23 +362,30 @@ vector<object>* tile::getallObjects(unit& u)
 		return NULL; \
     if((*u.currSeen)[u.lineOfSight+y-u.y][u.lineOfSight+x-u.x].get(&u)>0) 
     { 
-        vector<object> *ret = new vector<object>; 
+        vector<object*> *ret = new vector<object*>; 
         for(unsigned int i=0; i<allObjects.size(); i++)
-            ret->push_back(*allObjects[i]);
+        {
+        	object* o = new object(*allObjects[i]);
+        	ret->push_back(o);
+        }
+            
         return ret; 
     } 
     return NULL; 
 }
 
-vector<object>* tile::getallObjects(hiveMind& h) 
+vector<object*>* tile::getallObjects(hiveMind& h) 
 { 
     if(h.player!=curLoops.hivePlayer || h.index!=curLoops.hiveIndex) \
         return NULL; \
     if(mapseenhive[h.player][h.index][y][x].get(&h)>0) 
     { 
-        vector<object> *ret = new vector<object>; 
+        vector<object*> *ret = new vector<object*>; 
         for(unsigned int i=0; i<allObjects.size(); i++)
-            ret->push_back(*allObjects[i]);
+        {
+        	object* o = new object(*allObjects[i]);
+        	ret->push_back(o);
+        }
         return ret; 
     } 
     return NULL; 

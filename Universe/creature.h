@@ -99,6 +99,7 @@ protected:
     
     creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extraneous=false);
 #undef W
+    creature(const creature &source);
     virtual bool nextFrame()=0;
 	virtual void livingEvents(int speciesIndex);
 	virtual bool checkLive(short maxHunger);

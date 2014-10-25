@@ -50,9 +50,7 @@ unit *hiveMind::getUnitInHive(int index)
         { 
             if(abs(centerx-allUnits.data[player][index]->x)<range && abs(centery-allUnits.data[player][index]->y)<range) 
             { 
-                unit *ret = new unit; 
-                *ret = *allUnits.data[player][index]; 
-                return ret; 
+                return new unit(*allUnits.data[player][index]); 
             } 
         } 
     }

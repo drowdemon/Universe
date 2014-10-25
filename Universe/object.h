@@ -80,6 +80,7 @@ private:
     short height;
     object(short w, short p, short i, short px, short py, short what, bool aedib, food* pf, short ind, short h);
     object(objectDescriptor& od, short p, short i, short px, short py, short ind, short h);
+    object(const object& source);
     bool rot();
     void move();
 public:

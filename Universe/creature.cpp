@@ -64,6 +64,42 @@ creature::creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extrane
 	}
 }
 
+creature::creature(const creature& source)
+{
+#define W(type, val) val = source.val;
+	LISTVARSCREATURE
+	LISTVARSCREATURECONSTRUCTORONLY
+#undef W
+	
+	moveToX=source.moveToX;
+	moveToY=source.moveToY;
+	fetusid=source.fetusid;
+	fatBuildProgress=source.fatBuildProgress;
+	moving=source.moving;
+	waking=source.waking;
+	sleeping=source.sleeping;
+	liftingOrDropping=source.liftingOrDropping;
+	movingprog=source.movingprog;
+	reproducing=source.reproducing;
+	seeingIntently=source.seeingIntently;
+
+	diseased=source.diseased;
+	
+	currSeen = new vector<vector<metabool> >();
+	currSeen->resize(source.currSeen->size());
+	for(unsigned int i=0; i<currSeen->size(); i++)
+	{
+		for(unsigned int j=0; j<(*currSeen)[i].size(); j++)
+			(*currSeen)[i].push_back((*source.currSeen)[i][j]);
+	}
+	
+	for(unsigned int i=0; i<source.carrying.size(); i++)
+	{
+		object *o = new object(*(source.carrying[i]));
+		carrying.emplace_back(o);
+	}
+}
+
 creature::~creature()
 {
 	for(unsigned int i=0; i<carrying.size(); i++)

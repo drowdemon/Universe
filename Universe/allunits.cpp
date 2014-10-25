@@ -16,9 +16,7 @@ unit* allunits::get(unit* u, int index, int player) //can get any other unit, bu
         return NULL;
     if((*data[player][index]->currSeen)[data[player][index]->lineOfSight][data[player][index]->lineOfSight].get(u)==1) //can see them
     {
-        unit* ret=new unit;
-        *ret=*data[player][index];
-        return ret;
+        return new unit(*data[player][index]);
     }
     return NULL;
 }
@@ -29,9 +27,7 @@ unit* allunits::get(hiveMind* h, int index) //MUST DELETE RESULTS
         return NULL;
     if(mapseenhive[p][h->index][data[p][index]->y][data[p][index]->x].get(h)==1) //can see them
     {
-        unit* ret=new unit;
-        *ret=*data[p][index];
-        return ret;
+        return new unit(*data[p][index]);
     }
     return NULL;
 }

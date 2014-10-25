@@ -60,6 +60,27 @@ object::object(objectDescriptor& od, short p, short i, short px, short py, short
     height=h;
 }
 
+object::object(const object &source)
+{
+	weight=source.weight;
+    heldByPlayer=source.heldByPlayer;
+    heldByIndex=source.heldByIndex;
+    y=source.y;
+    x=source.x;
+    whatIsIt=source.whatIsIt;
+    actuallyEdible=source.actuallyEdible;
+    speed=source.speed;
+    toX=source.toX;
+    toY=source.toY;
+    index=source.index;
+    height=source.height;
+    
+    infected=source.infected;
+    infectionTime=source.infectionTime;
+    
+    possFood = new food(*source.possFood);
+}
+
 object::~object()
 {
 	delete possFood;

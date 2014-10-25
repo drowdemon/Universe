@@ -81,8 +81,8 @@ public:
     bool walkable(hiveMind *h, short fx, short fy); //whether the given unit can walk on the tile. //vehicles will be added later //buildings will be added later
     //pubTile* get(unit& u);
     //pubTile* get(hiveMind& h);
-    vector<object>* getallObjects(unit &u);
-    vector<object>* getallObjects(hiveMind &h);
+    vector<object*>* getallObjects(unit &u);
+    vector<object*>* getallObjects(hiveMind &h);
 #define X(type, val) \
     type * get ## val(unit& u); \
     type * get ## val(hiveMind& h);
