@@ -88,6 +88,7 @@ protected:
 	bool moving;
 	bool waking;
 	bool liftingOrDropping; //if pickup() or putdown() were called
+	bool eating;
 	
 	vector<object*> carrying;
 	vector<vector<metabool> > *currSeen;
@@ -122,6 +123,7 @@ protected:
 	virtual void hitWithFlyingObject(int objIndex); //Add to this function
 	virtual void pickUp(int what, int ox, int oy);
 	virtual void putDown(int objIndex, int px, int py);
+	virtual void eat(int what)=0;
 	
 	virtual ~creature();
 };

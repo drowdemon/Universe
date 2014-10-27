@@ -1,9 +1,10 @@
-#include <cstdlib>
 #include <ctime>
 #include <vector>
 #include "tile.h"
 #include "unit.h"
 #include "globals.h"
+#include "Animalia/animalEatingAbilities.h"
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -33,9 +34,9 @@ void init()
     tileConstructorAllowed=false;
     unitChangeFile = new ofstream("unitChanges");
     
-    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)-1, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, (short)MOVINGLIFTEDWEIGHTPENALTY, 3, TOLERABLEHEIGHTDIFF, NULL));
+    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)-1, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, (short)MOVINGLIFTEDWEIGHTPENALTY, 3, TOLERABLEHEIGHTDIFF, 0, 0, NULL));
     //an animal identical to a unit
-    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)0, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, (short)MOVINGLIFTEDWEIGHTPENALTY, 3, TOLERABLEHEIGHTDIFF, NULL));
+    allSpecies.push_back(species((short)MAXHEALTH, (short)20, (short)5, (short)0, (short)MOVEMENTENERGY, (short)(FALLINGMULTIPLIER*100.0), (short)MAXHUNGER, (short)ENERGYCRITPOINT, (short)GESTATIONPERIOD, (short)PREGNANTENERGYCOST, (short)REPRODUCTIONENERGYCOST, (short)NEWBORNENERGY, (short)NEWBORNSLEEP, (short)NEWBORNHUNGER, (short)BIRTHHEALTHLOSS, (short)BIRTHENERGYLOSS, (short)REPRODUCTIONTIME, (short)ENERGYSOFTMAX, (short)ENERGYFROMFATPOINT, (short)ENERGYFROMFATRATE, (short)NEWBORNMINWEIGHT, (short)MOVINGSELFWEIGHTPENALTY, (short)MOVINGLIFTEDWEIGHTPENALTY, 3, TOLERABLEHEIGHTDIFF, 10, 5, new herbivore(0, allSpecies.size(), false)));
     
     allObjectDesc.push_back(objectDescriptor(3,1,OBJECT_SMALLWOOD,true,false,false,-3,-1,food()));
     allObjectDesc.push_back(objectDescriptor(50,5,OBJECT_CORPSE,true,true,true,-2,-1,food())); //INCORRECT STATS. DEFINITELY. 

@@ -41,6 +41,7 @@ class tile //default - empty grass
     friend class herbivore;
     friend class carnivore;
     friend class creature;
+    friend class animalEatingAbilities;
     friend void reformatAnimals();
 private: //private so that you can't just learn anything about any part of the map
     //Once we figure out all of the variables this will contain, I recommend we use some bitshifting tricks to compact this as much as possible. The map will take up lots of RAM, and compacting this will let us have more tiles.

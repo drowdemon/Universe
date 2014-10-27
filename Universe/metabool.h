@@ -18,7 +18,6 @@ public:
     unsigned char get(animal *a);
     friend void unit::seehive(int);
     friend void unit::unseehive(int);
-    friend void unit::unseeunit();
     friend class animal;
     friend class herbivore;
     friend class carnivore;

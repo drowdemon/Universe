@@ -121,7 +121,7 @@ vector<vector<short> > *animal::searchFood()
         if(x==moveToX && y==moveToY) //moved //Correct for case where there is an obstacle. Works otherwise because above movement is made quantized.
         {
             searchDist--;
-            if(allSpecies[speciesIndex].eatingBehavior->eatingBehavior(foodLocs)) //true = found food
+            if(allSpecies[speciesIndex].eatingBehavior->eatingBehavior(foodLocs, currSeen, x, y, lineOfSight)) //true = found food
             {
                 foodapprox.push_back(point(x,y));
                 return foodLocs;
@@ -140,7 +140,7 @@ vector<vector<short> > *animal::searchFood()
         }
         if(x==foodapprox.back().x && y==foodapprox.back().y) //already there
         {
-            allSpecies[speciesIndex].eatingBehavior->eatingBehavior(foodLocs);
+            allSpecies[speciesIndex].eatingBehavior->eatingBehavior(foodLocs, currSeen, x, y, lineOfSight);
         }
     }
     return foodLocs;
@@ -294,7 +294,7 @@ void animal::act()
 }
 void animal::reproduce(int withwhom)
 {
-    if(sleeping || reproducing>0 || moving || waking || seeingIntently==1 || liftingOrDropping) //can't do anything else.
+    if(sleeping || reproducing>0 || moving || waking || seeingIntently==1 || liftingOrDropping || eating) //can't do anything else.
         return;
     if(index!=curLoops.animalIndex)
         return;
@@ -305,7 +305,7 @@ void animal::reproduce(int withwhom)
 }
 void animal::goToSleep()
 {
-	if(sleeping || reproducing>0 || moving || waking || seeingIntently==1 || liftingOrDropping)
+	if(sleeping || reproducing>0 || moving || waking || seeingIntently==1 || liftingOrDropping || eating) //nothing else is allowed
 		return;
 	if(index!=curLoops.animalIndex)
 		return;
@@ -315,7 +315,7 @@ void animal::goToSleep()
 }
 void animal::seeIntently(short dirSee)
 {
-	if(sleeping || reproducing>0 || waking || seeingIntently==1 || liftingOrDropping) //moving taken care of in creature
+	if(sleeping || reproducing>0 || waking || seeingIntently==1 || liftingOrDropping || eating) //moving taken care of in creature, besides that nothing else is allowed
 		return;
 	if(index!=curLoops.animalIndex)
 		return;
@@ -358,7 +358,7 @@ vector<point> *animal::getfoodapprox(animal* a)
 }
 void animal::pickUp(int what, int ox, int oy)
 {
-	if(sleeping || reproducing>0 || liftingOrDropping || waking || moving || seeingIntently==1) //nothing else is allowed
+	if(sleeping || reproducing>0 || liftingOrDropping || waking || moving || seeingIntently==1 || eating) //nothing else is allowed
         return;
     if(index!=curLoops.animalIndex)
         return;
@@ -368,9 +368,17 @@ void animal::pickUp(int what, int ox, int oy)
 }
 void animal::putDown(int objIndex, int px, int py)
 {
-	if(sleeping || reproducing>0 || moving || liftingOrDropping || waking || seeingIntently==1) //nothing else is allowed
+	if(sleeping || reproducing>0 || moving || liftingOrDropping || waking || seeingIntently==1 || eating) //nothing else is allowed
         return;
     if(index!=curLoops.animalIndex)
         return;
     creature::putDown(objIndex, px, py);
+}
+void animal::eat(int what)
+{
+	if(sleeping || reproducing>0 || eating || liftingOrDropping || waking || seeingIntently==1) //moving is allowed
+        return;
+    if(index!=curLoops.animalIndex)
+        return;
+    allSpecies[speciesIndex].eatingBehavior->eat(what, hunger, carrying, x, y);
 }

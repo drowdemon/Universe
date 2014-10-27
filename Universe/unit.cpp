@@ -35,7 +35,6 @@ unit::unit(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY LISTVARSUNITCONSTRUC
         learningSkills[i]=-1;
     
     throwing=false;
-    eating=false;
     excreteNeed=-1;
     excreting=false;
 }
@@ -52,7 +51,6 @@ unit::unit(const unit &source) : creature(source), throwSkill(source.throwSkill)
     excreteNeed=source.excreteNeed;
     
     throwing=source.throwing;
-    eating=source.eating;
     excreting=source.excreting;
 }
 
@@ -74,7 +72,6 @@ bool unit::nextFrame()
     see();
     if(!checkLive(MAXHUNGER))
     {
-        unseeunit();
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
                 unseehive(i);
         return false;
@@ -85,14 +82,12 @@ bool unit::nextFrame()
     if(movingprog==tempmovingprog) //did not move
         movingprog=0; //no progress on moving
     if(!checkLive(MAXHUNGER))
-    {
-        unseeunit();    
+    { 
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
                 unseehive(i);
         return false;
     }
     learn(); //learn if you set that you want to and you're near whoever you are learning from and they did something
-    unseeunit();
     resetActions();
     return true;
 }
@@ -105,7 +100,6 @@ void unit::moveHelper(int mx, int my)
             health-=(damage=(int)((double)(map[y][x].height-map[y+my][x+mx].height-allSpecies[speciesIndex].tolerableHeightDiff)*(double)FALLINGMULTIPLIER));
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
             unseehive(i);
-        unseeunit();
         map[y][x].uniton=false;
         map[y][x].unitplayer=-1;
         map[y][x].unitindex=-1;
@@ -122,9 +116,9 @@ void unit::moveHelper(int mx, int my)
         map[y][x].uniton=true;
         map[y][x].unitplayer=player;
         map[y][x].unitindex=index;
+        vector<point> seensq = seeGUI();
         for(unsigned int i=0; i<allMinds.data[player].size(); i++)
             seehive(i);
-        vector<point> seensq = seeGUI(); 
         creatureChangeLog::update(x-mx,y-my,player,index,mx,my,-damage,MOVEMENTENERGY,0,0,0,&seensq);
     }
     else
@@ -153,14 +147,6 @@ void unit::livingEvents(int speciesIndex)
             shit();
     }
     creatureChangeLog::update(x,y,player,index,0,0,health-deltaHlth,energy-deltaE,hunger-deltaH,sleep-deltaS,pregnant-deltaP,NULL);
-}
-void unit::unseeunit()
-{
-	for(unsigned int i=0; i<currSeen->size(); i++)
-	{
-		for(unsigned int j=0; j<currSeen->size(); j++)
-			(*currSeen)[i][j].b=0;
-	}
 }
 void unit::seehive(int hiveindex)
 {
@@ -587,7 +573,7 @@ void unit::excrete()
 }
 void unit::seeIntently(short dirSee)
 {
-	if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting || seeingIntently==1) //moving is taken care of in creature 
+	if(sleeping || reproducing>0 || throwing || eating || liftingOrDropping || waking || excreting || seeingIntently==1) //moving is taken care of in creature, besides that nothing else is allowed 
 		return;
 	if(player!=curLoops.unitPlayer || index!=curLoops.unitIndex)
 		return;

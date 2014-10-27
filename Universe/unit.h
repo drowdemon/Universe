@@ -88,7 +88,6 @@ private: // all this stuff can only be changed internally
     //below are 'acting' variables. If the unit is doing some action, and cannot do other actions because of this, this is where it is recorded.
     
     bool throwing; //These are cleared at the end of the frame
-    bool eating;
     bool excreting; //you can't do shit while you're excreting. 
 public:
     commWrapper allCommuniques;
@@ -105,7 +104,6 @@ private:
 	unit(const unit &source);
     void livingEvents(int speciesIndex);
     void moveHelper(int mx, int my);
-    void unseeunit();
     void seehive(int hiveIndex);
     void unseehive(int hiveIndex);
     bool nextFrame();

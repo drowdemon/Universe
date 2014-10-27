@@ -24,6 +24,7 @@ creature::creature()
 	moving=false;
 	waking=false;
 	liftingOrDropping=false;
+	eating=false;
 
 	currSeen = new vector<vector<metabool> >();
 	currSeen->resize(lineOfSight*2+1);
@@ -51,6 +52,7 @@ creature::creature(LISTVARSCREATURE LISTVARSCREATURECONSTRUCTORONLY bool extrane
 	moving=false;
 	waking=false;
 	sleeping=false;
+	eating=false;
 	liftingOrDropping=false;
 	movingprog=0;
 	reproducing=0;
@@ -78,6 +80,7 @@ creature::creature(const creature& source)
 	moving=source.moving;
 	waking=source.waking;
 	sleeping=source.sleeping;
+	eating=source.eating;
 	liftingOrDropping=source.liftingOrDropping;
 	movingprog=source.movingprog;
 	reproducing=source.reproducing;

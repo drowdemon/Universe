@@ -26,7 +26,9 @@
 	X(short, movingSelfWeightPenalty) \
 	X(short, movingLiftedWeightPenalty) \
 	X(short, lineOfPerfectSight) \
-	X(short, tolerableHeightDiff)
+	X(short, tolerableHeightDiff) \
+	X(short, nutritionPerBush) \
+	X(short, nutritionPerGrass) \
 
 class animalEatingAbilities;
 
@@ -36,6 +38,7 @@ private:
 	friend class animal;
 	friend class creature;
 	friend class unit;
+	friend class animalEatingAbilities;
 	friend void init();
 	friend int main();
 	
@@ -65,6 +68,8 @@ private:
     short movingLiftedWeightPenalty; //per 50 weight, same procedure as above
     short lineOfPerfectSight; //must be <= lineOfSight //up to this point, you can see units perfectly (without cameouflage anyway). After that, you have a chance of seeing them, but you may also just see something, without knowing what it is that you saw. 
     short tolerableHeightDiff; //the height difference between to tiles that can be walked across
+    short nutritionPerBush; //how much hunger is reduced by from eating from a bush once, i.e. decrementing bush by 1
+    short nutritionPerGrass; //same as above but for grass instead of bush
     
     animalEatingAbilities *eatingBehavior;
 #define X(type, var) \

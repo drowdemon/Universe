@@ -8,6 +8,9 @@ using std::vector;
 class food
 {
     friend class unit;
+    friend class herbivore;
+    friend class carnivore;
+    friend class animalEatingAbilities;
     friend void init();
     friend class object;
     friend class objectDescriptor;
