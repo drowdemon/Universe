@@ -189,6 +189,8 @@ bool creature::checkLive(short maxHunger)
 
 void creature::livingEvents(int speciesIndex)
 {
+	if(frames-frameOfBirth%FRAMESPERYEAR==0)
+		age++;
     if(sleeping)
         sleep+=3;
     else

@@ -87,7 +87,6 @@ vector<vector<short> > *animal::searchFood()
             searchDir=rand()%8;
         }
         
-        // <editor-fold defaultstate="collapsed" desc="NOT COMMENT: Changes in moveToVar based on searchDir">
         if(searchDir == 0)
             moveToX = x+1;
         else if(searchDir==1)
@@ -116,7 +115,7 @@ vector<vector<short> > *animal::searchFood()
             moveToX=x-1;
             moveToY=y-1;
         }
-        // </editor-fold>
+        
         move(); //does not always move the animal
         if(x==moveToX && y==moveToY) //moved //Correct for case where there is an obstacle. Works otherwise because above movement is made quantized.
         {
@@ -145,23 +144,6 @@ vector<vector<short> > *animal::searchFood()
     }
     return foodLocs;
 }
-/*bool animal::searchFoodHelperBushes(vector<vector<short> > * foodLocs)
-{
-    bool ret=false;
-    for(unsigned int i=0; i<currSeen->size(); i++)
-    {
-        for(unsigned int j=0; j<currSeen->size(); j++)
-        {
-            if((*currSeen)[i][j].b!=0) //can see this tile
-            {
-               (*foodLocs)[i][j]=map[y+i-lineOfSight][x+j-lineOfSight].bush-1; //has food
-               if((*foodLocs)[i][j]>0)
-                   ret=true;
-            }
-        }
-    }
-    return ret;
-}*/
 void animal::moveHelper(int mx, int my)
 {
     if(map[y+my][x+mx].walkable(this))
@@ -289,8 +271,7 @@ void animal::giveBirth()
     creatureChangeLog::update(child->x,child->y,-1,child->index,0,0,child->health,child->energy,child->hunger,child->sleep,child->pregnant,NULL);
 }
 void animal::act()
-{
-	
+{	
 }
 void animal::reproduce(int withwhom)
 {
@@ -323,7 +304,7 @@ void animal::seeIntently(short dirSee)
 }
 creature* animal::createFetus(int withwhom)
 {
-	allAnimals.push_back(new animal((bool)(rand()%2), geneMixer(speed, allAnimals[withwhom]->speed), geneMixer(strength, allAnimals[withwhom]->strength), allAnimals.size(), geneMixer(lineOfSight, allAnimals[withwhom]->lineOfSight), allSpecies[speciesIndex].maxHealth, (rand()%4)+allSpecies[speciesIndex].newbornMinWeight, allSpecies[speciesIndex].newbornHunger, -1, -1, allSpecies[speciesIndex].newbornSleep, 0, allSpecies[speciesIndex].newbornEnergy, -1, speciesIndex, geneMixer(woundEnergyCost, allAnimals[withwhom]->woundEnergyCost), allSpecies[speciesIndex].newbornMinWeight, geneMixer(fatToWeight, allAnimals[withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allAnimals[withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allAnimals[withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allAnimals[withwhom]->energyPerFood), geneMixer(metabolicRate, allAnimals[withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allAnimals[withwhom]->coefOfWorseningSight),(sexuallyMature+allAnimals[withwhom]->sexuallyMature)/2, geneMixer(immunity, allAnimals[withwhom]->immunity), geneMixer(healthDiseaseInc, allAnimals[withwhom]->healthDiseaseInc), animalType, geneMixer(skittish, allAnimals[withwhom]->skittish))); //adds a new animal
+	allAnimals.push_back(new animal((bool)(rand()%2), geneMixer(speed, allAnimals[withwhom]->speed), geneMixer(strength, allAnimals[withwhom]->strength), allAnimals.size(), geneMixer(lineOfSight, allAnimals[withwhom]->lineOfSight), allSpecies[speciesIndex].maxHealth, (rand()%4)+allSpecies[speciesIndex].newbornMinWeight, allSpecies[speciesIndex].newbornHunger, -1, -1, allSpecies[speciesIndex].newbornSleep, 0, allSpecies[speciesIndex].newbornEnergy, -1, speciesIndex, geneMixer(woundEnergyCost, allAnimals[withwhom]->woundEnergyCost), allSpecies[speciesIndex].newbornMinWeight, geneMixer(fatToWeight, allAnimals[withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allAnimals[withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allAnimals[withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allAnimals[withwhom]->energyPerFood), geneMixer(metabolicRate, allAnimals[withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allAnimals[withwhom]->coefOfWorseningSight),(sexuallyMature+allAnimals[withwhom]->sexuallyMature)/2, geneMixer(immunity, allAnimals[withwhom]->immunity), geneMixer(healthDiseaseInc, allAnimals[withwhom]->healthDiseaseInc), frames, animalType, geneMixer(skittish, allAnimals[withwhom]->skittish))); //adds a new animal
     return allAnimals[allAnimals.size()-1];
 }
 

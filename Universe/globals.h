@@ -59,6 +59,7 @@ using namespace std;
 #define SPEAKDIST 15 //how far away a unit can be to talk to another unit (communication wrapper allows info exchange/requests)
 #define ANIMALSIZETOFOODAMOUNT 40  //animals can be small, medium or large. As animal size increases, the amount of food its corpse would provide increases by this amount
 #define TOLERABLEHEIGHTDIFF 5
+#define FRAMESPERYEAR 300000
 //function declarations
 int geneMixer(int p1, int p2);
 

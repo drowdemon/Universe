@@ -35,12 +35,14 @@ using namespace std;
 	W(short, sexuallyMature) \
 	W(short, immunity) \
 	W(short, healthDiseaseInc) \
+	W(unsigned long long, frameOfBirth) \
 
 class metabool;
 
 class creature
 {
 protected:
+	//TODO create a way to store a formula based on age for a particular variable. For example, minweight might go up with age up to a certain point, and then stabilize (asymptotically maybe). Metabolism might go up sharply for some time and then gradually decline. etc. Coefficients would likely be genetic, actual function would not be.
 	//vary from animal to animal, but constant within animal 
 	bool gender; //I assume 2 genders. true=male  //genetic
 	short speed; //how often movement occurs. Can't be 1:1 with ticks, since vehicles have to be faster
@@ -59,6 +61,7 @@ protected:
 	short sexuallyMature; //at what age reproduction is possible. Can vary slightly. //genetic
 	short immunity; //changes with age. small->large->small. Out of 10,000 //genetic
 	short healthDiseaseInc; //how much the chances of disease increase per health lost. //genetic
+	unsigned long long frameOfBirth; //what frame the creature was born on.
 	
 	//vary within animal (from here on out)
 	short health; //starts at max. If wounded, decreased.
