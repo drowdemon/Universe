@@ -305,8 +305,10 @@ void unit::emergencySleep()
         return; //not emergency
     for(unsigned int i=0; i<allMinds.data[0].size(); i++)
     {
-        if(getHiveMindcenterx(i)!=-9999) //legit data - the hivemind is available
+    	int *temp = getHiveMindcenterx(i);
+        if(temp) //legit data - the hivemind is available
         {
+        	delete temp;
             return; //a hive mind is in command. I can't sleep without commands
         }
     }
@@ -435,7 +437,7 @@ void unit::shit() //excrete is public. shit is private.
 }
 creature* unit::createFetus(int withwhom)
 {
-	allUnits.data[player].push_back(new unit((bool)(rand()%2), geneMixer(speed, allUnits.data[player][withwhom]->speed), geneMixer(strength, allUnits.data[player][withwhom]->strength), allUnits.data[player].size(), geneMixer(lineOfSight, allUnits.data[player][withwhom]->lineOfSight), allSpecies[0].maxHealth, (rand()%4)+allSpecies[0].newbornMinWeight, allSpecies[0].newbornHunger, -1, -1, allSpecies[0].newbornSleep, 0, allSpecies[0].newbornEnergy, -1, 0, geneMixer(woundEnergyCost, allUnits.data[player][withwhom]->woundEnergyCost), allSpecies[0].newbornMinWeight, geneMixer(fatToWeight, allUnits.data[player][withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allUnits.data[player][withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allUnits.data[player][withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allUnits.data[player][withwhom]->energyPerFood), geneMixer(metabolicRate, allUnits.data[player][withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allUnits.data[player][withwhom]->coefOfWorseningSight),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2, geneMixer(immunity,allUnits.data[player][withwhom]->immunity), geneMixer(healthDiseaseInc, allUnits.data[player][withwhom]->healthDiseaseInc), frames, player, geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence), geneMixer(excreteNeedMax, allUnits.data[player][withwhom]->excreteNeedMax), 0)); //adds the new unit. It doesn't really exist though
+	allUnits.data[player].push_back(new unit((bool)(rand()%2), geneMixer(speed, allUnits.data[player][withwhom]->speed), geneMixer(strength, allUnits.data[player][withwhom]->strength), allUnits.data[player].size(), geneMixer(lineOfSight, allUnits.data[player][withwhom]->lineOfSight), allSpecies[0].maxHealth, (rand()%4)+allSpecies[0].newbornMinWeight, allSpecies[0].newbornHunger, -1, -1, allSpecies[0].newbornSleep, 0, allSpecies[0].newbornEnergy, -1, 0, geneMixer(woundEnergyCost, allUnits.data[player][withwhom]->woundEnergyCost), geneMixer(minWeight, allUnits.data[player][withwhom]->minWeight), geneMixer(fatToWeight, allUnits.data[player][withwhom]->fatToWeight), geneMixer(fatRetrievalEfficiency, allUnits.data[player][withwhom]->fatRetrievalEfficiency), geneMixer(maxMetabolicRate, allUnits.data[player][withwhom]->maxMetabolicRate), geneMixer(energyPerFood, allUnits.data[player][withwhom]->energyPerFood), geneMixer(metabolicRate, allUnits.data[player][withwhom]->metabolicRate), geneMixer(coefOfWorseningSight, allUnits.data[player][withwhom]->coefOfWorseningSight),(sexuallyMature+allUnits.data[player][withwhom]->sexuallyMature)/2, geneMixer(immunity,allUnits.data[player][withwhom]->immunity), geneMixer(healthDiseaseInc, allUnits.data[player][withwhom]->healthDiseaseInc), frames, player, geneMixer(intelligence,allUnits.data[player][withwhom]->intelligence), geneMixer(excreteNeedMax, allUnits.data[player][withwhom]->excreteNeedMax), 0)); //adds the new unit. It doesn't really exist though
     return allUnits.data[player][allUnits.data[player].size()-1]; 
 }
 //Lot of empty statements:D------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -461,7 +463,7 @@ void unit::move(short mx, short my)
         return;
     movingprog++;
     moving=true;
-    if(movingprog!=speed)
+    if(movingprog!=speed->intEval(age))
         return;
     movingprog=0;
     if(abs(x-mx)<=1 && abs(y-my)<=1)
@@ -524,10 +526,7 @@ void unit::eat(int objIndex)
     for(unsigned int i=0; i<carrying[objIndex]->infected.size(); i++)
     {
     	//TODO maybe make this happen with spreadabilityChance probability?
-        diseased.push_back(diseaseInfo(carrying[objIndex]->infected[i]));
-        strength-=allDiseases[carrying[objIndex]->infected[i]].permStrCost;
-        intelligence-=allDiseases[carrying[objIndex]->infected[i]].permIntelCost;
-        immunity-=allDiseases[carrying[objIndex]->infected[i]].permImmunCost;
+        becomeIll(carrying[objIndex]->infected[i]);
     }
     if(carrying[objIndex]->actuallyEdible>=0)
         hunger-=carrying[objIndex]->possFood->nutrition;
@@ -593,13 +592,13 @@ vector<object*> unit::getcarrying()
     return ret; 
 }
 #define Y(type, val) \
-    type unit::get ## val() \
+    type* unit::get ## val() \
     { \
         if(curLoops.unitPlayer==player && curLoops.unitIndex==index) \
         { \
-            return val; \
+            return new type(val); \
         } \
-        return -127; \
+        return NULL; \
     }
     LISTVARSUNIT
 #undef Y
@@ -607,31 +606,31 @@ vector<object*> unit::getcarrying()
 //getters for hive mind
 
 #define X(type, val) \
-    type unit::getHiveMind ## val(int hiveIndex) \
+    type* unit::getHiveMind ## val(int hiveIndex) \
     { \
         if(curLoops.unitPlayer==player && curLoops.unitIndex==index) \
         { \
             if(abs(allMinds.data[player][hiveIndex].centerx-x)<allMinds.data[player][hiveIndex].range && abs(allMinds.data[player][hiveIndex].centery-y)<allMinds.data[player][hiveIndex].range) \
-                return allMinds.data[player][hiveIndex].val ; \
+                return new type(allMinds.data[player][hiveIndex].val) ; \
         } \
-        return -9999; \
+        return NULL; \
     } 
     LISTVARSHIVE
 #undef X
             
 //getters for when seen by some other unit
 #define Z(type, val) \
-    type unit::getNonSelf ## val(unit* looking) \
+    type* unit::getNonSelf ## val(unit* looking) \
     { \
         if(looking) \
         { \
             if(curLoops.unitIndex==looking->index && curLoops.unitPlayer==looking->player && abs(looking->x-x) > looking->lineOfSight && abs(looking->y-y) > looking->lineOfSight) \
             { \
                 if((*currSeen)[looking->lineOfSight+looking->y-y][looking->lineOfSight+looking->x-x].get(looking)==1) \
-                    return val; \
+                    return new type(val); \
             } \
         } \
-        return (sizeof(type)==1)?(-127):(-9999); \
+        return NULL; \
     } 
     LISTVARSUNITSEENBYOTHER
 #undef Z                    

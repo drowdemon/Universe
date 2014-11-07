@@ -11,7 +11,15 @@ mathTerm::mathTerm(double p_outerCoef, double p_innerCoef, double p_power, int p
 	actOn=p_actOn;
 	multBy=p_multBy;
 }
-
+mathTerm::mathTerm(const mathTerm& source)
+{
+	outerCoef=source.outerCoef;
+	innerCoef=source.innerCoef;
+	power=source.power;
+	specialFunc=source.specialFunc;
+	actOn = new mathFunction(*(source.actOn));
+	multBy = new mathFunction(*(source.multBy));
+}
 mathTerm::~mathTerm()
 {
 	if(actOn)
@@ -25,7 +33,6 @@ mathTerm::~mathTerm()
 		multBy = NULL;
 	}
 }
-
 double mathTerm::evaluate(double x)
 {
 	double ret = innerCoef;
@@ -56,6 +63,29 @@ double mathTerm::evaluate(double x)
 	return ret;
 }
 
+
+mathFunction::mathFunction()
+{
+}
+mathFunction::mathFunction(const mathFunction& source)
+{
+	for(unsigned int i=0; i<source.terms.size(); i++)
+	{
+		terms.push_back(new mathTerm(*(source.terms[i])));
+	}
+}
+mathFunction& mathFunction::operator =(const mathFunction& source)
+{
+	if(this==&source)
+		return *this;
+	
+	for(unsigned int i=0; i<source.terms.size(); i++)
+	{
+		terms.push_back(new mathTerm(*(source.terms[i])));
+	}
+	
+	return *this;
+}
 mathFunction::~mathFunction()
 {
 	for(unsigned int i=0; i<terms.size(); i++)
@@ -67,7 +97,6 @@ mathFunction::~mathFunction()
 		}
 	}
 }
-
 double mathFunction::evaluate(double x)
 {
 	double sum = 0;
@@ -77,7 +106,10 @@ double mathFunction::evaluate(double x)
 	}
 	return sum;
 }
-
+int mathFunction::intEval(int x)
+{
+	return (int)mathFunction::evaluate(x);
+}
 void mathFunction::add(mathTerm *t)
 {
 	terms.push_back(t);

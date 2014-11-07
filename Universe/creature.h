@@ -2,40 +2,41 @@
 #define	CREATURE_H
 
 #include "dataStructures.h"
+#include "mathFunction.h"
 #include <vector>
 
 using namespace std;
 
-#define LISTVARSCREATURE      \
-    W(bool, gender)	          \
-    W(short, speed)	          \
-    W(short, strength)        \
-    W(int, index)	          \
-    W(short, lineOfSight)     \
-    W(short, health)	      \
-    W(short, weight)	      \
-    W(short, hunger)	      \
-    W(short, x)		          \
-    W(short, y)		          \
-    W(short, sleep)	          \
-    W(char, age)	          \
-    W(short, energy)          \
-    W(short, pregnant)        \
+#define LISTVARSCREATURE       \
+    W(bool, gender)	           \
+    W(mathFunction*, speed)	   \
+    W(mathFunction*, strength) \
+    W(int, index)	           \
+    W(short, lineOfSight)      \
+    W(short, health)	       \
+    W(short, weight)	       \
+    W(short, hunger)	       \
+    W(short, x)		           \
+    W(short, y)		           \
+    W(short, sleep)	           \
+    W(char, age)	           \
+    W(short, energy)           \
+    W(short, pregnant)         \
     W(short, speciesIndex)
 
-#define LISTVARSCREATURECONSTRUCTORONLY \
-	W(short, woundEnergyCost) \
-	W(short, minWeight) \
-	W(short, fatToWeight) \
-	W(short, fatRetrievalEfficiency) \
-	W(short, maxMetabolicRate) \
-	W(short, energyPerFood) \
-	W(short, metabolicRate) \
-	W(short, coefOfWorseningSight) \
-	W(short, sexuallyMature) \
-	W(short, immunity) \
-	W(short, healthDiseaseInc) \
-	W(unsigned long long, frameOfBirth) \
+#define LISTVARSCREATURECONSTRUCTORONLY     \
+	W(mathFunction*, woundEnergyCost)       \
+	W(mathFunction*, minWeight) 		    \
+	W(short, fatToWeight) 				    \
+	W(short, fatRetrievalEfficiency) 	    \
+	W(short, maxMetabolicRate) 			    \
+	W(short, energyPerFood) 			    \
+	W(short, metabolicRate) 			    \
+	W(short, coefOfWorseningSight) 		    \
+	W(short, sexuallyMature) 			    \
+	W(mathFunction*, immunity) 				\
+	W(short, healthDiseaseInc) 				\
+	W(unsigned long long, frameOfBirth) 	\
 
 class metabool;
 
@@ -45,12 +46,12 @@ protected:
 	//TODO create a way to store a formula based on age for a particular variable. For example, minweight might go up with age up to a certain point, and then stabilize (asymptotically maybe). Metabolism might go up sharply for some time and then gradually decline. etc. Coefficients would likely be genetic, actual function would not be.
 	//vary from animal to animal, but constant within animal 
 	bool gender; //I assume 2 genders. true=male  //genetic
-	short speed; //how often movement occurs. Can't be 1:1 with ticks, since vehicles have to be faster
-	short strength; //affects how much it can carry, how well it can fight, etc. //genetic
+	mathFunction* speed; //how often movement occurs. Can't be 1:1 with ticks, since vehicles have to be faster
+	mathFunction* strength; //The whole function must be enclosed in a single term, so as to have an outer coefficient. The function can reside in the actOn variable of that term. //affects how much it can carry, how well it can fight, etc. //genetic
 	int index; //in whatever list of units/animals/creatures there will be
 	short lineOfSight; //how far it can see. Elevation increases? Buildings/obstacles block sight
-	short woundEnergyCost; //how much energy losing health consumes, per health lost. // genetic
-	short minWeight; //It cannot go under this. Weight will no longer be transformed to energy.
+	mathFunction* woundEnergyCost; //how much energy losing health consumes, per health lost. // genetic
+	mathFunction* minWeight; //It cannot go under this. Weight will no longer be transformed to energy.
 	short fatToWeight; //how much fatBuildProgress has to advance to transform all of it into another point of weight. genetic.
 	short fatRetrievalEfficiency; //how well can energy be retrieved from fat, as a fraction of fatToWeight. Out of 1000, i.e. 900 is 90% efficiency. genetic.
 	short maxMetabolicRate; //if there is little or no energy, metabolism rises to this rate. At this point, even if the body has food, it cannot gain any more energy than it is currently gaining. This makes it impossible to avoid death by eating a lot. //genetic
@@ -59,7 +60,7 @@ protected:
 	short speciesIndex; 
 	short coefOfWorseningSight; //There's some probability of seeing something after the line of perfect sight. That varies with distance quadratically. P = (lineOfSight-dist)^2*coef. P is out of 10000 rather than 1.  //if  lineOfSight-lineOfPerfectSight = 5, this should be around 40. When that difference is 2, maybe around 250. coef*maxValueOfQuadratic should be roughly 1000, so that the percent is roughly 10%
 	short sexuallyMature; //at what age reproduction is possible. Can vary slightly. //genetic
-	short immunity; //changes with age. small->large->small. Out of 10,000 //genetic
+	mathFunction* immunity; //changes with age. small->large->small. Out of 10,000. Like sight, whole function must be encapsulated into one term to have a single outer coefficient //genetic
 	short healthDiseaseInc; //how much the chances of disease increase per health lost. //genetic
 	unsigned long long frameOfBirth; //what frame the creature was born on.
 	
@@ -127,6 +128,7 @@ protected:
 	virtual void pickUp(int what, int ox, int oy);
 	virtual void putDown(int objIndex, int px, int py);
 	virtual void eat(int what)=0;
+	virtual void becomeIll(int d);
 	
 	virtual ~creature();
 };

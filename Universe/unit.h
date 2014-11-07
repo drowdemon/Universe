@@ -25,13 +25,13 @@ class tile;
 #define LISTVARSUNIT \
     Y(int, player) \
     Y(int, index) \
-    Y(short, strength) \
+    Y(mathFunction*, strength) \
     Y(bool, gender) \
     Y(short, intelligence) \
     Y(char, age) \
     Y(short, x) \
     Y(short, y) \
-    Y(short, speed) \
+    Y(mathFunction*, speed) \
     Y(short, lineOfSight) \
     Y(short, sexuallyMature) \
     Y(short, moveToX) \
@@ -49,7 +49,7 @@ class tile;
 #define LISTVARSUNITSEENBYOTHER \
     Z(int, player) \
     Z(int, index) \
-    Z(short, strength) \
+    Z(mathFunction*, strength) \
     Z(bool, gender) \
     Z(char, age) \
     Z(short, x) \
@@ -134,7 +134,7 @@ public:
     //getters
     vector<object*> getcarrying();
 #define Y(type, val) \
-    type get ## val() ;
+    type* get ## val() ;
     LISTVARSUNIT
 #undef Y
     //getters for hivemind
@@ -149,12 +149,12 @@ public:
 #endif
     
 #define X(type, val) \
-    type getHiveMind ## val(int hiveIndex) ;
+    type* getHiveMind ## val(int hiveIndex) ;
     LISTVARSHIVE
 #undef X
     //getters for when someone else sees this unit
 #define Z(type,val) \
-    type getNonSelf ## val(unit* looking) ;
+    type* getNonSelf ## val(unit* looking) ;
     LISTVARSUNITSEENBYOTHER
 #undef Z
 };

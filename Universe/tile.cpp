@@ -207,7 +207,7 @@ void tile::spreadDisease()
                         int immunityloss=0;
                         for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
                             immunityloss+=allDiseases[allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d]].immunCost;
-                        if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-immunityloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-immunityloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->healthDiseaseInc))
+                        if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity->intEval(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->age)-immunityloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity->intEval(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->age)-immunityloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->healthDiseaseInc))
                         {
                             bool good=true;
                             for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
@@ -222,10 +222,7 @@ void tile::spreadDisease()
                             }
                             if(good)
                             {
-                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.push_back(disease[h]);
-                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->strength-=allDiseases[disease[h]].permStrCost;
-                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->intelligence-=allDiseases[disease[h]].permIntelCost;
-                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-=allDiseases[disease[h]].permImmunCost;
+                                allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->becomeIll(disease[h]);
                             }
                         }
                     }
@@ -236,7 +233,7 @@ void tile::spreadDisease()
 							int tempimmunloss=0;
 							for(unsigned int d=0; d<allAnimals[map[i][j].animalPresent-1]->diseased.size(); d++)
 								tempimmunloss+=allDiseases[allAnimals[map[i][j].animalPresent-1]->diseased[d]].immunCost;
-							if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allAnimals[map[i][j].animalPresent-1]->immunity-tempimmunloss>0)?(allAnimals[map[i][j].animalPresent-1]->immunity-tempimmunloss):0)+((MAXHEALTH-allAnimals[map[i][j].animalPresent-1]->health)*allAnimals[map[i][j].animalPresent-1]->healthDiseaseInc))
+							if(rand()%10000<allDiseases[disease[h]].spreadabilityChance-((allAnimals[map[i][j].animalPresent-1]->immunity->intEval(allAnimals[map[i][j].animalPresent-1]->age)-tempimmunloss>0)?(allAnimals[map[i][j].animalPresent-1]->immunity->intEval(allAnimals[map[i][j].animalPresent-1]->age)-tempimmunloss):0)+((MAXHEALTH-allAnimals[map[i][j].animalPresent-1]->health)*allAnimals[map[i][j].animalPresent-1]->healthDiseaseInc))
 							{
 								bool good=true;
 								for(unsigned int d=0; d<allAnimals[map[i][j].animalPresent-1]->diseased.size(); d++)
@@ -251,9 +248,7 @@ void tile::spreadDisease()
 								}
 								if(good)
 								{
-									allAnimals[map[i][j].animalPresent-1]->diseased.push_back(disease[h]);
-									allAnimals[map[i][j].animalPresent-1]->immunity-=allDiseases[disease[h]].permImmunCost;
-									allAnimals[map[i][j].animalPresent-1]->strength-=allDiseases[disease[h]].strengthCost;
+									allAnimals[map[i][j].animalPresent-1]->becomeIll(disease[h]);
 								}
 							}
 						}

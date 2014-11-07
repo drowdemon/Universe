@@ -116,6 +116,32 @@ int geneMixer(int p1, int p2)
     return ret;
 }
 
+mathFunction* geneMixer(mathFunction* f1, mathFunction* f2)
+{
+	if(!f1 || !f2)
+		return NULL;
+	if(f1->terms.size()!=f2->terms.size())
+	{
+		cout << "Error in input to geneMixer of functions" << endl;
+		return NULL;
+	}
+	mathFunction* ret = new mathFunction;
+	for(unsigned int i=0; i<f1->terms.size(); i++)
+	{
+		double inner = 0;
+		double outer = 0;
+		double counterInner = (f1->terms[i]->innerCoef+f2->terms[i]->innerCoef)/GENEMIXERSTEPSIZE;
+		double counterOuter = (f1->terms[i]->outerCoef+f2->terms[i]->outerCoef)/GENEMIXERSTEPSIZE;
+		for(int i=0; i<GENEMIXERSTEPSIZE; i++)
+		{
+			inner+=rand()%2*counterInner;
+			outer+=rand()%2*counterOuter;
+		}
+		ret->add(new mathTerm(outer, inner, f1->terms[i]->power, f1->terms[i]->specialFunc, geneMixer(f1->terms[i]->actOn, f2->terms[i]->actOn), geneMixer(f1->terms[i]->multBy, f2->terms[i]->multBy)));
+	}
+	return ret;
+}
+
 void reformat()
 {
     vector<vector<int> > indexMappings;
@@ -193,8 +219,23 @@ int main()
     srand(time(NULL));
     init();
     
-    allUnits.data[0].push_back(new unit(false, 20, 10, 0, 5, allSpecies[0].maxHealth, 100, allSpecies[0].newbornHunger, 10, 10, allSpecies[0].newbornSleep, 20, allSpecies[0].newbornEnergy, -1, 0, 2, allSpecies[0].newbornMinWeight, 150, 850, 8, 30, 13, 250, 13, 175, 200, 0, 0, 10, 50, 0));
-    allUnits.data[0][0]->minWeight=60;
+    mathFunction* speed = new mathFunction();
+    speed->add(new mathTerm(20, 1, 0, 0, NULL, NULL));
+    
+    mathFunction* strength = new mathFunction();
+    strength->add(new mathTerm(10, 1, 0, 0, NULL, NULL));
+    
+    mathFunction* woundEnergyCost = new mathFunction();
+    woundEnergyCost->add(new mathTerm(2, 1, 0, 0, NULL, NULL));
+    
+    mathFunction* minWeight = new mathFunction();
+    minWeight->add(new mathTerm(allSpecies[0].newbornMinWeight, 1, 0, 0, NULL, NULL));
+    
+	mathFunction* immunity = new mathFunction();
+    immunity->add(new mathTerm(175, 1, 0, 0, NULL, NULL));
+		
+    allUnits.data[0].push_back(new unit(false, speed, strength, 0, 5, allSpecies[0].maxHealth, 100, allSpecies[0].newbornHunger, 10, 10, allSpecies[0].newbornSleep, 20, allSpecies[0].newbornEnergy, -1, 0, woundEnergyCost, minWeight, 150, 850, 8, 30, 13, 250, 13, immunity, 200, 0, 0, 10, 50, 0));
+    //allUnits.data[0][0]->minWeight=60;
     creatureChangeLog::update(10,10,0,0,0,0,allUnits.data[0][0]->health,allUnits.data[0][0]->energy,allUnits.data[0][0]->hunger,allUnits.data[0][0]->sleep,allUnits.data[0][0]->pregnant,NULL);
     //allUnits.data[0][0].moveToX=20;
     map[10][10].uniton=true;
@@ -211,7 +252,7 @@ int main()
     
     allUnits.data[0][0]->carrying.push_back(new object(allObjectDesc[0],0,0,-1,-1,0,map[allUnits.data[0][0]->y][allUnits.data[0][0]->x].height));
         
-    allAnimals.push_back(new animal(true, 20, 10, 0, 5, 100, 50, 0, 20, 20, 700, 0, 1000, -1, 1, 1, 5, 60, 50, 8, 30, 13, 250, 13, 175, 200, 0, 0, 5));
+    allAnimals.push_back(new animal(true, speed, strength, 0, 5, 100, 50, 0, 20, 20, 700, 0, 1000, -1, 1, woundEnergyCost, minWeight, 60, 50, 8, 30, 13, 250, 13, immunity, 200, 0, 0, 5));
     creatureChangeLog::update(20,20,-1,0,0,0,allAnimals[0]->health,allAnimals[0]->energy,allAnimals[0]->hunger,allAnimals[0]->sleep,allAnimals[0]->pregnant,NULL);
     map[20][20].animalPresent=0;
     
@@ -226,7 +267,7 @@ int main()
         if(frames==50)
         {
         	allUnits.data[0][0]->moveToX=13;
-        	allUnits.data[0][0]->speed=40;
+        	//allUnits.data[0][0]->speed=40;
         }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         

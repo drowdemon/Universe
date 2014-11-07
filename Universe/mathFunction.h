@@ -7,6 +7,7 @@ using namespace std;
 #define MATHFUNCTION_H_
 
 class mathFunction;
+class creature;
 
 class mathTerm
 {
@@ -18,17 +19,24 @@ public:
 	mathFunction* actOn; //If null, this is x. Otherwise, this is a function which the above applies to. Say this represents x+1, power is -2, and special func is 0. Then this represents 1/((x+1)^2
 	mathFunction* multBy; //multiplies the current term by this function. So if this is x, and specialFunc is 1 and power is 2, this does x*(e^x)^2
 	mathTerm(double p_outerCoef=1.0, double p_innerCoef=1.0, double p_power=1.0, int p_specialFunc=0, mathFunction* p_actOn=NULL, mathFunction* p_multBy=NULL); //default is just x
-	double evaluate(double x); //plug in point x
+	mathTerm(const mathTerm& source);
+	double evaluate(double x); //plug in point xz
 	~mathTerm();
 };
 
 class mathFunction
 {
+	friend mathFunction* geneMixer(mathFunction*, mathFunction*);
+	friend class creature;
 private:
 	vector<mathTerm*> terms;
 public:
+	mathFunction();
+	mathFunction(const mathFunction& source);
+	mathFunction& operator=(const mathFunction& source);
 	void add(mathTerm* t);
 	double evaluate(double x);
+	int intEval(int x);
 	~mathFunction();
 };
 

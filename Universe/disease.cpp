@@ -1,20 +1,10 @@
 #include "disease.h"
 
-disease::disease(int ec, int sc, int ic, int mr, int mm, int dur, int sa, int sprc, unsigned char t, int fc, int c, int tspr, int tsym, int ws, int f)
+#define X(type, var) type p_ ## var,
+disease::disease(LISTVARSDISEASE bool extraneous)
 {
-    energyCost=ec;
-    strengthCost=sc;
-    intelCost=ic;
-    multiplierRate=mr;
-    multiplierMax=mm;
-    duration=dur;
-    spreadabilityArea=sa;
-    spreadabilityChance=sprc;
-    transmit=t;
-    first=f;
-    firstChance=fc;
-    curability=c;
-    timeForSpreadability=tspr;
-    timeForSymptoms=tsym;
-    waterSpreadability=ws;
+#undef X
+#define X(type, var) var = p_ ## var ;
+	LISTVARSDISEASE
+#undef X
 }

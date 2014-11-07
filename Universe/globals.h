@@ -60,6 +60,7 @@ using namespace std;
 #define ANIMALSIZETOFOODAMOUNT 40  //animals can be small, medium or large. As animal size increases, the amount of food its corpse would provide increases by this amount
 #define TOLERABLEHEIGHTDIFF 5
 #define FRAMESPERYEAR 300000
+#define GENEMIXERSTEPSIZE 100
 //function declarations
 int geneMixer(int p1, int p2);
 

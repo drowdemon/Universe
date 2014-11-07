@@ -127,7 +127,7 @@ void creature::move()
     	return;    
     movingprog++;
     moving=true;
-    if(movingprog==speed)
+    if(movingprog==speed->intEval(age))
     {
         movingprog=0;
         if(moveToX>x)
@@ -195,11 +195,11 @@ void creature::livingEvents(int speciesIndex)
         sleep+=3;
     else
         sleep--;
-    energy-=(allSpecies[speciesIndex].maxHealth-health)*woundEnergyCost;
+    energy-=(allSpecies[speciesIndex].maxHealth-health)*woundEnergyCost->intEval(age);
     diseaseEffects(); //just energy costs
     if(energy<allSpecies[speciesIndex].energyFromFatPoint)
     {
-        if(weight>minWeight && frames%allSpecies[speciesIndex].energyFromFatRate==0)
+        if(weight > minWeight->intEval(age) && frames%allSpecies[speciesIndex].energyFromFatRate==0)
         {
             weight--;
             energy+=fatToWeight*fatRetrievalEfficiency/1000;
@@ -461,18 +461,12 @@ void creature::infect()
         {
             if(allDiseases[i].first!=2) //can catch this disease at random
             {
-                if(rand()%10000<allDiseases[i].firstChance-((immunity-immunityloss>0)?(immunity-immunityloss):0)+((MAXHEALTH-health)*healthDiseaseInc)) //got sick
+                if(rand()%10000<allDiseases[i].firstChance-((immunity->intEval(age)-immunityloss>0)?(immunity->intEval(age)-immunityloss):0)+((MAXHEALTH-health)*healthDiseaseInc)) //got sick
                 {
-                    if(allDiseases[i].first==1)
+                    if(allDiseases[i].first==1 || allDiseases[i].first==0)
                     {
                         allDiseases[i].first++;
-                        diseased.push_back(diseaseInfo(i));
-                        if(speciesIndex==0)
-                        {
-                        	((unit*)this)->intelligence-=allDiseases[i].permIntelCost;
-                        }
-                        immunity-=allDiseases[i].permImmunCost;
-                        strength-=allDiseases[i].permStrCost;
+                        becomeIll(i);
                     }
                 }
             }
@@ -494,7 +488,7 @@ void creature::infect()
                     h--;
                 }
             }
-            if(rand()%10000<allDiseases[diseased[h]].curability+((immunity-immunityloss>0)?(immunity-immunityloss):0)-((MAXHEALTH-health)*healthDiseaseInc))
+            if(rand()%10000<allDiseases[diseased[h]].curability+((immunity->intEval(age)-immunityloss>0)?(immunity->intEval(age)-immunityloss):0)-((MAXHEALTH-health)*healthDiseaseInc))
             {
                 diseased.erase(diseased.begin()+h); //cured
                 h--;
@@ -578,7 +572,7 @@ void creature::infect()
                                 int tempimmunloss=0;
                                 for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
                                     tempimmunloss+=allDiseases[allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased[d]].immunCost;
-                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-tempimmunloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-tempimmunloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->healthDiseaseInc))
+                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity->intEval(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->age) - tempimmunloss>0)?(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity->intEval(allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->age)-tempimmunloss):0)+((MAXHEALTH-allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->health)*allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->healthDiseaseInc))
                                 {
                                     bool good=true;
                                     for(unsigned int d=0; d<allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.size(); d++)
@@ -593,10 +587,7 @@ void creature::infect()
                                     }
                                     if(good)
                                     {
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->diseased.push_back(diseased[h].disease);
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->strength-=allDiseases[diseased[h]].permStrCost;
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->intelligence-=allDiseases[diseased[h]].permIntelCost;
-                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->immunity-=allDiseases[diseased[h]].permImmunCost;
+                                        allUnits.data[map[i][j].unitplayer][map[i][j].unitindex]->becomeIll(diseased[h]);
                                     }
                                 }
                             }
@@ -608,7 +599,7 @@ void creature::infect()
                                 int tempimmunloss=0;
                                 for(unsigned int d=0; d<allAnimals[map[i][j].animalPresent-1]->diseased.size(); d++)
                                     tempimmunloss+=allDiseases[allAnimals[map[i][j].animalPresent-1]->diseased[d]].immunCost;
-                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allAnimals[map[i][j].animalPresent-1]->immunity-tempimmunloss>0)?(allAnimals[map[i][j].animalPresent-1]->immunity-tempimmunloss):0)+((MAXHEALTH-allAnimals[map[i][j].animalPresent-1]->health)*allAnimals[map[i][j].animalPresent-1]->healthDiseaseInc))
+                                if(rand()%10000<allDiseases[diseased[h]].spreadabilityChance-((allAnimals[map[i][j].animalPresent-1]->immunity->intEval(allAnimals[map[i][j].animalPresent-1]->age)-tempimmunloss>0)?(allAnimals[map[i][j].animalPresent-1]->immunity->intEval(allAnimals[map[i][j].animalPresent-1]->age)-tempimmunloss):0)+((MAXHEALTH-allAnimals[map[i][j].animalPresent-1]->health)*allAnimals[map[i][j].animalPresent-1]->healthDiseaseInc))
                                 {
                                     bool good=true;
                                     for(unsigned int d=0; d<allAnimals[map[i][j].animalPresent-1]->diseased.size(); d++)
@@ -623,9 +614,7 @@ void creature::infect()
                                     }
                                     if(good)
                                     {
-                                        allAnimals[map[i][j].animalPresent-1]->diseased.push_back(diseased[h].disease);
-                                        allAnimals[map[i][j].animalPresent-1]->immunity-=allDiseases[diseased[h]].permImmunCost;
-                                        allAnimals[map[i][j].animalPresent-1]->strength-=allDiseases[diseased[h]].permStrCost;
+                                        allAnimals[map[i][j].animalPresent-1]->becomeIll(diseased[h]);
                                     }
                                 }
                             }
@@ -659,7 +648,7 @@ void creature::pickUp(int what, int ox, int oy)
     {
         if(map[oy][ox].allObjects[i]->whatIsIt==what)
         {
-            if(carriedWeight+map[oy][ox].allObjects[i]->weight<=strength*WEIGHTPERSTRENGTH) //good
+            if(carriedWeight+map[oy][ox].allObjects[i]->weight<=strength->intEval(age)*WEIGHTPERSTRENGTH) //good
             {
                 carrying.push_back(map[oy][ox].allObjects[i]);
                 carrying[carrying.size()-1]->x=-1;
@@ -688,4 +677,14 @@ void creature::putDown(int objIndex, int px, int py)
     map[y][x].allObjects.push_back(carrying[objIndex]);
     carrying.erase(carrying.begin()+objIndex);
     liftingOrDropping=true;
+}
+void creature::becomeIll(int d)
+{
+	diseased.push_back(diseaseInfo(d));
+	if(speciesIndex==0)
+	{
+		((unit*)this)->intelligence-=allDiseases[d].permIntelCost;
+	}
+	immunity->terms[0]->outerCoef*=allDiseases[d].permImmunCost;
+	strength->terms[0]->outerCoef*=allDiseases[d].permStrCost;
 }

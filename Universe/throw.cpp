@@ -56,7 +56,7 @@ Throwing::Throwing(int e)
 
 void Throwing::Throw(int objIndex, unit* who, int x, int y, bool moving, int throwStrength)
 {
-    if(throwStrength>who->strength) //throwing stronger than possible. Not permitted.
+    if(throwStrength > who->strength->intEval(who->age)) //throwing stronger than possible. Not permitted.
         return; 
     int objY=who->y;
     int objX=who->x;
